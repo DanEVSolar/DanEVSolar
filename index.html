@@ -745,15 +745,18 @@ footer {
   .footer-bottom { flex-direction: column; text-align: center; gap: 8px; }
   footer { padding: 40px 0 28px; }
 
-  /* Buttons — ensure touch-friendly sizing */
+  /* Buttons — touch-friendly base sizing */
   .btn { min-height: 44px; }
   .btn-lg { padding: 14px 24px; font-size: 14px; }
 
-  /* Override any inline small padding on buttons so they're tappable */
-  a.btn[style], button.btn[style] {
-    min-height: 44px !important;
-    padding: 12px 20px !important;
-    font-size: 13px !important;
+  /* Product & tool card "Buy Now" / "Join to Access" — compact, not full-width */
+  .product-card .btn-full,
+  .tool-card .btn-full {
+    width: auto;
+    display: inline-flex;
+    padding: 10px 20px;
+    font-size: 12px;
+    min-height: 38px;
   }
 
   /* Referral card buttons — full width for easy tapping */
