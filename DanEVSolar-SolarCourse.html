@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DanEVSolar — The Complete UK Solar Install Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d0f0a;
+  --bg2:    #131509;
+  --bg3:    #1a1d0e;
+  --bg4:    #1f2210;
+  --green:  #a8cc00;
+  --amber:  #e8a020;
+  --red:    #e85020;
+  --white:  #f0f2e8;
+  --muted:  #7a8060;
+  --border: rgba(168,204,0,0.15);
+  --bord2:  rgba(168,204,0,0.08);
+  --sidebar-w: 300px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.topbar{
+  height:56px;flex-shrink:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;gap:16px;z-index:100;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.logo-box{
+  width:34px;height:34px;background:var(--green);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:7.5px;
+  color:var(--bg);text-transform:uppercase;line-height:1.1;text-align:center;padding:3px;
+}
+.logo-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;}
+.course-title-top{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+  flex:1;text-align:center;
+}
+.topbar-progress{display:flex;align-items:center;gap:10px;}
+.top-prog-bar{width:120px;height:3px;background:rgba(168,204,0,0.1);border-radius:2px;overflow:hidden;}
+.top-prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber));border-radius:2px;transition:width .4s ease;width:0%;}
+.top-prog-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--bg2);border-right:1px solid var(--border);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.sidebar-head{padding:20px 16px 12px;border-bottom:1px solid var(--bord2);}
+.sidebar-head-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
+.sidebar-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;text-transform:uppercase;line-height:1.1;}
+
+.module-group{border-bottom:1px solid var(--bord2);}
+.module-head{
+  padding:12px 16px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  transition:background .15s;
+}
+.module-head:hover{background:var(--bg3);}
+.module-head.active{background:rgba(168,204,0,0.06);}
+.mod-num{
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;color:var(--green);white-space:nowrap;
+}
+.mod-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.5px;flex:1;line-height:1.2;}
+.mod-check{width:16px;height:16px;border:1.5px solid var(--border);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s;}
+.mod-check.done{background:var(--green);border-color:var(--green);color:var(--bg);}
+
+.lesson-list{display:none;}
+.module-group.open .lesson-list{display:block;}
+.lesson-item{
+  padding:9px 16px 9px 36px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  border-left:2px solid transparent;
+  transition:all .15s;font-size:13px;color:var(--muted);
+}
+.lesson-item:hover{color:var(--white);background:var(--bg3);}
+.lesson-item.active{color:var(--green);border-left-color:var(--green);background:rgba(168,204,0,0.05);}
+.lesson-item.completed{color:rgba(168,204,0,0.6);}
+.lesson-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .2s;}
+.lesson-item.active .lesson-dot{background:var(--green);}
+.lesson-item.completed .lesson-dot{background:rgba(168,204,0,0.4);}
+.lesson-type{
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 5px;border-radius:2px;margin-left:auto;white-space:nowrap;
+}
+.type-lesson{background:rgba(168,204,0,0.1);color:var(--green);}
+.type-quiz{background:rgba(232,160,32,0.12);color:var(--amber);}
+.type-checklist{background:rgba(168,204,0,0.06);color:var(--muted);}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.slide-area{flex:1;overflow-y:auto;padding:0;}
+.slide-area::-webkit-scrollbar{width:4px;}
+.slide-area::-webkit-scrollbar-track{background:transparent;}
+.slide-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── SLIDES ── */
+.slide{display:none;animation:fadeIn .3s ease;}
+.slide.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* Cover slide */
+.slide-cover{
+  min-height:100%;
+  background:linear-gradient(135deg,var(--bg) 0%,var(--bg3) 100%);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:60px 64px;position:relative;overflow:hidden;
+}
+.slide-cover::before{
+  content:'☀';position:absolute;right:-40px;top:-40px;
+  font-size:300px;opacity:0.025;line-height:1;pointer-events:none;
+}
+.slide-cover::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--green),var(--amber),transparent);
+}
+.cover-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--green);margin-bottom:16px;}
+.cover-h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(48px,6vw,80px);line-height:.95;text-transform:uppercase;margin-bottom:24px;}
+.cover-h1 .a{color:var(--amber);}
+.cover-h1 .g{color:var(--green);}
+.cover-sub{font-size:16px;color:rgba(240,242,232,.7);max-width:520px;line-height:1.7;margin-bottom:40px;}
+.cover-stats{display:flex;gap:32px;flex-wrap:wrap;}
+.cstat{display:flex;flex-direction:column;gap:3px;}
+.cstat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:var(--green);line-height:1;}
+.cstat-lbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.cdiv{width:1px;background:var(--border);align-self:stretch;}
+
+/* Lesson slide */
+.slide-lesson{padding:48px 64px;max-width:860px;}
+.slide-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--green);margin-bottom:12px;}
+.slide-h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(32px,4vw,52px);line-height:1;text-transform:uppercase;margin-bottom:8px;}
+.slide-h2 span{color:var(--amber);}
+.slide-intro{font-size:15px;color:rgba(240,242,232,.7);line-height:1.7;margin-bottom:36px;max-width:600px;border-left:3px solid var(--border);padding-left:16px;}
+
+.content-grid{display:grid;gap:2px;margin-bottom:32px;}
+.content-grid.two-col{grid-template-columns:1fr 1fr;}
+.content-grid.three-col{grid-template-columns:1fr 1fr 1fr;}
+
+.content-card{background:var(--bg2);padding:22px;position:relative;overflow:hidden;}
+.content-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.content-card:hover::before{transform:scaleX(1);}
+.card-icon{font-size:24px;margin-bottom:10px;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:var(--white);}
+.card-body{font-size:13px;color:rgba(240,242,232,.7);line-height:1.6;}
+
+.fact-row{background:var(--bg2);padding:18px 22px;display:flex;align-items:flex-start;gap:16px;border-left:3px solid transparent;transition:border-color .2s;}
+.fact-row:hover{border-left-color:var(--green);}
+.fact-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:var(--green);line-height:1;min-width:40px;}
+.fact-num.amber{color:var(--amber);}
+.fact-content{}
+.fact-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.fact-body{font-size:13px;color:rgba(240,242,232,.7);line-height:1.6;}
+
+.warn-box{background:rgba(232,80,32,.07);border:1px solid rgba(232,80,32,.2);border-left:3px solid var(--red);padding:16px 20px;margin:16px 0;font-size:13px;color:rgba(240,242,232,.8);line-height:1.6;}
+.warn-box strong{color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.tip-box{background:rgba(168,204,0,.05);border:1px solid rgba(168,204,0,.15);border-left:3px solid var(--green);padding:16px 20px;margin:16px 0;font-size:13px;color:rgba(240,242,232,.8);line-height:1.6;}
+.tip-box strong{color:var(--green);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+
+.key-points{margin:24px 0;}
+.key-point{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bord2);}
+.key-point:last-child{border-bottom:none;}
+.kp-arrow{color:var(--green);font-size:14px;margin-top:1px;flex-shrink:0;}
+.kp-text{font-size:14px;color:rgba(240,242,232,.85);line-height:1.5;}
+.kp-text strong{color:var(--white);}
+
+.compare-table{width:100%;border-collapse:collapse;margin:20px 0;}
+.compare-table th{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--green);padding:12px 16px;text-align:left;background:var(--bg3);border-bottom:1px solid var(--border);}
+.compare-table td{padding:12px 16px;font-size:13px;color:rgba(240,242,232,.8);border-bottom:1px solid var(--bord2);vertical-align:top;}
+.compare-table tr:last-child td{border-bottom:none;}
+.compare-table tr:hover td{background:rgba(168,204,0,.03);}
+.td-good{color:var(--green);}
+.td-warn{color:var(--amber);}
+.td-bad{color:var(--red);}
+
+.big-stat{text-align:center;padding:32px;background:var(--bg2);}
+.big-stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:72px;color:var(--green);line-height:1;}
+.big-stat-lbl{font-size:13px;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:2px;}
+
+/* Quiz */
+.slide-quiz{padding:48px 64px;max-width:760px;}
+.quiz-q{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;line-height:1.2;margin-bottom:8px;}
+.quiz-sub{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.quiz-option{
+  padding:16px 20px;background:var(--bg2);border:1px solid var(--border);
+  cursor:pointer;font-size:14px;color:rgba(240,242,232,.85);
+  display:flex;align-items:center;gap:12px;
+  transition:all .15s;border-radius:2px;
+}
+.quiz-option:hover{border-color:var(--green);color:var(--white);background:var(--bg3);}
+.quiz-option.correct{border-color:var(--green);background:rgba(168,204,0,.1);color:var(--green);}
+.quiz-option.wrong{border-color:var(--red);background:rgba(232,80,32,.08);color:var(--red);}
+.quiz-option.disabled{pointer-events:none;}
+.q-letter{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;color:var(--muted);min-width:20px;}
+.quiz-option.correct .q-letter{color:var(--green);}
+.quiz-option.wrong .q-letter{color:var(--red);}
+.quiz-feedback{display:none;padding:16px 20px;margin-top:4px;font-size:14px;line-height:1.6;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.correct-fb{background:rgba(168,204,0,.07);border-left:3px solid var(--green);color:rgba(240,242,232,.85);}
+.quiz-feedback.wrong-fb{background:rgba(232,80,32,.07);border-left:3px solid var(--red);color:rgba(240,242,232,.85);}
+.quiz-score{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:48px;color:var(--green);}
+
+/* ── NAV BAR ── */
+.nav-bar{
+  height:64px;flex-shrink:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px;
+}
+.nav-btn{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:2px;text-transform:uppercase;padding:10px 22px;border-radius:2px;
+  cursor:pointer;border:none;transition:all .15s;
+}
+.nav-btn:active{transform:scale(.98);}
+.btn-prev{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-prev:hover{color:var(--white);border-color:var(--muted);}
+.btn-next{background:var(--green);color:var(--bg);}
+.btn-next:hover{opacity:.9;}
+.btn-next:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;}
+.nav-lesson-info{text-align:center;flex:1;}
+.nav-lesson-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--white);}
+.nav-lesson-pos{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── COMPLETION SLIDE ── */
+.slide-complete{
+  min-height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:60px 40px;
+  background:radial-gradient(ellipse at center,rgba(168,204,0,.07) 0%,transparent 70%);
+}
+.complete-icon{font-size:64px;margin-bottom:24px;}
+.complete-h{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(40px,6vw,72px);text-transform:uppercase;line-height:.95;margin-bottom:16px;}
+.complete-h span{color:var(--green);}
+.complete-sub{font-size:15px;color:rgba(240,242,232,.7);max-width:480px;line-height:1.7;margin:0 auto 32px;}
+.complete-badge{
+  display:inline-flex;align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--border);
+  padding:16px 28px;margin-bottom:32px;
+}
+.badge-icon{font-size:28px;}
+.badge-text{text-align:left;}
+.badge-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;text-transform:uppercase;color:var(--green);}
+.badge-sub{font-size:12px;color:var(--muted);}
+
+/* Mobile */
+/* ── FEEDBACK FORM ── */
+.fb-section{margin-bottom:28px;}
+.fb-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;color:var(--white);}
+.fb-required{color:var(--amber);}
+.fb-hint{font-size:11px;color:var(--muted);margin-top:6px;}
+
+.star-row{display:flex;gap:6px;margin-bottom:6px;}
+.star{font-size:36px;color:var(--border);cursor:pointer;transition:color .15s;line-height:1;user-select:none;}
+.star.lit{color:var(--amber);}
+.star:hover{color:var(--amber);opacity:.8;}
+.star-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;min-height:16px;}
+
+.fb-options{display:flex;flex-wrap:wrap;gap:8px;}
+.fb-chip{
+  padding:8px 14px;background:var(--bg2);border:1px solid var(--border);
+  font-size:13px;color:rgba(240,242,232,.75);cursor:pointer;border-radius:2px;
+  transition:all .15s;font-weight:500;
+}
+.fb-chip:hover{border-color:var(--green);color:var(--white);}
+.fb-chip.selected{background:rgba(168,204,0,.12);border-color:var(--green);color:var(--green);font-weight:600;}
+
+.fb-textarea{
+  width:100%;min-height:110px;background:var(--bg2);border:1px solid var(--border);
+  color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;
+  padding:14px 16px;border-radius:2px;resize:vertical;outline:none;
+  transition:border-color .2s;line-height:1.6;
+}
+.fb-textarea:focus{border-color:var(--green);}
+.fb-textarea::placeholder{color:var(--muted);}
+
+.fb-input{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;
+  padding:12px 16px;border-radius:2px;outline:none;transition:border-color .2s;
+}
+.fb-input:focus{border-color:var(--green);}
+.fb-input::placeholder{color:var(--muted);}
+
+.fb-error{color:var(--red);font-size:13px;margin-bottom:10px;font-weight:600;}
+
+.fb-submit{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;padding:14px 32px;
+  background:var(--green);color:var(--bg);border:none;border-radius:2px;
+  cursor:pointer;transition:opacity .15s;
+}
+.fb-submit:hover{opacity:.88;}
+.fb-submit:active{transform:scale(.98);}
+
+.fb-thanks{
+  background:var(--bg2);border:1px solid var(--border);
+  border-top:3px solid var(--green);padding:40px 32px;text-align:center;
+}
+.fb-thanks-icon{font-size:48px;margin-bottom:16px;}
+.fb-thanks-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;text-transform:uppercase;color:var(--green);margin-bottom:8px;}
+.fb-thanks-sub{font-size:14px;color:rgba(240,242,232,.7);line-height:1.7;max-width:440px;margin:0 auto 20px;}
+.fb-thanks-summary{
+  background:var(--bg3);border:1px solid var(--bord2);
+  padding:16px 20px;margin:16px auto;max-width:360px;text-align:left;
+  font-size:13px;color:rgba(240,242,232,.7);line-height:1.8;
+}
+.fb-cta-btn{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:2px;text-transform:uppercase;padding:12px 22px;
+  background:var(--green);color:var(--bg);text-decoration:none;border-radius:2px;
+  display:inline-block;
+}
+.fb-cta-btn-outline{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:2px;text-transform:uppercase;padding:12px 22px;
+  background:transparent;color:var(--muted);text-decoration:none;
+  border-radius:2px;border:1px solid var(--border);display:inline-block;
+}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .slide-lesson,.slide-quiz{padding:28px 20px;}
+  .slide-cover{padding:40px 24px;}
+  .content-grid.two-col,.content-grid.three-col{grid-template-columns:1fr;}
+  .course-title-top{display:none;}
+  .nav-lesson-info{display:none;}
+}
+
+/* ── PASSWORD GATE ── */
+#gate{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+  padding:24px;
+}
+#gate::before{
+  content:'';position:absolute;
+  top:-200px;right:-200px;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(168,204,0,0.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.gate-box{
+  width:100%;max-width:420px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  padding:40px 36px;
+  position:relative;
+  z-index:1;
+}
+.gate-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.gate-logo-box{
+  width:40px;height:40px;background:var(--green);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:8px;
+  color:var(--bg);text-transform:uppercase;line-height:1.1;text-align:center;padding:3px;
+}
+.gate-logo-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;text-transform:uppercase;}
+.gate-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
+.gate-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;text-transform:uppercase;line-height:1;margin-bottom:8px;}
+.gate-title span{color:var(--green);}
+.gate-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:28px;}
+.gate-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.gate-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--white);font-family:'Barlow',sans-serif;font-size:16px;
+  padding:14px 16px;border-radius:2px;outline:none;
+  transition:border-color .2s;letter-spacing:2px;
+  margin-bottom:12px;
+}
+.gate-input:focus{border-color:var(--green);}
+.gate-input::placeholder{color:var(--muted);letter-spacing:0;}
+.gate-btn{
+  width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;padding:14px;
+  background:var(--green);color:var(--bg);border:none;border-radius:2px;
+  cursor:pointer;transition:opacity .15s;
+}
+.gate-btn:hover{opacity:.88;}
+.gate-btn:active{transform:scale(.99);}
+.gate-error{
+  font-size:13px;color:var(--red);font-weight:600;
+  margin-top:10px;display:none;
+  padding:10px 14px;background:rgba(232,80,32,.08);
+  border-left:3px solid var(--red);
+}
+.gate-footer{margin-top:24px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+.gate-footer a{color:var(--green);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="gate-logo-box">DanEV<br>Solar</div>
+      <div class="gate-logo-name">DanEVSolar</div>
+    </div>
+    <div class="gate-eyebrow">Premium Course</div>
+    <div class="gate-title">COMPLETE SOLAR<br><span>INSTALL GUIDE</span></div>
+    <div class="gate-sub">Enter your access code to unlock the course. You received this when you purchased — check your email if you can't find it.</div>
+    <div class="gate-label">Access Code</div>
+    <input class="gate-input" type="password" id="gateInput" placeholder="Enter your access code" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Unlock Course →</button>
+    <div class="gate-error" id="gateError">Incorrect code — check your purchase confirmation email and try again.</div>
+    <div class="gate-footer">
+      Purchased but lost your code? <a href="mailto:hello@danevsolar.com">hello@danevsolar.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="data:image/jpeg;base64,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" alt="DanEVSolar" style="height:40px;width:auto;border-radius:6px;display:block;">
+  </div>
+  <div class="course-title-top">The Complete UK Solar Install Course</div>
+  <div class="topbar-progress">
+    <div class="top-prog-bar"><div class="top-prog-fill" id="topFill"></div></div>
+    <div class="top-prog-label" id="topLabel">0%</div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-head-label">Course Modules</div>
+    <div class="sidebar-head-title">UK SOLAR<br>INSTALL GUIDE</div>
+  </div>
+  <div id="sidebarNav"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="slide-area" id="slideArea"></div>
+
+  <!-- NAV BAR -->
+  <div class="nav-bar">
+    <button class="nav-btn btn-prev" id="btnPrev" onclick="navigate(-1)">← Prev</button>
+    <div class="nav-lesson-info">
+      <div class="nav-lesson-name" id="navLessonName">Introduction</div>
+      <div class="nav-lesson-pos" id="navLessonPos">Slide 1 of 30</div>
+    </div>
+    <button class="nav-btn btn-next" id="btnNext" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════
+// COURSE DATA
+// ═══════════════════════════════════
+const course = {
+  title: "The Complete UK Solar Install Course",
+  modules: [
+    {
+      id: "intro",
+      title: "Welcome",
+      lessons: [
+        {
+          id: "cover",
+          title: "Course Introduction",
+          type: "lesson",
+          content: {
+            type: "cover"
+          }
+        },
+        {
+          id: "overview",
+          title: "What You'll Learn",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Course Overview",
+            heading: "What You'll Learn",
+            headingAccent: "",
+            intro: "This course takes you through every step of planning and completing a UK home solar installation — from your first roof assessment to your first month of free electricity. No fluff, no sales pitch. Just real-world knowledge from someone who's done it.",
+            body: {
+              type: "cards",
+              cols: 2,
+              items: [
+                { icon:"☀️", title:"System Sizing", body:"How to calculate exactly what size solar array and battery you actually need — based on your real usage, not installer estimates." },
+                { icon:"📋", title:"Planning & Permissions", body:"DNO notifications, G98 vs G99, permitted development, Part P building regs — all demystified." },
+                { icon:"🔍", title:"Choosing an Installer", body:"How to vet installers, read quotes like a pro, and spot red flags before they cost you thousands." },
+                { icon:"⚡", title:"Post-Install Optimisation", body:"SEG tariffs, smart scheduling, monitoring setup, and how to actually track your ROI with real data." }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: "m0",
+      title: "Understanding the Units",
+      lessons: [
+        {
+          id: "m0-l1",
+          title: "Power vs Energy Explained",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Foundation Module · Lesson 1",
+            heading: "POWER VS",
+            headingAccent: "ENERGY",
+            intro: "Before anything else makes sense, you need to understand the difference between power and energy. These two words are used interchangeably in everyday conversation — but in solar they mean very different things, and confusing them is one of the most common mistakes beginners make.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards", cols: 2,
+                  items: [
+                    { icon:"⚡", title:"Power — the Rate", body:"Power is how fast energy is being generated or used at any given moment. Think of it like the speed of a tap. Measured in Watts (W) or Kilowatts (kW). A 3 kW solar array in full sunshine is producing 3 kW of power right now." },
+                    { icon:"🔋", title:"Energy — the Amount", body:"Energy is the total amount of electricity generated or consumed over time. Think of it like the total water that's flowed from the tap. Measured in Watt-hours (Wh) or Kilowatt-hours (kWh). Your electricity bill charges you in kWh." }
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "The Simple Formula",
+                  text: "Energy (kWh) = Power (kW) × Time (hours). A 3 kW solar array running for 2 hours generates 6 kWh of energy. A 2 kW electric oven running for 30 minutes uses 1 kWh of energy. Once this clicks, everything else makes sense."
+                },
+                {
+                  type: "facts",
+                  items: [
+                    { num:"W", numClass:"", title:"Watt", body:"The basic unit of power. Named after James Watt. A single LED bulb uses around 10W. A phone charger uses 20–30W. Too small a unit to describe solar systems — we use kW instead." },
+                    { num:"kW", numClass:"green", title:"Kilowatt", body:"1,000 Watts. The standard unit for describing the output of solar panels, inverters, and EV chargers. A typical kettle uses around 2–3 kW. A 7 kW home EV charger. A 4 kWp solar array." },
+                    { num:"Wh", numClass:"", title:"Watt-hour", body:"The energy used or generated by 1 Watt of power running for 1 hour. Rarely used in solar as the numbers get unwieldy — we use kWh instead." },
+                    { num:"kWh", numClass:"green", title:"Kilowatt-hour", body:"1,000 Watt-hours. The unit your energy supplier charges you in — typically 24–28p per kWh in the UK. Also the unit used to measure battery storage capacity and solar generation. The most important unit to understand in home energy." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m0-l2",
+          title: "Solar-Specific Units",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Foundation Module · Lesson 2",
+            heading: "SOLAR-SPECIFIC",
+            headingAccent: "UNITS",
+            intro: "Solar has its own set of units and terms that you'll encounter constantly in quotes, datasheets, and conversations with installers. Here's exactly what each one means.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "facts",
+                  items: [
+                    { num:"kWp", numClass:"green", title:"Kilowatt-peak", body:"The peak power output of a solar panel or array under Standard Test Conditions (STC) — perfect lab conditions of 1,000W/m² irradiance at 25°C. This is the headline figure on every solar quote. A 400Wp panel produces 400W at its absolute peak. Real-world output is always lower than kWp." },
+                    { num:"kWh", numClass:"", title:"Kilowatt-hour (Generation)", body:"When used to describe solar output, kWh means the total energy generated over a period of time. 'My 4 kWp system generated 3,800 kWh last year.' This is the figure that determines your actual savings — not the kWp." },
+                    { num:"STC", numClass:"", title:"Standard Test Conditions", body:"The controlled lab environment in which panel performance is measured: 1,000W/m² irradiance, 25°C cell temperature, 1.5 air mass spectrum. Real-world UK conditions are rarely this favourable — especially cell temperature, which is usually higher than 25°C on a sunny day, reducing output." },
+                    { num:"PVGIS", numClass:"green", title:"PVGIS", body:"Photovoltaic Geographical Information System — a free EU tool that estimates annual solar generation for any location in Europe based on historical irradiance data. The gold standard for predicting UK solar yield. Your installer should use this, not made-up figures." },
+                    { num:"PR", numClass:"", title:"Performance Ratio", body:"A measure of how efficiently your system converts available solar energy into usable electricity, expressed as a percentage. Accounts for inverter losses, wiring losses, temperature losses, and shading. A well-designed UK system should achieve 75–85% PR." },
+                    { num:"Wp", numClass:"", title:"Watt-peak", body:"The power rating of an individual panel. Modern panels are typically 380–440Wp. Multiply panel Wp by the number of panels to get total array kWp. Example: 10 × 400Wp panels = 4,000Wp = 4 kWp system." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m0-l3",
+          title: "Battery & Grid Units",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Foundation Module · Lesson 3",
+            heading: "BATTERY & GRID",
+            headingAccent: "UNITS",
+            intro: "Battery storage and grid connection have their own terminology. Understanding these makes reading quotes and monitoring data much clearer.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "table",
+                  headers: ["Term","What It Means","Real-World Example"],
+                  rows: [
+                    ["kWh (capacity)","Total energy a battery can store","A 10 kWh battery can power an average home for roughly 8–12 hours overnight"],
+                    ["Usable kWh","Energy actually available after DoD limits","A 10 kWh battery at 90% DoD gives 9 kWh usable — always compare usable figures"],
+                    ["DoD","Depth of Discharge — how much of the battery can be used","90% DoD = 90% of total capacity is usable. Higher is better."],
+                    ["C-rate","How fast a battery charges or discharges relative to its capacity","1C = full charge/discharge in 1 hour. 0.5C = 2 hours. Higher C-rate = more flexible."],
+                    ["kW (charge rate)","How fast the battery charges or discharges in kW","A 5 kW charge rate fills a 10 kWh battery in 2 hours"],
+                    ["SoC","State of Charge — current battery level as a percentage","'Battery is at 80% SoC' means 80% full"],
+                    ["SoH","State of Health — battery degradation over time","New = 100% SoH. After 5 years a good LFP battery should still be 90%+ SoH"],
+                    ["Cycles","One full charge and discharge of the battery","LFP batteries typically last 4,000–6,000 cycles — over 10 years of daily use"],
+                    ["kW (export)","Rate at which electricity is sent to the grid","G98 limits single-phase export to 3.68 kW. Above this needs G99 approval."],
+                    ["p/kWh","Pence per kilowatt-hour — the unit price of electricity","Standard UK rate ~24–28p/kWh import. SEG export rates ~4–24p/kWh"]
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "The Numbers That Actually Matter",
+                  text: "For solar: focus on annual kWh generation (not kWp). For batteries: focus on usable kWh and cycle life (not headline capacity). For the grid: focus on p/kWh import and export rates. Everything else is supporting detail."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m0-l4",
+          title: "Real-World Numbers to Know",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Foundation Module · Lesson 4",
+            heading: "REAL-WORLD",
+            headingAccent: "NUMBERS",
+            intro: "These are the reference numbers that come up constantly in solar conversations. Commit these to memory and you'll be able to sanity-check any installer quote in seconds.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards", cols: 2,
+                  items: [
+                    { icon:"☀️", title:"UK Solar Generation", body:"A 1 kWp system in the UK generates approximately 850–950 kWh per year depending on location and orientation. South-facing in southern England: ~950 kWh/kWp. North-facing in Scotland: ~650 kWh/kWp." },
+                    { icon:"🏠", title:"Average UK Home Usage", body:"~3,500 kWh per year for a typical home without EV or heat pump. Add an EV: 5,000–7,000 kWh. Add a heat pump: 7,000–12,000 kWh. Know your number before sizing a system." },
+                    { icon:"💷", title:"UK Electricity Prices", body:"Standard import rate: ~24–28p/kWh. Octopus Go overnight: ~7p/kWh. Standard export (SEG): ~4–15p/kWh. Octopus Flux export: variable, up to 30p+ at peak times." },
+                    { icon:"🔋", title:"Typical System Sizes", body:"3–4 kWp: starter system, suited to smaller roofs or lower usage. 4–6 kWp: most common UK domestic system. 6–10 kWp: EV or heat pump households. 10 kWh battery: covers most homes overnight." }
+                  ]
+                },
+                {
+                  type: "warn",
+                  label: "Watch Out for kWp vs kWh Confusion in Quotes",
+                  text: "This is the most common source of confusion in solar quotes. When an installer says '4 kW system' they mean 4 kWp of panels. When they say 'generates 3,800 units' they mean 3,800 kWh per year. When they say '10 kW battery' they almost certainly mean 10 kWh of storage. Always clarify which unit is being used — a good installer won't mind being asked."
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "<strong>1 kWp generates ~900 kWh/year</strong> in a typical UK location — your planning baseline",
+                    "<strong>1 kWh costs ~24–28p</strong> to import from the grid at standard rates",
+                    "<strong>400Wp per panel</strong> is typical for modern panels — divide system kWp by 0.4 to get panel count",
+                    "<strong>7 kW home charger</strong> adds ~25 miles of EV range per hour of charging",
+                    "<strong>10 kWh battery</strong> stores roughly one evening and overnight's worth of electricity for most homes"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m0-q1",
+          title: "Quiz: Understanding the Units",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Foundation Module · Knowledge Check",
+            heading: "UNITS QUIZ",
+            questions: [
+              {
+                q: "A solar installer quotes you a '4 kWp system'. What does kWp mean?",
+                options: [
+                  "The system generates 4 kWh every hour",
+                  "The peak power output under ideal lab conditions",
+                  "The system costs £4,000 per panel",
+                  "The battery storage capacity is 4 kWh"
+                ],
+                correct: 1,
+                feedback: "Correct! kWp stands for kilowatt-peak — the maximum power output under Standard Test Conditions (perfect lab conditions). Real-world UK output will always be lower. A 4 kWp system typically generates around 3,400–3,800 kWh of energy per year."
+              },
+              {
+                q: "Your electricity bill shows you used 350 kWh last month. What does kWh measure?",
+                options: [
+                  "The peak power draw of your appliances",
+                  "The total energy consumed over the month",
+                  "The speed at which your meter runs",
+                  "The efficiency of your appliances"
+                ],
+                correct: 1,
+                feedback: "Correct! kWh (kilowatt-hour) measures total energy consumed over time. 350 kWh means you used an average of about 11.7 kWh per day. At 25p/kWh that's roughly £87.50 worth of electricity for the month."
+              },
+              {
+                q: "A battery is listed as 10 kWh capacity with 90% DoD. How much energy is actually usable?",
+                options: ["10 kWh", "9 kWh", "1 kWh", "90 kWh"],
+                correct: 1,
+                feedback: "Correct! 90% Depth of Discharge means 90% of the total capacity is usable — so 10 kWh × 0.9 = 9 kWh usable. Always compare batteries on usable capacity, not headline figures. Some cheaper batteries have lower DoD ratings which significantly reduces effective storage."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m1",
+      title: "Initial Assessment",
+      lessons: [
+        {
+          id: "m1-l1",
+          title: "Is Your Roof Suitable?",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 1 · Lesson 1",
+            heading: "IS YOUR ROOF",
+            headingAccent: "SUITABLE?",
+            intro: "Before spending a penny, you need to know whether your roof is physically capable of hosting a solar array. Many homeowners skip this step and discover problems mid-install.",
+            body: {
+              type: "facts",
+              items: [
+                { num:"01", numClass:"", title:"Orientation", body:"South-facing is optimal and gives close to 100% potential yield. South-East and South-West give roughly 85–90%. East or West drops to around 70–75%. North-facing roofs are not viable for a main solar array." },
+                { num:"02", numClass:"", title:"Roof Pitch", body:"The ideal pitch is 30–40 degrees — this closely matches the UK's latitude and maximises year-round generation. Flat roofs require ballasted or angled mounting frames. Very steep roofs complicate installation and reduce yield." },
+                { num:"03", numClass:"amber", title:"Shading", body:"Even small amounts of shading on a single panel can dramatically reduce output across a whole string. Check for trees, chimneys, neighbouring buildings, dormer windows, and aerials at different times of day and year." },
+                { num:"04", numClass:"amber", title:"Structural Integrity", body:"Solar panels add approximately 15–20 kg per square metre to your roof. Older properties or unusual roof constructions may require a structural survey before installation can proceed." },
+                { num:"05", numClass:"", title:"Roof Covering Condition", body:"If your roof tiles are cracked, the roof is near end of life, or you suspect asbestos in the roof structure — sort this before solar. Removing and reinstalling panels to re-roof is expensive and disruptive." }
+              ]
+            }
+          }
+        },
+        {
+          id: "m1-l2",
+          title: "Roof Types & Special Cases",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 1 · Lesson 2",
+            heading: "ROOF TYPES &",
+            headingAccent: "SPECIAL CASES",
+            intro: "Different roof materials require different mounting systems, and some properties have additional legal requirements before installation can begin.",
+            body: {
+              type: "table",
+              headers: ["Roof Type","Mounting Method","Notes"],
+              rows: [
+                ["Concrete Tile","Hook & rail system","Most common. Straightforward installation."],
+                ["Slate","Specialist slate hooks","Requires care — slates crack easily. Ask if installer has slate experience."],
+                ["Clay Pantile","Low-profile hooks","Complex due to tile profile. Specialist required."],
+                ["Flat Felt / EPDM","Ballasted or penetrating frame","Panels angled 10–15°. Check membrane condition first."],
+                ["Metal Standing Seam","Clamp-on system","No roof penetration needed. Excellent for modern extensions."],
+                ["Listed Building","N/A","Almost always requires Listed Building Consent. Check with local planning authority before proceeding."],
+                ["Conservation Area","Standard or N/A","May need planning permission. Check with LPA. Rules vary by council."]
+              ]
+            }
+          }
+        },
+        {
+          id: "m1-q1",
+          title: "Quiz: Roof Suitability",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Module 1 · Knowledge Check",
+            heading: "ROOF SUITABILITY QUIZ",
+            questions: [
+              {
+                q: "What roof orientation gives the best solar yield in the UK?",
+                options: ["East-facing","South-facing","West-facing","North-facing"],
+                correct: 1,
+                feedback: "Correct! South-facing roofs give close to 100% potential yield at UK latitudes. SE/SW gives around 85–90%, while north-facing is not suitable for a main solar array."
+              },
+              {
+                q: "You notice some cracked tiles on a roof being considered for solar. What should you do?",
+                options: ["Proceed with installation — panels will protect the tiles","Get the roof repaired before installing solar","Install panels only on the good section of roof","Ask the installer to work around the cracked tiles"],
+                correct: 1,
+                feedback: "Correct! Always address roof condition before installing solar. Removing and reinstalling panels to repair a roof later is expensive and disruptive. Repair first, install second."
+              },
+              {
+                q: "A property is in a conservation area. What should you check before getting quotes?",
+                options: ["Nothing — conservation areas don't affect solar","Whether planning permission is required from your local planning authority","Whether the panels need to be painted a specific colour","Whether you need a structural survey"],
+                correct: 1,
+                feedback: "Correct! Conservation areas may require planning permission for solar panels. Rules vary by council, so always check with your local planning authority before proceeding."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m2",
+      title: "System Sizing",
+      lessons: [
+        {
+          id: "m2-l1",
+          title: "Sizing Your Solar Array",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 2 · Lesson 1",
+            heading: "SIZING YOUR",
+            headingAccent: "SOLAR ARRAY",
+            intro: "Getting system size right is the most important financial decision of your solar journey. Too small and you miss out on savings. Too large and you waste money — and may hit DNO limits.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "tip",
+                  label: "The Rule of Thumb",
+                  text: "A 1 kWp solar system in the UK generates approximately 850–950 kWh per year, depending on location and orientation. Divide your annual electricity consumption by this figure to get a starting point for system size."
+                },
+                {
+                  type: "cards",
+                  cols: 3,
+                  items: [
+                    { icon:"📊", title:"Average Home", body:"~3,500 kWh/year consumption → 4–5 kWp system typically appropriate" },
+                    { icon:"🚗", title:"EV Household", body:"7,000–10,000 kWh/year → 6–10 kWp to offset charging meaningfully" },
+                    { icon:"🌡️", title:"Heat Pump Home", body:"8,000–15,000 kWh/year → Larger system essential to make real impact" }
+                  ]
+                },
+                {
+                  type: "warn",
+                  label: "DNO Export Limit",
+                  text: "Most single-phase UK connections are limited to 3.68 kW of export. You can install more panel capacity than this — and it's often worth it — but excess generation beyond what you can export is clipped. Your installer must discuss G98/G99 implications with you."
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "<strong>Size for the future</strong> — if you're planning an EV or heat pump in the next 3 years, factor this into your system size today",
+                    "<strong>Use your actual data</strong> — pull 12 months of half-hourly smart meter data. This beats any estimate",
+                    "<strong>Panel wattage</strong> — modern panels are typically 400–440W. Divide your target kWp by panel wattage to get panel count",
+                    "<strong>Self-consumption vs export</strong> — without a battery, only power generated during the day when you're using it saves you money. Evening and overnight generation is exported at SEG rates (much lower than import rates)"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m2-l2",
+          title: "Inverter Types Explained",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 2 · Lesson 2",
+            heading: "INVERTER TYPES",
+            headingAccent: "EXPLAINED",
+            intro: "The inverter converts DC electricity from your panels into AC electricity your home can use. Choosing the right type significantly affects performance, cost, and future flexibility.",
+            body: {
+              type: "table",
+              headers: ["Type","How It Works","Best For","Cost"],
+              rows: [
+                ["String Inverter","All panels connect in series to one central inverter","Simple roofs, no shading, budget-conscious","Lowest"],
+                ["String + Optimisers\n(e.g. SolarEdge)","Each panel has an optimiser; one central inverter","Partial shading, panel-level monitoring needed","Medium"],
+                ["Microinverters\n(e.g. Enphase)","Each panel has its own inverter","Complex roofs, heavy shading, maximum monitoring","Highest"],
+                ["Hybrid Inverter","Handles solar AND battery in one unit","Anyone planning battery now or later","Medium–High"]
+              ]
+            }
+          }
+        },
+        {
+          id: "m2-l3",
+          title: "Battery Storage Deep Dive",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 2 · Lesson 3",
+            heading: "BATTERY STORAGE",
+            headingAccent: "DEEP DIVE",
+            intro: "A battery transforms your solar system from a daytime-only tool into a 24-hour energy solution. But choosing the right size and chemistry matters enormously.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards",
+                  cols: 2,
+                  items: [
+                    { icon:"🔋", title:"LFP Chemistry", body:"Lithium Iron Phosphate. The recommended choice. 4,000–6,000+ cycle life, safer chemistry, 90–100% depth of discharge. Slightly lower energy density but far longer lifespan." },
+                    { icon:"⚡", title:"NMC Chemistry", body:"Nickel Manganese Cobalt. Higher energy density, smaller physical size, but typically 2,000–3,000 cycle life and slightly higher fire risk. Being phased out by leading brands." }
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "Sizing Your Battery",
+                  text: "Calculate how many kWh you use between 4pm and 8am — this is your 'battery window'. If that's 8 kWh, you need roughly 9–10 kWh of usable capacity (allowing for efficiency losses). Always compare usable capacity, not total capacity."
+                },
+                {
+                  type: "table",
+                  headers: ["Brand","Chemistry","Warranty","Notable Feature"],
+                  rows: [
+                    ["GivEnergy","LFP","10 years","UK-based support, great app integration"],
+                    ["Sigenergy","LFP","10 years","All-in-one hybrid system, scalable"],
+                    ["Tesla Powerwall 3","LFP","10 years","Integrated inverter, excellent app"],
+                    ["Fox ESS","LFP","10 years","Good value, strong UK installer network"],
+                    ["BYD Battery-Box","LFP","10 years","Scalable modular system"],
+                    ["Growatt","LFP","10 years","Budget-friendly, widely available"]
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m2-q1",
+          title: "Quiz: System Sizing",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Module 2 · Knowledge Check",
+            heading: "SYSTEM SIZING QUIZ",
+            questions: [
+              {
+                q: "A household uses 5,000 kWh per year. Using the rule of thumb (900 kWh/kWp), approximately what size system do they need?",
+                options: ["2 kWp","5.5 kWp","9 kWp","12 kWp"],
+                correct: 1,
+                feedback: "Correct! 5,000 ÷ 900 = 5.56 kWp. A 5–6 kWp system would be the starting point for this household, though future loads like an EV would warrant sizing up."
+              },
+              {
+                q: "What is the typical single-phase DNO export limit in the UK?",
+                options: ["1.0 kW","2.5 kW","3.68 kW","5.0 kW"],
+                correct: 2,
+                feedback: "Correct! 3.68 kW is the standard G98 single-phase limit. Installing more panel capacity is fine — but export above this limit requires G99 approval from your DNO."
+              },
+              {
+                q: "Which battery chemistry is recommended for home storage and why?",
+                options: ["NMC — because it's cheaper","LFP — because of longer cycle life and safer chemistry","NMC — because it charges faster","LFP — because it's smaller and lighter"],
+                correct: 1,
+                feedback: "Correct! LFP (Lithium Iron Phosphate) is the recommended choice for home storage due to its 4,000–6,000+ cycle life, safer chemistry, and high depth of discharge (90–100%). NMC has shorter cycle life and slightly higher fire risk."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m3",
+      title: "Planning & Permissions",
+      lessons: [
+        {
+          id: "m3-l1",
+          title: "Planning Permission",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 3 · Lesson 1",
+            heading: "PLANNING",
+            headingAccent: "PERMISSION",
+            intro: "The good news: most residential solar installations in England don't need planning permission. The bad news: there are important exceptions, and getting it wrong is costly.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards",
+                  cols: 2,
+                  items: [
+                    { icon:"✅", title:"Permitted Development", body:"Solar panels on a house are generally permitted development in England if: panels don't protrude more than 200mm from roof plane, property isn't listed, and it's not in certain protected areas." },
+                    { icon:"⚠️", title:"Check Your Status", body:"Listed buildings almost always need Listed Building Consent. Conservation areas may need permission. Scotland, Wales & NI have different rules. Always verify with your local planning authority if in doubt." }
+                  ]
+                },
+                {
+                  type: "warn",
+                  label: "Leasehold Properties",
+                  text: "If you own a flat or have a leasehold property, you may need freeholder or management company consent before installing solar panels. Check your lease documents and get written permission before committing to an installer."
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "Check planning portal or call your local planning authority — it's free and takes 5 minutes",
+                    "Scotland has its own permitted development rules — always verify separately",
+                    "Conservation area ≠ automatic refusal, but it does mean you must check first",
+                    "A good installer will be familiar with local planning rules and flag any issues"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m3-l2",
+          title: "DNO Approval: G98 vs G99",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 3 · Lesson 2",
+            heading: "DNO APPROVAL:",
+            headingAccent: "G98 VS G99",
+            intro: "Every grid-connected solar installation in the UK must be notified to or approved by your Distribution Network Operator (DNO). This is a legal requirement — not optional.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "table",
+                  headers: ["","G98","G99"],
+                  rows: [
+                    ["When required","Systems up to 3.68 kW single-phase","Systems over 3.68 kW or any three-phase"],
+                    ["Process","Notification (after install)","Application (before install)"],
+                    ["Timing","Installer notifies within 28 days","Can take 3–12 weeks for approval"],
+                    ["Who does it","Your MCS installer","Your MCS installer"],
+                    ["Cost","Usually included in install cost","May incur additional application fees"]
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "Find Your DNO",
+                  text: "Your DNO depends on where you live: UK Power Networks (SE England, London, East) · Western Power / National Grid (Midlands, SW, Wales) · Northern Powergrid (NE England, Yorkshire) · SP Energy Networks (Scotland, NW England) · SSE (N Scotland) · NIE Networks (N Ireland). Find yours at energynetworks.org"
+                },
+                {
+                  type: "warn",
+                  label: "Export Constraints",
+                  text: "Some DNO areas are grid-congested and may impose export limitations — meaning your system may need to limit or even zero its export to the grid. This significantly affects economics. Ask your installer to check your local area's export constraint status before finalising system design."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m3-l3",
+          title: "Building Regulations",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 3 · Lesson 3",
+            heading: "BUILDING",
+            headingAccent: "REGULATIONS",
+            intro: "Solar installations involve electrical work and structural changes — both of which are covered by Building Regulations in the UK.",
+            body: {
+              type: "facts",
+              items: [
+                { num:"Part P", numClass:"", title:"Electrical Safety", body:"All electrical work connected to a solar installation must comply with Part P of the Building Regulations. Work must be carried out or certified by a registered competent person (NAPIT, NICEIC, etc.). Your MCS installer should hold one of these registrations." },
+                { num:"BS 7671", numClass:"amber", title:"Wiring Regulations", body:"The installation must comply with BS 7671 (the IET Wiring Regulations). On completion, you must receive an Electrical Installation Certificate (EIC) — a legal document you should keep permanently with your property records." },
+                { num:"EIC", numClass:"", title:"Electrical Installation Certificate", body:"This is your proof of compliance. You'll need it for buildings insurance, future property sales, and any warranty claims. If an installer won't provide one — walk away immediately." }
+              ]
+            }
+          }
+        },
+        {
+          id: "m3-q1",
+          title: "Quiz: Planning & Permissions",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Module 3 · Knowledge Check",
+            heading: "PLANNING & PERMISSIONS QUIZ",
+            questions: [
+              {
+                q: "Which document do you need for a system under 3.68 kW on a standard house?",
+                options: ["G99 pre-approval from your DNO","G98 notification submitted by your installer after installation","Full planning permission from your local authority","Listed Building Consent from Historic England"],
+                correct: 1,
+                feedback: "Correct! Systems up to 3.68 kW on a standard single-phase domestic connection use G98 — a notification submitted by your MCS-certified installer to your DNO within 28 days of commissioning. No pre-approval needed."
+              },
+              {
+                q: "What certificate MUST you receive when your solar installation is complete?",
+                options: ["G98 Notification Receipt","Electrical Installation Certificate (EIC)","MCS Design Certificate","DNO Connection Agreement"],
+                correct: 1,
+                feedback: "Correct! The Electrical Installation Certificate (EIC) is a legal document confirming the installation complies with BS 7671 wiring regulations. Keep it permanently — you'll need it for insurance and when selling your property."
+              },
+              {
+                q: "You have a G99 application for a larger system. What should you plan for?",
+                options: ["A 24-hour approval process","Approval within 1 week guaranteed","The process can take 3–12 weeks — factor this into your timeline","No additional time needed — G99 is the same as G98"]  ,
+                correct: 2,
+                feedback: "Correct! G99 requires pre-approval from your DNO before installation can begin, and this can take 3–12 weeks. If you have a deadline (e.g. before winter), start the G99 process early."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m4",
+      title: "Choosing an Installer",
+      lessons: [
+        {
+          id: "m4-l1",
+          title: "MCS & Accreditations",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 4 · Lesson 1",
+            heading: "MCS &",
+            headingAccent: "ACCREDITATIONS",
+            intro: "Choosing the wrong installer is the single most common cause of poor solar experiences in the UK. Here's how to make sure you pick a good one.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "warn",
+                  label: "Non-Negotiable: MCS Certification",
+                  text: "Your installer MUST be MCS (Microgeneration Certification Scheme) certified. Without this: you cannot register for the Smart Export Guarantee, your installation may not comply with regulations, and product warranties may be void. Verify at mcscertified.com before signing anything."
+                },
+                {
+                  type: "cards",
+                  cols: 2,
+                  items: [
+                    { icon:"🏅", title:"MCS Certified", body:"Verify at mcscertified.com. Covers design, installation, and commissioning standards. Required for SEG registration." },
+                    { icon:"⚡", title:"NAPIT or NICEIC", body:"Competent person scheme registration confirms the installer can legally self-certify electrical work under Part P Building Regulations." },
+                    { icon:"🔒", title:"Public Liability Insurance", body:"Minimum £2 million. Ask for a copy of the certificate — don't take their word for it." },
+                    { icon:"🏢", title:"Companies House", body:"Check how long they've been trading. Solar companies with less than 5 years' history are higher risk — who honours the warranty if they fold?" }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m4-l2",
+          title: "Reading Quotes Like a Pro",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 4 · Lesson 2",
+            heading: "READING QUOTES",
+            headingAccent: "LIKE A PRO",
+            intro: "A solar quote is only useful if you know what to look for. Here's exactly what every quote must specify — and the questions you need to ask.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "keypoints",
+                  items: [
+                    "<strong>Exact panel model and wattage</strong> — not just 'Tier 1 panels'. If they won't specify, they're hiding something",
+                    "<strong>Exact inverter model</strong> — brand and model number, not just brand name",
+                    "<strong>Exact battery brand, model, capacity, and chemistry</strong> — compare usable kWh, not headline figures",
+                    "<strong>Projected annual generation in kWh</strong> — ask how it was calculated. PVGIS or PVsyst are standard tools",
+                    "<strong>What's included</strong> — scaffolding, DNO notification, monitoring setup, commissioning",
+                    "<strong>Workmanship warranty</strong> — minimum 5 years, 10+ preferred. Separate from product warranties",
+                    "<strong>Who does the actual installation</strong> — employed engineers or subcontractors?",
+                    "<strong>Payment terms</strong> — never pay more than 25% deposit before installation begins"
+                  ]
+                },
+                {
+                  type: "warn",
+                  label: "🚩 Red Flags — Walk Away Immediately",
+                  text: "High-pressure sales or 'today only' pricing · Vague quotes with no specific component models · No MCS certification · Full payment required upfront · Unrealistically low quotes with no explanation · Claims of government grants that don't exist · Reluctance to provide customer references · No physical business address"
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m4-l3",
+          title: "Gary Does Solar — Vetted Installer Directory",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 4 · Lesson 3",
+            heading: "FIND A VETTED",
+            headingAccent: "INSTALLER",
+            intro: "Finding a trustworthy installer is one of the hardest parts of the solar journey. Gary Does Solar — one of the UK's most respected solar YouTube channels — has built a directory of installers who have been independently vetted. It's one of the best starting points available to UK homeowners right now.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards", cols: 2,
+                  items: [
+                    { icon: "🎥", title: "Who is Gary Does Solar?", body: "Gary runs one of the most trusted independent solar YouTube channels in the UK. Like DanEVSolar, his content is honest, data-driven, and free of manufacturer bias. He has built a large community of homeowners navigating the same journey you're on." },
+                    { icon: "📋", title: "The Installer Directory", body: "Gary has curated a directory of UK solar installers who have been vetted for quality, customer service, and professionalism. These aren't paid listings — they're installers who have earned their place through reputation and peer review within the solar community." }
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "Why This Directory Matters",
+                  text: "Finding a genuinely good installer through a search engine is hard — SEO budgets don't correlate with installation quality. Gary's directory cuts through this by listing installers who have been tested against real community standards. It's not a guarantee, but it's a far better starting point than a Google search or a comparison site that charges installers for leads."
+                },
+                {
+                  type: "facts",
+                  items: [
+                    { num: "✅", numClass: "green", title: "Vetted by Gary Does Solar", body: "Installers in the directory have been assessed by Gary and his community. They must demonstrate MCS certification, solid customer feedback, and a track record of quality work. Gary removes installers who receive sustained negative feedback from the community." },
+                    { num: "🤝", numClass: "", title: "Supporting Both Channels", body: "By using Gary's installer directory to find your installer, you're supporting two independent UK solar creators who are both working to help homeowners make better decisions — without advertiser pressure or manufacturer bias. It costs you nothing extra and keeps both channels independent." },
+                    { num: "🔍", numClass: "green", title: "Still Do Your Own Due Diligence", body: "Being listed in Gary's directory is a strong positive signal — but it doesn't replace the checks covered in this module. Still verify MCS certification, check Companies House, read independent reviews, get multiple quotes, and use everything in the installer checklist." },
+                    { num: "📺", numClass: "", title: "Subscribe to Gary Does Solar", body: "Gary's channel covers installation walkthroughs, product reviews, tariff analysis, and community Q&As. Watching both channels gives you two sets of real-world UK data to work with — which is always better than one." }
+                  ]
+                },
+                {
+                  type: "warn",
+                  label: "A Note on Installer Directories Generally",
+                  text: "Most installer directories online — including those run by comparison sites and lead generation companies — charge installers per lead. This creates an incentive to list anyone willing to pay, regardless of quality. Gary's directory is different because it's community-driven, not commercial. Always check who runs a directory and how installers get listed before trusting it."
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "<strong>Find the directory</strong> — search 'Gary Does Solar installer directory' or visit his YouTube channel at youtube.com/@GaryDoesSolar for the current link",
+                    "<strong>Filter by region</strong> — the directory allows you to find vetted installers local to you",
+                    "<strong>Contact multiple installers</strong> — even from a vetted list, always get at least 3 quotes and compare them using the criteria in Lesson 2",
+                    "<strong>Mention DanEVSolar</strong> — let the installer know how you found them. It helps both channels understand where referrals come from",
+                    "<strong>Leave a review</strong> — after your installation, leave honest feedback on the directory. It helps the next homeowner and keeps the community strong"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m4-q1",
+          title: "Quiz: Choosing an Installer",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Module 4 · Knowledge Check",
+            heading: "INSTALLER QUIZ",
+            questions: [
+              {
+                q: "Why is MCS certification non-negotiable when choosing an installer?",
+                options: ["It means they're the cheapest option","It's required to register for the Smart Export Guarantee (SEG)","It guarantees the installation will look tidy","It means they've been trading for 10+ years"],
+                correct: 1,
+                feedback: "Correct! MCS certification is required to register for the Smart Export Guarantee. Without it, you cannot legally be paid for electricity you export to the grid. It also ensures the installation meets national standards."
+              },
+              {
+                q: "An installer quotes £6,000 for a solar system but won't specify which brand of panels. What should you do?",
+                options: ["Accept the quote — price is what matters","Ask them to specify the exact panel model before you proceed","Assume they're using good panels as they're MCS certified","Accept it — all Tier 1 panels are the same"],
+                correct: 1,
+                feedback: "Correct! You must know exactly what you're paying for. 'Tier 1' is a manufacturing credit rating, not a quality guarantee. Insist on the exact model so you can check the panel's product and performance warranty independently."
+              },
+              {
+                q: "What is the maximum deposit you should comfortably pay before an installation begins?",
+                options: ["50% — standard in the industry","100% — to secure your slot","25% — reputable installers don't need more upfront","10% — always negotiate down"],
+                correct: 2,
+                feedback: "Correct! A maximum of 25% deposit is a reasonable guideline. Reputable companies have sufficient working capital — those demanding full payment upfront are a significant risk if they go bust before completing your installation."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m5",
+      title: "Post-Install & Optimisation",
+      lessons: [
+        {
+          id: "m5-l1",
+          title: "SEG & Smart Tariffs",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 5 · Lesson 1",
+            heading: "SEG & SMART",
+            headingAccent: "TARIFFS",
+            intro: "The Smart Export Guarantee (SEG) pays you for every unit of electricity you export to the grid. But how you export — and what tariff you're on — dramatically affects your return.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "cards",
+                  cols: 3,
+                  items: [
+                    { icon:"💰", title:"SEG Basics", body:"All licensed energy suppliers with 150,000+ customers must offer a SEG tariff. Rates currently range from ~4p to 24p/kWh. You need your MCS certificate and a smart meter to apply." },
+                    { icon:"⚡", title:"Octopus Flux", body:"Designed specifically for solar + battery households. Cheap overnight import, standard daytime, premium evening export rate. Can significantly improve whole-system economics." },
+                    { icon:"📈", title:"Octopus Agile", body:"Variable half-hourly pricing. Export when prices are high, import when they're low. With a smart battery, this can generate significant additional income beyond your generation." }
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "Dan's Recommendation",
+                  text: "Switch to Octopus Energy and use their referral scheme — you both get £100 when you sign up. Then explore Octopus Flux or Intelligent Octopus Go once your system is live. The tariff choice can be worth more than the difference between a cheaper and more expensive inverter."
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "Apply for SEG as soon as you have your MCS certificate — don't delay",
+                    "Review your SEG tariff annually — better rates appear and you can switch",
+                    "Confirm your smart meter is communicating correctly with your supplier",
+                    "With a battery, tariff optimisation is where the real money is made"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m5-l2",
+          title: "Monitoring Your System",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 5 · Lesson 2",
+            heading: "MONITORING",
+            headingAccent: "YOUR SYSTEM",
+            intro: "You can't optimise what you can't see. Setting up proper monitoring from day one gives you the data to track performance, spot faults early, and prove your ROI.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "table",
+                  headers: ["Inverter Brand","Monitoring App","Key Feature"],
+                  rows: [
+                    ["GivEnergy","GivEnergy App / GivTCP","Excellent API access for Home Assistant integration"],
+                    ["Sungrow","iSolarCloud","Clean interface, good historical data"],
+                    ["Growatt","ShinePhone / ShineServer","Budget-friendly, good API access"],
+                    ["SolarEdge","mySolarEdge","Panel-level monitoring with optimisers"],
+                    ["Huawei","FusionSolar","Strong app, good energy flow visualisation"],
+                    ["Enphase","Enlighten","Per-panel monitoring, excellent detail"]
+                  ]
+                },
+                {
+                  type: "keypoints",
+                  items: [
+                    "<strong>CT clamp is essential</strong> — without one you only see generation, not self-consumption or export",
+                    "<strong>PVOutput.org</strong> — free community platform to log and compare your system to others",
+                    "<strong>Home Assistant</strong> — for tech-savvy homeowners, integrates all your energy data into one dashboard",
+                    "<strong>Set email alerts</strong> — get notified if your system stops generating during daylight hours",
+                    "<strong>Log monthly totals</strong> — compare against PVGIS expected yield to spot degradation early"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m5-l3",
+          title: "Tracking Your ROI",
+          type: "lesson",
+          content: {
+            type: "lesson",
+            eyebrow: "Module 5 · Lesson 3",
+            heading: "TRACKING",
+            headingAccent: "YOUR ROI",
+            intro: "After 12 months of data, you can calculate your actual return on investment — not the optimistic projection from your installer's brochure. Here's how.",
+            body: {
+              type: "mixed",
+              items: [
+                {
+                  type: "facts",
+                  items: [
+                    { num:"1", numClass:"", title:"Calculate Savings from Self-Consumption", body:"Units self-consumed × your import unit rate = money saved. Example: 2,000 kWh self-consumed × 24p = £480 saved." },
+                    { num:"2", numClass:"amber", title:"Add SEG Export Income", body:"Units exported × SEG rate = income earned. Example: 1,200 kWh exported × 15p = £180 earned." },
+                    { num:"3", numClass:"", title:"Add Battery Tariff Savings", body:"If using Octopus Flux or similar — calculate cheap overnight import vs avoided peak import. This can add £200–£600/year." },
+                    { num:"4", numClass:"amber", title:"Calculate Payback Period", body:"Total system cost ÷ annual savings = payback years. A £8,000 system saving £1,200/year = 6.7 year payback. With SEG, tariff optimisation, and rising energy prices, 5–8 years is typical." }
+                  ]
+                },
+                {
+                  type: "tip",
+                  label: "Dan's Tracking Template",
+                  text: "Record monthly: total generation (kWh), self-consumption (kWh), export (kWh), import (kWh), energy bill, and SEG payment. After 12 months you'll have a complete picture. This data is also the foundation for any content, consulting, or digital products you create around your system."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id: "m5-q1",
+          title: "Quiz: Post-Install",
+          type: "quiz",
+          content: {
+            type: "quiz",
+            eyebrow: "Module 5 · Knowledge Check",
+            heading: "POST-INSTALL QUIZ",
+            questions: [
+              {
+                q: "What document do you need before you can apply for the Smart Export Guarantee?",
+                options: ["Your energy bill","Your MCS Certificate","Your G99 approval","Your planning permission"],
+                correct: 1,
+                feedback: "Correct! Your MCS Certificate is required to apply for the Smart Export Guarantee. Your installer should provide this within 10 working days of installation. You can verify it at mcscertified.com."
+              },
+              {
+                q: "What does a CT clamp do in a solar monitoring setup?",
+                options: ["It measures panel temperature","It measures how much electricity your household is importing and exporting","It controls the battery charge schedule","It connects your inverter to the internet"],
+                correct: 1,
+                feedback: "Correct! A CT (Current Transformer) clamp measures the flow of electricity at your meter or consumer unit. Without one, you can only see solar generation — not self-consumption, import, or export. It's essential for understanding your system's real performance."
+              },
+              {
+                q: "A 7,500W system costs £9,000 and saves £1,500 per year. What is the approximate payback period?",
+                options: ["3 years","6 years","10 years","15 years"],
+                correct: 1,
+                feedback: "Correct! £9,000 ÷ £1,500/year = 6 years payback. In reality, rising energy prices and improving SEG tariffs often make the true payback period shorter than initial calculations suggest."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      id: "m6",
+      title: "Course Complete",
+      lessons: [
+        {
+          id: "complete",
+          title: "You're Solar Ready!",
+          type: "lesson",
+          content: { type: "complete" }
+        },
+        {
+          id: "feedback",
+          title: "Share Your Feedback",
+          type: "lesson",
+          content: { type: "feedback" }
+        }
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let allSlides = [];
+let currentIdx = 0;
+let completed = new Set();
+let quizAnswered = {};
+
+// Build flat slide list
+course.modules.forEach((mod, mi) => {
+  mod.lessons.forEach((lesson, li) => {
+    allSlides.push({ mod, lesson, mi, li });
+  });
+});
+
+// ═══════════════════════════════════
+// RENDER SIDEBAR
+// ═══════════════════════════════════
+function buildSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  course.modules.forEach((mod, mi) => {
+    const group = document.createElement('div');
+    group.className = 'module-group';
+    group.id = 'mod-group-' + mi;
+
+    const allDone = mod.lessons.every(l => completed.has(l.id));
+    const isOpen = allSlides[currentIdx]?.mi === mi;
+
+    group.innerHTML = `
+      <div class="module-head ${isOpen?'active':''}" onclick="toggleModule(${mi})">
+        <div class="mod-num">MOD ${String(mi+1).padStart(2,'0')}</div>
+        <div class="mod-name">${mod.title}</div>
+        <div class="mod-check ${allDone?'done':''}">✓</div>
+      </div>
+      <div class="lesson-list">
+        ${mod.lessons.map((l,li) => {
+          const slideIdx = allSlides.findIndex(s => s.lesson.id === l.id);
+          const isCurrent = slideIdx === currentIdx;
+          const isDone = completed.has(l.id);
+          return `<div class="lesson-item ${isCurrent?'active':''} ${isDone&&!isCurrent?'completed':''}" onclick="goToSlide(${slideIdx})">
+            <div class="lesson-dot"></div>
+            <span>${l.title}</span>
+            <span class="lesson-type type-${l.type}">${l.type==='quiz'?'Quiz':l.type==='checklist'?'Checklist':'Lesson'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+    if (isOpen) group.classList.add('open');
+    nav.appendChild(group);
+  });
+}
+
+function toggleModule(mi) {
+  const group = document.getElementById('mod-group-' + mi);
+  group.classList.toggle('open');
+}
+
+// ═══════════════════════════════════
+// RENDER SLIDES
+// ═══════════════════════════════════
+function buildAllSlides() {
+  const area = document.getElementById('slideArea');
+  area.innerHTML = '';
+  allSlides.forEach((s, idx) => {
+    const div = document.createElement('div');
+    div.className = 'slide' + (idx === 0 ? ' active' : '');
+    div.id = 'slide-' + idx;
+    div.innerHTML = renderSlide(s.lesson.content, s.lesson.id);
+    area.appendChild(div);
+  });
+}
+
+function renderSlide(content, id) {
+  if (content.type === 'cover') return renderCover();
+  if (content.type === 'complete') return renderComplete();
+  if (content.type === 'feedback') return renderFeedback();
+  if (content.type === 'quiz') return renderQuiz(content, id);
+  return renderLesson(content, id);
+}
+
+function renderCover() {
+  return `<div class="slide-cover">
+    <div class="cover-eyebrow">DanEVSolar · UK Solar Install Course</div>
+    <div class="cover-h1">THE COMPLETE<br>UK <span class="g">SOLAR</span><br><span class="a">INSTALL GUIDE</span></div>
+    <div class="cover-sub">Everything you need to plan, procure, and complete a home solar installation — from first roof check to first month of free electricity. Based on real-world UK experience.</div>
+    <div class="cover-stats">
+      <div class="cstat"><div class="cstat-val">8</div><div class="cstat-lbl">Modules</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">30+</div><div class="cstat-lbl">Lessons</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">UK</div><div class="cstat-lbl">Specific</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">Free</div><div class="cstat-lbl">Electricity Awaits</div></div>
+    </div>
+  </div>`;
+}
+
+function renderComplete() {
+  return `<div class="slide-complete">
+    <div class="complete-icon">🎉</div>
+    <div class="complete-h">YOU'RE<br><span>SOLAR READY!</span></div>
+    <div class="complete-sub">You've completed The Complete UK Solar Install Course. You now have everything you need to plan, procure, and complete your home solar installation with confidence.</div>
+    <div class="complete-badge">
+      <div class="badge-icon">☀️</div>
+      <div class="badge-text">
+        <div class="badge-title">Course Complete</div>
+        <div class="badge-sub">DanEVSolar · UK Solar Install Guide</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--muted);max-width:420px;line-height:1.7;">
+      Download the full Solar Install Checklist, subscribe to the YouTube channel for ongoing updates, and use the referral links below if this course helped you.
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <a href="https://www.youtube.com/@DanEVSolar7" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 24px;background:var(--green);color:var(--bg);text-decoration:none;border-radius:2px;">Watch on YouTube →</a>
+      <a href="https://share.octopus.energy/dawn-snail-241" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 24px;background:transparent;color:var(--muted);text-decoration:none;border-radius:2px;border:1px solid var(--border);">Octopus Referral (£100 each)</a>
+    </div>
+    <div style="margin-top:32px;font-size:13px;color:var(--muted);">Hit Next → to leave your feedback and help improve the course</div>
+  </div>`;
+}
+
+function renderFeedback() {
+  return `<div class="slide-lesson" style="max-width:700px;">
+    <div class="slide-eyebrow">Course Feedback</div>
+    <div class="slide-h2">HOW DID WE <span>DO?</span></div>
+    <div class="slide-intro">Your feedback helps Dan improve the course and create better content. It takes less than 2 minutes — and it genuinely makes a difference.</div>
+
+    <div id="feedback-form">
+
+      <!-- STAR RATING -->
+      <div class="fb-section">
+        <div class="fb-label">Overall, how would you rate this course? <span class="fb-required">*</span></div>
+        <div class="star-row" id="starRow">
+          <span class="star" data-val="1" onclick="setStars(1)">★</span>
+          <span class="star" data-val="2" onclick="setStars(2)">★</span>
+          <span class="star" data-val="3" onclick="setStars(3)">★</span>
+          <span class="star" data-val="4" onclick="setStars(4)">★</span>
+          <span class="star" data-val="5" onclick="setStars(5)">★</span>
+        </div>
+        <div class="star-label" id="starLabel">Select a rating</div>
+      </div>
+
+      <!-- WHAT WAS MOST USEFUL -->
+      <div class="fb-section">
+        <div class="fb-label">Which module did you find most useful?</div>
+        <div class="fb-options" id="moduleOptions">
+          ${['Initial Assessment','System Sizing','Planning & Permissions','Choosing an Installer','Post-Install & Optimisation'].map((m,i) =>
+            `<div class="fb-chip" data-group="module" data-val="${m}" onclick="selectChip(this,'module')">${m}</div>`
+          ).join('')}
+        </div>
+      </div>
+
+      <!-- HOW CONFIDENT -->
+      <div class="fb-section">
+        <div class="fb-label">After completing this course, how confident do you feel about your solar install?</div>
+        <div class="fb-options" id="confOptions">
+          ${['Much more confident','Somewhat more confident','About the same','Still unsure'].map(o =>
+            `<div class="fb-chip" data-group="confidence" data-val="${o}" onclick="selectChip(this,'confidence')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+
+      <!-- WOULD RECOMMEND -->
+      <div class="fb-section">
+        <div class="fb-label">Would you recommend this course to a friend or neighbour considering solar?</div>
+        <div class="fb-options">
+          <div class="fb-chip" data-group="recommend" data-val="Definitely" onclick="selectChip(this,'recommend')">Definitely</div>
+          <div class="fb-chip" data-group="recommend" data-val="Probably" onclick="selectChip(this,'recommend')">Probably</div>
+          <div class="fb-chip" data-group="recommend" data-val="Not sure" onclick="selectChip(this,'recommend')">Not sure</div>
+          <div class="fb-chip" data-group="recommend" data-val="Probably not" onclick="selectChip(this,'recommend')">Probably not</div>
+        </div>
+      </div>
+
+      <!-- CONSULTANCY -->
+      <div class="fb-section">
+        <div class="fb-label">Would you consider using a consultancy service if it was offered?</div>
+        <div class="fb-hint" style="margin-bottom:10px;">A personal 1-to-1 session with Dan to review your specific setup, quotes, or questions.</div>
+        <div class="fb-options">
+          <div class="fb-chip" data-group="consultancy" data-val="Yes — definitely" onclick="selectChip(this,'consultancy')">Yes — definitely</div>
+          <div class="fb-chip" data-group="consultancy" data-val="Possibly" onclick="selectChip(this,'consultancy')">Possibly</div>
+          <div class="fb-chip" data-group="consultancy" data-val="Not right now" onclick="selectChip(this,'consultancy')">Not right now</div>
+          <div class="fb-chip" data-group="consultancy" data-val="No" onclick="selectChip(this,'consultancy')">No</div>
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Is there anything you wish was covered that wasn't?</div>
+        <div class="fb-options">
+          ${['EV charger integration','Heat pump sizing','Octopus tariff deep dive','Installer contract advice','Ground-mounted systems','Commercial/business solar'].map(o =>
+            `<div class="fb-chip" data-group="missing" data-val="${o}" onclick="selectChip(this,'missing')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+
+      <!-- FREE TEXT -->
+      <div class="fb-section">
+        <div class="fb-label">Any other comments, suggestions, or feedback for Dan?</div>
+        <textarea class="fb-textarea" id="fbComment" placeholder="Tell Dan what you thought — good or bad. All feedback is read personally..."></textarea>
+      </div>
+
+      <!-- OPTIONAL EMAIL -->
+      <div class="fb-section">
+        <div class="fb-label">Optional: leave your email if you'd like Dan to follow up</div>
+        <input class="fb-input" type="email" id="fbEmail" placeholder="your@email.com">
+        <div class="fb-hint">Never shared. Only used to reply to your feedback if relevant.</div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="fb-section" style="padding-bottom:0;">
+        <div id="fb-error" class="fb-error" style="display:none;">Please select a star rating before submitting.</div>
+        <button class="fb-submit" onclick="submitFeedback()">Submit Feedback →</button>
+      </div>
+
+    </div>
+
+    <!-- THANK YOU STATE -->
+    <div id="feedback-thanks" style="display:none;margin-top:16px;">
+      <div class="fb-thanks">
+        <div class="fb-thanks-icon">🙏</div>
+        <div class="fb-thanks-title">THANK YOU!</div>
+        <div class="fb-thanks-sub">Your feedback has been recorded. Dan reads every response personally and uses it to improve the course and plan future content.</div>
+        <div class="fb-thanks-summary" id="fbSummary"></div>
+        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <a href="https://www.youtube.com/@DanEVSolar7" target="_blank" class="fb-cta-btn">Subscribe on YouTube →</a>
+          <a href="https://share.octopus.energy/dawn-snail-241" target="_blank" class="fb-cta-btn-outline">Octopus Referral (£100 each)</a>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+
+function renderLesson(content, id) {
+  let body = '';
+  if (Array.isArray(content.body?.items)) {
+    body = renderBody(content.body);
+  } else if (content.body?.type) {
+    body = renderBody(content.body);
+  }
+  return `<div class="slide-lesson">
+    <div class="slide-eyebrow">${content.eyebrow||''}</div>
+    <div class="slide-h2">${content.heading||''} <span>${content.headingAccent||''}</span></div>
+    ${content.intro ? `<div class="slide-intro">${content.intro}</div>` : ''}
+    ${body}
+  </div>`;
+}
+
+function renderBody(body) {
+  if (!body) return '';
+  switch(body.type) {
+    case 'cards': return renderCards(body);
+    case 'facts': return renderFacts(body);
+    case 'table': return renderTable(body);
+    case 'keypoints': return renderKeyPoints(body);
+    case 'mixed': return renderMixed(body);
+    default: return '';
+  }
+}
+
+function renderCards(body) {
+  const cls = body.cols===3?'three-col':body.cols===2?'two-col':'';
+  return `<div class="content-grid ${cls}">${body.items.map(c=>`
+    <div class="content-card">
+      <div class="card-icon">${c.icon||''}</div>
+      <div class="card-title">${c.title}</div>
+      <div class="card-body">${c.body}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderFacts(body) {
+  return `<div class="content-grid">${body.items.map(f=>`
+    <div class="fact-row">
+      <div class="fact-num ${f.numClass||''}">${f.num}</div>
+      <div class="fact-content">
+        <div class="fact-title">${f.title}</div>
+        <div class="fact-body">${f.body}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderTable(body) {
+  return `<table class="compare-table">
+    <thead><tr>${body.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${body.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderKeyPoints(body) {
+  return `<div class="key-points">${body.items.map(k=>`
+    <div class="key-point">
+      <div class="kp-arrow">→</div>
+      <div class="kp-text">${k}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderMixed(body) {
+  return body.items.map(item => {
+    if (item.type==='cards') return renderCards(item);
+    if (item.type==='facts') return renderFacts(item);
+    if (item.type==='table') return renderTable(item);
+    if (item.type==='keypoints') return renderKeyPoints({items:item.items});
+    if (item.type==='warn') return `<div class="warn-box"><strong>⚡ ${item.label}</strong>${item.text}</div>`;
+    if (item.type==='tip') return `<div class="tip-box"><strong>💡 ${item.label}</strong>${item.text}</div>`;
+    return '';
+  }).join('');
+}
+
+function renderQuiz(content, id) {
+  return `<div class="slide-quiz">
+    <div class="slide-eyebrow">${content.eyebrow||''}</div>
+    <div class="slide-h2">${content.heading||''}</div>
+    <div style="margin-top:24px;" id="quiz-${id}">
+      ${content.questions.map((q,qi)=>renderQuestion(q,qi,id)).join('<div style="height:24px;border-top:1px solid var(--bord2);margin:24px 0;"></div>')}
+    </div>
+    <div id="quiz-complete-${id}" style="display:none;margin-top:24px;">
+      <div class="tip-box"><strong>✅ Quiz Complete</strong>You can now move to the next lesson.</div>
+    </div>
+  </div>`;
+}
+
+function renderQuestion(q, qi, id) {
+  return `<div class="quiz-question" id="qq-${id}-${qi}">
+    <div class="quiz-q">Q${qi+1}. ${q.q}</div>
+    <div class="quiz-sub">Select the correct answer</div>
+    <div class="quiz-options">
+      ${q.options.map((opt,oi)=>`
+        <div class="quiz-option" id="qo-${id}-${qi}-${oi}" onclick="answerQuiz('${id}',${qi},${oi},${q.correct},'${q.feedback.replace(/'/g,"\\'")}')">
+          <span class="q-letter">${String.fromCharCode(65+oi)}</span>
+          <span>${opt}</span>
+        </div>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="qf-${id}-${qi}"></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════
+// QUIZ LOGIC
+// ═══════════════════════════════════
+function answerQuiz(id, qi, chosen, correct, feedback) {
+  const key = `${id}-${qi}`;
+  if (quizAnswered[key]) return;
+  quizAnswered[key] = true;
+
+  const isCorrect = chosen === correct;
+  const opts = document.querySelectorAll(`[id^="qo-${id}-${qi}-"]`);
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const chosenEl = document.getElementById(`qo-${id}-${qi}-${chosen}`);
+  const correctEl = document.getElementById(`qo-${id}-${qi}-${correct}`);
+  chosenEl.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) correctEl.classList.add('correct');
+
+  const fb = document.getElementById(`qf-${id}-${qi}`);
+  fb.className = `quiz-feedback show ${isCorrect?'correct-fb':'wrong-fb'}`;
+  fb.innerHTML = (isCorrect ? '✅ ' : '❌ ') + feedback;
+
+  // Check if all questions in this quiz answered
+  const lesson = allSlides[currentIdx].lesson;
+  if (lesson.content.type === 'quiz') {
+    const allAnswered = lesson.content.questions.every((_,i)=>quizAnswered[`${id}-${i}`]);
+    if (allAnswered) {
+      const doneEl = document.getElementById(`quiz-complete-${id}`);
+      if (doneEl) doneEl.style.display = 'block';
+    }
+  }
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function goToSlide(idx) {
+  if (idx < 0 || idx >= allSlides.length) return;
+
+  // Mark current as completed
+  completed.add(allSlides[currentIdx].lesson.id);
+
+  document.getElementById('slide-' + currentIdx)?.classList.remove('active');
+  currentIdx = idx;
+  document.getElementById('slide-' + currentIdx)?.classList.add('active');
+  document.getElementById('slideArea').scrollTop = 0;
+
+  updateUI();
+}
+
+function navigate(dir) {
+  const newIdx = currentIdx + dir;
+  if (newIdx < 0 || newIdx >= allSlides.length) return;
+  goToSlide(newIdx);
+}
+
+function updateUI() {
+  const s = allSlides[currentIdx];
+  const total = allSlides.length;
+  const pct = Math.round((completed.size / total) * 100);
+
+  document.getElementById('topFill').style.width = pct + '%';
+  document.getElementById('topLabel').textContent = pct + '%';
+  document.getElementById('navLessonName').textContent = s.lesson.title;
+  document.getElementById('navLessonPos').textContent = `Lesson ${currentIdx+1} of ${total}`;
+  document.getElementById('btnPrev').disabled = currentIdx === 0;
+  document.getElementById('btnNext').disabled = currentIdx === total - 1;
+
+  buildSidebar();
+
+  // Open correct module
+  const group = document.getElementById('mod-group-' + s.mi);
+  if (group && !group.classList.contains('open')) group.classList.add('open');
+}
+
+// ═══════════════════════════════════
+// FEEDBACK LOGIC
+// ═══════════════════════════════════
+let starRating = 0;
+const starLabels = ['','Terrible — not helpful at all','Poor — needs a lot of work','Average — useful but could be better','Good — really helpful','Excellent — exactly what I needed'];
+const chipSelections = {};
+
+function setStars(val) {
+  starRating = val;
+  document.querySelectorAll('.star').forEach(s => {
+    s.classList.toggle('lit', parseInt(s.dataset.val) <= val);
+  });
+  const label = document.getElementById('starLabel');
+  if (label) label.textContent = starLabels[val] || '';
+}
+
+function selectChip(el, group) {
+  // For 'missing' allow multi-select, others are single
+  if (group === 'missing') {
+    el.classList.toggle('selected');
+    if (!chipSelections[group]) chipSelections[group] = new Set();
+    if (el.classList.contains('selected')) chipSelections[group].add(el.dataset.val);
+    else chipSelections[group].delete(el.dataset.val);
+  } else {
+    document.querySelectorAll(`.fb-chip[data-group="${group}"]`).forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    chipSelections[group] = el.dataset.val;
+  }
+}
+
+function submitFeedback() {
+  if (!starRating) {
+    const err = document.getElementById('fb-error');
+    if (err) { err.style.display = 'block'; err.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return;
+  }
+  const err = document.getElementById('fb-error');
+  if (err) err.style.display = 'none';
+
+  const comment = document.getElementById('fbComment')?.value?.trim() || '';
+  const email = document.getElementById('fbEmail')?.value?.trim() || '';
+  const missing = chipSelections['missing'] ? [...chipSelections['missing']].join(', ') : 'None selected';
+
+  // Build summary
+  const summaryLines = [
+    `⭐ Rating: ${starRating}/5 — ${starLabels[starRating]}`,
+    `📚 Most useful module: ${chipSelections['module'] || 'Not selected'}`,
+    `💪 Confidence after course: ${chipSelections['confidence'] || 'Not selected'}`,
+    `👍 Would recommend: ${chipSelections['recommend'] || 'Not selected'}`,
+    `🤝 Would use consultancy: ${chipSelections['consultancy'] || 'Not selected'}`,
+    `➕ Topics to add: ${missing}`,
+    comment ? `💬 Comment: "${comment}"` : '',
+    email ? `📧 Email: ${email}` : ''
+  ].filter(Boolean);
+
+  const summary = document.getElementById('fbSummary');
+  if (summary) summary.innerHTML = summaryLines.map(l => `<div>${l}</div>`).join('');
+
+  // Hide form, show thanks
+  const form = document.getElementById('feedback-form');
+  const thanks = document.getElementById('feedback-thanks');
+  if (form) form.style.display = 'none';
+  if (thanks) { thanks.style.display = 'block'; thanks.scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+
+// ═══════════════════════════════════
+// PASSWORD GATE
+// ═══════════════════════════════════
+// SHA-256 hash of "SOLAR2025" — change the hash to change the password
+// To generate a new hash: https://emn178.github.io/online-tools/sha256.html
+const PASS_HASH = '390880d99a97e2e00a2a8e16d4bd692de2285bba130983f6e4aa7e8b61cf6605';
+
+async function hashInput(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('gateInput').value.trim();
+  const err = document.getElementById('gateError');
+  if (!input) { err.style.display = 'block'; return; }
+  const hash = await hashInput(input);
+  if (hash === PASS_HASH) {
+    const gate = document.getElementById('gate');
+    gate.style.opacity = '0';
+    gate.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => gate.style.display = 'none', 400);
+    sessionStorage.setItem('solar_access', '1');
+  } else {
+    err.style.display = 'block';
+    document.getElementById('gateInput').value = '';
+    document.getElementById('gateInput').focus();
+  }
+}
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('solar_access') === '1') {
+  document.getElementById('gate').style.display = 'none';
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+buildAllSlides();
+buildSidebar();
+updateUI();
+</script>
+</body>
+</html>

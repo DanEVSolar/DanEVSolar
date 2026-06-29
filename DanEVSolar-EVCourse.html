@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DanEVSolar — The Complete UK EV Purchasing Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d0f0a;
+  --bg2:    #131509;
+  --bg3:    #1a1d0e;
+  --bg4:    #1f2210;
+  --green:  #a8cc00;
+  --amber:  #e8a020;
+  --red:    #e85020;
+  --white:  #f0f2e8;
+  --muted:  #7a8060;
+  --border: rgba(168,204,0,0.15);
+  --bord2:  rgba(168,204,0,0.08);
+  --sidebar-w: 300px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;display:flex;flex-direction:column;}
+
+.topbar{height:56px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:16px;z-index:100;}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.logo-box{width:34px;height:34px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:7.5px;color:var(--bg);text-transform:uppercase;line-height:1.1;text-align:center;padding:3px;}
+.logo-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;}
+.course-title-top{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);flex:1;text-align:center;}
+.topbar-progress{display:flex;align-items:center;gap:10px;}
+.top-prog-bar{width:120px;height:3px;background:rgba(168,204,0,0.1);border-radius:2px;overflow:hidden;}
+.top-prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber));border-radius:2px;transition:width .4s ease;width:0%;}
+.top-prog-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.sidebar-head{padding:20px 16px 12px;border-bottom:1px solid var(--bord2);}
+.sidebar-head-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
+.sidebar-head-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;text-transform:uppercase;line-height:1.1;}
+
+.module-group{border-bottom:1px solid var(--bord2);}
+.module-head{padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;}
+.module-head:hover{background:var(--bg3);}
+.module-head.active{background:rgba(168,204,0,0.06);}
+.mod-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green);white-space:nowrap;}
+.mod-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.5px;flex:1;line-height:1.2;}
+.mod-check{width:16px;height:16px;border:1.5px solid var(--border);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s;}
+.mod-check.done{background:var(--green);border-color:var(--green);color:var(--bg);}
+
+.lesson-list{display:none;}
+.module-group.open .lesson-list{display:block;}
+.lesson-item{padding:9px 16px 9px 36px;cursor:pointer;display:flex;align-items:center;gap:8px;border-left:2px solid transparent;transition:all .15s;font-size:13px;color:var(--muted);}
+.lesson-item:hover{color:var(--white);background:var(--bg3);}
+.lesson-item.active{color:var(--green);border-left-color:var(--green);background:rgba(168,204,0,0.05);}
+.lesson-item.completed{color:rgba(168,204,0,0.6);}
+.lesson-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .2s;}
+.lesson-item.active .lesson-dot{background:var(--green);}
+.lesson-item.completed .lesson-dot{background:rgba(168,204,0,0.4);}
+.lesson-type{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 5px;border-radius:2px;margin-left:auto;white-space:nowrap;}
+.type-lesson{background:rgba(168,204,0,0.1);color:var(--green);}
+.type-quiz{background:rgba(232,160,32,0.12);color:var(--amber);}
+
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.slide-area{flex:1;overflow-y:auto;padding:0;}
+.slide-area::-webkit-scrollbar{width:4px;}
+.slide-area::-webkit-scrollbar-track{background:transparent;}
+.slide-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.slide{display:none;animation:fadeIn .3s ease;}
+.slide.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* Cover */
+.slide-cover{min-height:100%;background:linear-gradient(135deg,var(--bg) 0%,var(--bg3) 100%);display:flex;flex-direction:column;justify-content:center;padding:60px 64px;position:relative;overflow:hidden;}
+.slide-cover::before{content:'⚡';position:absolute;right:-40px;top:-40px;font-size:300px;opacity:0.025;line-height:1;pointer-events:none;}
+.slide-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),var(--green),transparent);}
+.cover-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:16px;}
+.cover-h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(48px,6vw,80px);line-height:.95;text-transform:uppercase;margin-bottom:24px;}
+.cover-h1 .a{color:var(--amber);}
+.cover-h1 .g{color:var(--green);}
+.cover-sub{font-size:16px;color:rgba(240,242,232,.7);max-width:520px;line-height:1.7;margin-bottom:40px;}
+.cover-stats{display:flex;gap:32px;flex-wrap:wrap;}
+.cstat{display:flex;flex-direction:column;gap:3px;}
+.cstat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:var(--amber);line-height:1;}
+.cstat-lbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.cdiv{width:1px;background:var(--border);align-self:stretch;}
+
+/* Lesson */
+.slide-lesson{padding:48px 64px;max-width:860px;}
+.slide-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;}
+.slide-h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(32px,4vw,52px);line-height:1;text-transform:uppercase;margin-bottom:8px;}
+.slide-h2 span{color:var(--green);}
+.slide-intro{font-size:15px;color:rgba(240,242,232,.7);line-height:1.7;margin-bottom:36px;max-width:600px;border-left:3px solid var(--border);padding-left:16px;}
+
+.content-grid{display:grid;gap:2px;margin-bottom:32px;}
+.content-grid.two-col{grid-template-columns:1fr 1fr;}
+.content-grid.three-col{grid-template-columns:1fr 1fr 1fr;}
+
+.content-card{background:var(--bg2);padding:22px;position:relative;overflow:hidden;}
+.content-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.content-card:hover::before{transform:scaleX(1);}
+.card-icon{font-size:24px;margin-bottom:10px;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:var(--white);}
+.card-body{font-size:13px;color:rgba(240,242,232,.7);line-height:1.6;}
+
+.fact-row{background:var(--bg2);padding:18px 22px;display:flex;align-items:flex-start;gap:16px;border-left:3px solid transparent;transition:border-color .2s;}
+.fact-row:hover{border-left-color:var(--amber);}
+.fact-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:var(--amber);line-height:1;min-width:40px;}
+.fact-num.green{color:var(--green);}
+.fact-num.red{color:var(--red);}
+.fact-content{}
+.fact-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.fact-body{font-size:13px;color:rgba(240,242,232,.7);line-height:1.6;}
+
+.warn-box{background:rgba(232,80,32,.07);border:1px solid rgba(232,80,32,.2);border-left:3px solid var(--red);padding:16px 20px;margin:16px 0;font-size:13px;color:rgba(240,242,232,.8);line-height:1.6;}
+.warn-box strong{color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.tip-box{background:rgba(232,160,32,.05);border:1px solid rgba(232,160,32,.15);border-left:3px solid var(--amber);padding:16px 20px;margin:16px 0;font-size:13px;color:rgba(240,242,232,.8);line-height:1.6;}
+.tip-box strong{color:var(--amber);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+
+.key-points{margin:24px 0;}
+.key-point{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bord2);}
+.key-point:last-child{border-bottom:none;}
+.kp-arrow{color:var(--amber);font-size:14px;margin-top:1px;flex-shrink:0;}
+.kp-text{font-size:14px;color:rgba(240,242,232,.85);line-height:1.5;}
+.kp-text strong{color:var(--white);}
+
+.compare-table{width:100%;border-collapse:collapse;margin:20px 0;}
+.compare-table th{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);padding:12px 16px;text-align:left;background:var(--bg3);border-bottom:1px solid var(--border);}
+.compare-table td{padding:12px 16px;font-size:13px;color:rgba(240,242,232,.8);border-bottom:1px solid var(--bord2);vertical-align:top;}
+.compare-table tr:last-child td{border-bottom:none;}
+.compare-table tr:hover td{background:rgba(232,160,32,.03);}
+.td-good{color:var(--green);}
+.td-warn{color:var(--amber);}
+.td-bad{color:var(--red);}
+
+/* Quiz */
+.slide-quiz{padding:48px 64px;max-width:760px;}
+.quiz-q{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;line-height:1.2;margin-bottom:8px;}
+.quiz-sub{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.quiz-option{padding:16px 20px;background:var(--bg2);border:1px solid var(--border);cursor:pointer;font-size:14px;color:rgba(240,242,232,.85);display:flex;align-items:center;gap:12px;transition:all .15s;border-radius:2px;}
+.quiz-option:hover{border-color:var(--amber);color:var(--white);background:var(--bg3);}
+.quiz-option.correct{border-color:var(--green);background:rgba(168,204,0,.1);color:var(--green);}
+.quiz-option.wrong{border-color:var(--red);background:rgba(232,80,32,.08);color:var(--red);}
+.quiz-option.disabled{pointer-events:none;}
+.q-letter{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;color:var(--muted);min-width:20px;}
+.quiz-option.correct .q-letter{color:var(--green);}
+.quiz-option.wrong .q-letter{color:var(--red);}
+.quiz-feedback{display:none;padding:16px 20px;margin-top:4px;font-size:14px;line-height:1.6;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.correct-fb{background:rgba(168,204,0,.07);border-left:3px solid var(--green);color:rgba(240,242,232,.85);}
+.quiz-feedback.wrong-fb{background:rgba(232,80,32,.07);border-left:3px solid var(--red);color:rgba(240,242,232,.85);}
+
+/* Complete */
+.slide-complete{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 40px;background:radial-gradient(ellipse at center,rgba(232,160,32,.07) 0%,transparent 70%);}
+.complete-icon{font-size:64px;margin-bottom:24px;}
+.complete-h{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(40px,6vw,72px);text-transform:uppercase;line-height:.95;margin-bottom:16px;}
+.complete-h span{color:var(--amber);}
+.complete-sub{font-size:15px;color:rgba(240,242,232,.7);max-width:480px;line-height:1.7;margin:0 auto 32px;}
+.complete-badge{display:inline-flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);padding:16px 28px;margin-bottom:32px;}
+.badge-icon{font-size:28px;}
+.badge-text{text-align:left;}
+.badge-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;text-transform:uppercase;color:var(--amber);}
+.badge-sub{font-size:12px;color:var(--muted);}
+
+/* Feedback */
+.fb-section{margin-bottom:28px;}
+.fb-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;color:var(--white);}
+.fb-required{color:var(--amber);}
+.fb-hint{font-size:11px;color:var(--muted);margin-top:6px;}
+.star-row{display:flex;gap:6px;margin-bottom:6px;}
+.star{font-size:36px;color:var(--border);cursor:pointer;transition:color .15s;line-height:1;user-select:none;}
+.star.lit{color:var(--amber);}
+.star:hover{color:var(--amber);opacity:.8;}
+.star-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;min-height:16px;}
+.fb-options{display:flex;flex-wrap:wrap;gap:8px;}
+.fb-chip{padding:8px 14px;background:var(--bg2);border:1px solid var(--border);font-size:13px;color:rgba(240,242,232,.75);cursor:pointer;border-radius:2px;transition:all .15s;font-weight:500;}
+.fb-chip:hover{border-color:var(--amber);color:var(--white);}
+.fb-chip.selected{background:rgba(232,160,32,.12);border-color:var(--amber);color:var(--amber);font-weight:600;}
+.fb-textarea{width:100%;min-height:110px;background:var(--bg2);border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;padding:14px 16px;border-radius:2px;resize:vertical;outline:none;transition:border-color .2s;line-height:1.6;}
+.fb-textarea:focus{border-color:var(--amber);}
+.fb-textarea::placeholder{color:var(--muted);}
+.fb-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;padding:12px 16px;border-radius:2px;outline:none;transition:border-color .2s;}
+.fb-input:focus{border-color:var(--amber);}
+.fb-input::placeholder{color:var(--muted);}
+.fb-error{color:var(--red);font-size:13px;margin-bottom:10px;font-weight:600;}
+.fb-submit{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:14px 32px;background:var(--amber);color:var(--bg);border:none;border-radius:2px;cursor:pointer;transition:opacity .15s;}
+.fb-submit:hover{opacity:.88;}
+.fb-submit:active{transform:scale(.98);}
+.fb-thanks{background:var(--bg2);border:1px solid var(--border);border-top:3px solid var(--amber);padding:40px 32px;text-align:center;}
+.fb-thanks-icon{font-size:48px;margin-bottom:16px;}
+.fb-thanks-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+.fb-thanks-sub{font-size:14px;color:rgba(240,242,232,.7);line-height:1.7;max-width:440px;margin:0 auto 20px;}
+.fb-thanks-summary{background:var(--bg3);border:1px solid var(--bord2);padding:16px 20px;margin:16px auto;max-width:360px;text-align:left;font-size:13px;color:rgba(240,242,232,.7);line-height:1.8;}
+.fb-cta-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 22px;background:var(--amber);color:var(--bg);text-decoration:none;border-radius:2px;display:inline-block;}
+.fb-cta-btn-outline{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 22px;background:transparent;color:var(--muted);text-decoration:none;border-radius:2px;border:1px solid var(--border);display:inline-block;}
+
+/* Nav */
+.nav-bar{height:64px;flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px;}
+.nav-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:10px 22px;border-radius:2px;cursor:pointer;border:none;transition:all .15s;}
+.nav-btn:active{transform:scale(.98);}
+.btn-prev{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-prev:hover{color:var(--white);border-color:var(--muted);}
+.btn-next{background:var(--amber);color:var(--bg);}
+.btn-next:hover{opacity:.9;}
+.btn-next:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;}
+.nav-lesson-info{text-align:center;flex:1;}
+.nav-lesson-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--white);}
+.nav-lesson-pos{font-size:11px;color:var(--muted);margin-top:2px;}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .slide-lesson,.slide-quiz{padding:28px 20px;}
+  .slide-cover{padding:40px 24px;}
+  .content-grid.two-col,.content-grid.three-col{grid-template-columns:1fr;}
+  .course-title-top{display:none;}
+  .nav-lesson-info{display:none;}
+}
+
+/* ── PASSWORD GATE ── */
+#gate{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;padding:24px;
+}
+#gate::before{
+  content:'';position:absolute;
+  top:-200px;right:-200px;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(232,160,32,0.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.gate-box{
+  width:100%;max-width:420px;background:var(--bg2);
+  border:1px solid var(--border);padding:40px 36px;
+  position:relative;z-index:1;
+}
+.gate-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.gate-logo-box{
+  width:40px;height:40px;background:var(--green);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:8px;
+  color:var(--bg);text-transform:uppercase;line-height:1.1;text-align:center;padding:3px;
+}
+.gate-logo-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;text-transform:uppercase;}
+.gate-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;}
+.gate-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;text-transform:uppercase;line-height:1;margin-bottom:8px;}
+.gate-title span{color:var(--amber);}
+.gate-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:28px;}
+.gate-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.gate-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--white);font-family:'Barlow',sans-serif;font-size:16px;
+  padding:14px 16px;border-radius:2px;outline:none;
+  transition:border-color .2s;letter-spacing:2px;margin-bottom:12px;
+}
+.gate-input:focus{border-color:var(--amber);}
+.gate-input::placeholder{color:var(--muted);letter-spacing:0;}
+.gate-btn{
+  width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;padding:14px;
+  background:var(--amber);color:var(--bg);border:none;border-radius:2px;
+  cursor:pointer;transition:opacity .15s;
+}
+.gate-btn:hover{opacity:.88;}
+.gate-btn:active{transform:scale(.99);}
+.gate-error{
+  font-size:13px;color:var(--red);font-weight:600;
+  margin-top:10px;display:none;
+  padding:10px 14px;background:rgba(232,80,32,.08);
+  border-left:3px solid var(--red);
+}
+.gate-footer{margin-top:24px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+.gate-footer a{color:var(--amber);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="gate-logo-box">DanEV<br>Solar</div>
+      <div class="gate-logo-name">DanEVSolar</div>
+    </div>
+    <div class="gate-eyebrow">Premium Course</div>
+    <div class="gate-title">COMPLETE EV<br><span>PURCHASING GUIDE</span></div>
+    <div class="gate-sub">Enter your access code to unlock the course. You received this when you purchased — check your email if you can't find it.</div>
+    <div class="gate-label">Access Code</div>
+    <input class="gate-input" type="password" id="gateInput" placeholder="Enter your access code" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Unlock Course →</button>
+    <div class="gate-error" id="gateError">Incorrect code — check your purchase confirmation email and try again.</div>
+    <div class="gate-footer">
+      Purchased but lost your code? <a href="mailto:hello@danevsolar.com">hello@danevsolar.com</a>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="data:image/jpeg;base64,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" alt="DanEVSolar" style="height:40px;width:auto;border-radius:6px;display:block;">
+  </div>
+  <div class="course-title-top">The Complete UK EV Purchasing Guide</div>
+  <div class="topbar-progress">
+    <div class="top-prog-bar"><div class="top-prog-fill" id="topFill"></div></div>
+    <div class="top-prog-label" id="topLabel">0%</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-head-label">Course Modules</div>
+      <div class="sidebar-head-title">UK EV<br>PURCHASING GUIDE</div>
+    </div>
+    <div id="sidebarNav"></div>
+  </div>
+
+  <div class="main">
+    <div class="slide-area" id="slideArea"></div>
+    <div class="nav-bar">
+      <button class="nav-btn btn-prev" id="btnPrev" onclick="navigate(-1)">← Prev</button>
+      <div class="nav-lesson-info">
+        <div class="nav-lesson-name" id="navLessonName">Introduction</div>
+        <div class="nav-lesson-pos" id="navLessonPos">Slide 1 of 1</div>
+      </div>
+      <button class="nav-btn btn-next" id="btnNext" onclick="navigate(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const course = {
+  title: "The Complete UK EV Purchasing Guide",
+  modules: [
+    // ═══════════════════════════════
+    // INTRO
+    // ═══════════════════════════════
+    {
+      id:"intro", title:"Welcome",
+      lessons:[
+        {
+          id:"cover", title:"Course Introduction", type:"lesson",
+          content:{ type:"cover" }
+        },
+        {
+          id:"overview", title:"What You'll Learn", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Course Overview",
+            heading:"WHAT YOU'LL",
+            headingAccent:"LEARN",
+            intro:"Switching to an EV is one of the biggest purchases you'll make — and one of the most misunderstood. This course cuts through the marketing and gives you the real-world knowledge to make a confident, informed decision.",
+            body:{
+              type:"cards", cols:2,
+              items:[
+                { icon:"🔋", title:"Real World Range", body:"Why WLTP figures are fiction, what actually affects your range, and how to calculate what you really need." },
+                { icon:"⚡", title:"Charging Mastery", body:"Home charging setup, public networks, costs, speeds, and how to never get caught short." },
+                { icon:"💷", title:"True Cost of Ownership", body:"Purchase price, running costs, tax benefits, insurance, and how EVs compare to petrol over 3–5 years." },
+                { icon:"🚗", title:"Second-Hand Market", body:"How to buy a used EV safely, what to check, battery health, and where the best deals are found." }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // MODULE 0 — UNDERSTANDING THE UNITS
+    // ═══════════════════════════════
+    {
+      id:"m0", title:"Understanding the Units",
+      lessons:[
+        {
+          id:"m0-l1", title:"Power vs Energy", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Foundation Module · Lesson 1",
+            heading:"POWER VS",
+            headingAccent:"ENERGY",
+            intro:"Two words you'll see everywhere in EV ownership. They're used interchangeably in everyday conversation but they mean completely different things — and confusing them leads to bad decisions.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:2,
+                  items:[
+                    { icon:"⚡", title:"Power — the Rate", body:"Power is how fast electricity is being transferred at any moment. Like the speed of water flowing from a tap. Measured in Watts (W) or Kilowatts (kW). A 7 kW home charger delivers 7 kW of power to your car right now." },
+                    { icon:"🔋", title:"Energy — the Amount", body:"Energy is the total electricity transferred over time. Like the total water that flowed from the tap. Measured in Watt-hours (Wh) or Kilowatt-hours (kWh). Your car's battery holds a certain number of kWh. Your electricity bill charges you per kWh." }
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"The Formula That Makes It Click",
+                  text:"Energy (kWh) = Power (kW) × Time (hours). A 7 kW charger running for 4 hours adds 28 kWh to your battery. A 75 kWh battery on a 7 kW charger takes about 10–11 hours to charge from empty. Once this clicks, everything else in EV ownership makes sense."
+                },
+                {
+                  type:"facts",
+                  items:[
+                    { num:"W", numClass:"", title:"Watt", body:"The basic unit of power. Named after James Watt. A phone charger uses 20–30W. An LED bulb uses ~10W. Too small for describing EV charging — we use kW instead." },
+                    { num:"kW", numClass:"green", title:"Kilowatt", body:"1,000 Watts. The standard unit for EV charger speeds. A 3-pin socket delivers 2.3 kW. A home charger delivers 7 kW. A public rapid charger delivers 50–350 kW. This determines how quickly you charge." },
+                    { num:"kWh", numClass:"green", title:"Kilowatt-hour", body:"1,000 Watt-hours. The unit of energy. Your EV's battery capacity is measured in kWh — a larger kWh battery holds more energy and gives more range. Also what your electricity supplier charges you for — typically 24–28p/kWh on standard rates." },
+                    { num:"p/kWh", numClass:"", title:"Pence per kilowatt-hour", body:"The price of electricity per unit. Standard rate ~24–28p/kWh. Octopus Go overnight ~7p/kWh. Public rapid charging ~65–85p/kWh. This number determines whether your EV is cheap or expensive to run." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m0-l2", title:"EV Battery & Range Units", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Foundation Module · Lesson 2",
+            heading:"BATTERY &",
+            headingAccent:"RANGE UNITS",
+            intro:"EV batteries and range figures come with their own set of terms. Understanding these lets you compare cars honestly and cut through manufacturer marketing.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Term","What It Means","Real-World Example"],
+                  rows:[
+                    ["kWh (battery)","Total energy the battery can store","A 77 kWh battery holds more energy than a 58 kWh battery — more range"],
+                    ["Usable kWh","Energy actually accessible to the driver","A 77 kWh battery may have 74 kWh usable — manufacturers reserve a buffer"],
+                    ["WLTP range","Official range figure measured in lab conditions","Kia EV6 77 kWh: 328 miles WLTP — expect ~260 miles real-world mixed driving"],
+                    ["Real-world range","Actual range in normal driving conditions","Roughly 75–85% of WLTP in mixed driving. 55–65% on cold motorways."],
+                    ["Wh/mile","Energy efficiency — how many Wh the car uses per mile","Lower is better. City EVs: ~220 Wh/mile. Performance EVs: ~300+ Wh/mile"],
+                    ["SoC","State of Charge — current battery level","'Charging to 80% SoC' means 80% full — recommended daily charge limit"],
+                    ["SoH","State of Health — battery degradation over time","New = 100%. Well-maintained EV after 5 years: typically 90–95% SoH"],
+                    ["DoD","Depth of Discharge — how much of the battery is used","Most EVs protect the top and bottom — you don't access 100% of capacity"],
+                    ["BMS","Battery Management System","The electronics that manage charging, discharging, temperature, and cell balancing. Critical for battery longevity."]
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m0-l3", title:"Charging Speed Units", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Foundation Module · Lesson 3",
+            heading:"CHARGING",
+            headingAccent:"SPEED UNITS",
+            intro:"Charging speed is described in kW — but the same number means very different things depending on whether it's AC or DC charging. This distinction trips up almost every new EV buyer.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:2,
+                  items:[
+                    { icon:"🔌", title:"AC Charging (Slow/Fast)", body:"Alternating Current — what comes out of your wall. Your car's onboard charger converts AC to DC to charge the battery. The car's onboard charger limits the maximum AC speed. Most cars accept 7–11 kW AC. Some accept 22 kW." },
+                    { icon:"⚡", title:"DC Charging (Rapid)", body:"Direct Current — bypasses the car's onboard charger and goes straight to the battery. Much faster. The car's maximum DC charge rate is a fixed spec — you cannot exceed it regardless of how powerful the charger is." }
+                  ]
+                },
+                {
+                  type:"table",
+                  headers:["Speed","kW","Type","Miles Added per Hour","Typical Use"],
+                  rows:[
+                    ["Slow","2.3 kW","AC (3-pin)","~8 miles","Emergency home charging only"],
+                    ["Fast","7 kW","AC","~25 miles","Standard home charger — overnight"],
+                    ["Fast","11 kW","AC","~37 miles","Home or destination (3-phase supply needed)"],
+                    ["Fast","22 kW","AC","~75 miles","Public destination (most cars limited to 11 kW AC)"],
+                    ["Rapid","50 kW","DC","~150 miles","Older public rapids — 30–45 min for 80%"],
+                    ["Rapid","100–150 kW","DC","~300–450 miles","Modern public rapids — 20–30 min for 80%"],
+                    ["Ultra-rapid","250–350 kW","DC","~750+ miles","Latest chargers — only the fastest EVs can use full speed"]
+                  ]
+                },
+                {
+                  type:"warn",
+                  label:"The Car's Limit Always Wins",
+                  text:"If your car has a maximum DC charge rate of 100 kW, plugging into a 350 kW ultra-rapid charger will still only charge at 100 kW. You cannot charge faster than the car allows. Always check the car's maximum AC and DC charge rate in the spec sheet before buying."
+                },
+                {
+                  type:"tip",
+                  label:"The Quick Estimate for Miles Added",
+                  text:"Divide the charger power (kW) by the car's efficiency (roughly 3–4 miles/kWh for most EVs) to estimate miles added per hour. A 7 kW charger on a car doing 3.5 miles/kWh = 7 × 3.5 = 24.5 miles per hour of charging. This is a quick sanity check for any charging scenario."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m0-l4", title:"Real-World Numbers to Know", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Foundation Module · Lesson 4",
+            heading:"REAL-WORLD",
+            headingAccent:"NUMBERS",
+            intro:"These are the reference numbers that experienced EV owners use to quickly evaluate any situation — from choosing a car to calculating a charging cost.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:2,
+                  items:[
+                    { icon:"💷", title:"Cost Per Mile — Home Charging", body:"At Octopus Go (7p/kWh) and 3.5 miles/kWh efficiency: 7 ÷ 3.5 = 2p per mile. Compare to ~14–18p per mile for a petrol car at 40 mpg and 145p/litre." },
+                    { icon:"⛽", title:"Cost Per Mile — Public Rapid", body:"At 79p/kWh rapid charging and 3.5 miles/kWh: 79 ÷ 3.5 = 22.5p per mile. More expensive than petrol. The financial case for EVs relies on home charging." },
+                    { icon:"🔋", title:"Typical Battery Sizes", body:"Small city EV: 30–50 kWh (Nissan Leaf, MG ZS). Family EV: 60–80 kWh (Tesla Model 3, Kia EV6). Premium/long-range: 80–100 kWh (Mercedes EQS, BMW iX). More kWh = more range but also more weight and cost." },
+                    { icon:"📉", title:"Battery Degradation", body:"Modern EVs lose roughly 2–3% of battery capacity per year. A car with 90% SoH still has 90% of its original range. LFP batteries degrade slower than NMC. Most manufacturers warranty the battery to 70% SoH over 8 years / 100,000 miles." }
+                  ]
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>1 kWh of battery = roughly 3–4 miles of range</strong> for most family EVs in mixed driving",
+                    "<strong>7 kW home charger = ~25 miles per hour</strong> — fully charges most EVs overnight",
+                    "<strong>80% is the magic number</strong> — charge to 80% daily, only go to 100% when you need the range",
+                    "<strong>Rapid charging slows above 80% SoC</strong> — stop at 80% on long journeys and drive on",
+                    "<strong>Cold weather reduces range by 20–35%</strong> — always plan winter journeys with a buffer"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m0-q1", title:"Quiz: Understanding the Units", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Foundation Module · Knowledge Check",
+            heading:"UNITS QUIZ",
+            questions:[
+              {
+                q:"A car has a 77 kWh battery and a 7 kW home charger. Approximately how long does a full charge from empty take?",
+                options:["About 1 hour","About 4 hours","About 11 hours","About 24 hours"],
+                correct:2,
+                feedback:"Correct! 77 kWh ÷ 7 kW = 11 hours. In practice it's slightly longer due to charging efficiency losses and the car slowing the charge rate near 100%. This is why overnight home charging is perfect — plug in at 11pm, fully charged by morning."
+              },
+              {
+                q:"Your EV has a maximum DC charge rate of 100 kW. You pull up to a 250 kW ultra-rapid charger. How fast will you charge?",
+                options:["250 kW — you get the full speed","100 kW — the car's limit always wins","175 kW — it splits the difference","50 kW — the charger limits output to protect the car"],
+                correct:1,
+                feedback:"Correct! The car's maximum charge rate always wins. A 250 kW charger cannot push electricity into a car faster than the car's onboard systems allow. Always check the car's maximum DC charge speed before buying if rapid charging performance matters to you."
+              },
+              {
+                q:"You're charging at a public rapid charger at 79p/kWh and your car does 3.5 miles per kWh. What is the approximate cost per mile?",
+                options:["2p per mile","10p per mile","22.5p per mile","45p per mile"],
+                correct:2,
+                feedback:"Correct! 79p ÷ 3.5 miles/kWh = 22.5p per mile — more expensive than a reasonably efficient petrol car. This is why the EV financial case depends on home charging (2–3p per mile) not public rapid charging. Use rapids for convenience on long journeys, not as your primary charging method."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    // ═══════════════════════════════
+    // MODULE 1 — REAL WORLD RANGE
+    // ═══════════════════════════════
+    {
+      id:"m1", title:"Real World Range",
+      lessons:[
+        {
+          id:"m1-l1", title:"Why WLTP Figures Lie", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 1 · Lesson 1",
+            heading:"WHY WLTP",
+            headingAccent:"FIGURES LIE",
+            intro:"Every EV manufacturer advertises a WLTP range figure. Almost no driver achieves it. Understanding why is the single most important thing you can do before choosing an EV.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"tip",
+                  label:"What is WLTP?",
+                  text:"WLTP (Worldwide Harmonised Light Vehicle Test Procedure) is a standardised lab test conducted in controlled conditions — mild temperature, flat road, no accessories running, optimal tyre pressure. It's a benchmark, not a real-world promise."
+                },
+                {
+                  type:"facts",
+                  items:[
+                    { num:"80%", numClass:"", title:"The Realistic Rule of Thumb", body:"Expect roughly 80% of the WLTP figure in normal mixed driving conditions. So a car claiming 300 miles WLTP will typically deliver around 240 miles in the real world. In winter, drop this to 65–70%." },
+                    { num:"❄️", numClass:"red", title:"Winter Is the Big One", body:"Cold weather is an EV's biggest enemy. At 0°C, range can drop 20–35% compared to summer. Battery chemistry slows in the cold, cabin heating draws significant power, and regenerative braking is less effective on cold batteries." },
+                    { num:"🛣️", numClass:"", title:"Motorway Driving Hammers Range", body:"EVs are most efficient at 30–50 mph. At motorway speeds (70 mph+), aerodynamic drag increases exponentially. A car with 280 miles city range may only manage 180–200 miles at a constant 70 mph. Always plan motorway journeys around real motorway range." },
+                    { num:"❄️+🛣️", numClass:"red", title:"The Worst Case", body:"Cold motorway driving is the hardest possible scenario. Winter, 70 mph, heating on full. Some EVs deliver as little as 50–55% of their WLTP figure in these conditions. Know your car's worst case before you buy." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m1-l2", title:"Factors That Affect Range", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 1 · Lesson 2",
+            heading:"FACTORS THAT",
+            headingAccent:"AFFECT RANGE",
+            intro:"Range isn't fixed — it's a variable that changes constantly based on how and where you drive. Understanding these factors lets you plan confidently.",
+            body:{
+              type:"table",
+              headers:["Factor","Impact","What To Do"],
+              rows:[
+                ["Temperature (cold)","−20 to −35%","Pre-condition car while still plugged in — uses grid power, not battery"],
+                ["Temperature (hot)","−5 to −10%","Use cabin cooling sparingly; park in shade where possible"],
+                ["Motorway speed (70 mph)","−25 to −35% vs city","Allow extra time, plan charging stops, drive 60–65 mph if range is tight"],
+                ["Heating / AC","−5 to −15%","Use heated seats & steering wheel instead — far more efficient than cabin heat"],
+                ["Payload / passengers","−3 to −8%","Heavier load = more energy per mile"],
+                ["Tyre pressure","−2 to −5% if low","Check monthly — underinflated tyres hit range and tyre life"],
+                ["Roof box / bike rack","−10 to −20%","Aerodynamic drag is significant — remove when not needed"],
+                ["Driving style","±25%","Smooth acceleration and coasting beats aggressive driving dramatically"],
+                ["Regen braking","+5 to +15%","Use maximum regen setting in town — recaptures energy on every deceleration"]
+              ]
+            }
+          }
+        },
+        {
+          id:"m1-l3", title:"How Much Range Do You Actually Need?", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 1 · Lesson 3",
+            heading:"HOW MUCH RANGE",
+            headingAccent:"DO YOU NEED?",
+            intro:"Most buyers dramatically overestimate the range they need — and pay a significant premium for battery capacity they rarely use. Here's how to calculate your real requirement.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:3,
+                  items:[
+                    { icon:"🏘️", title:"Local / Commuter", body:"Daily mileage under 60 miles. Almost any modern EV will do. Look at 150–250 miles WLTP range. Don't pay for more." },
+                    { icon:"🛣️", title:"Mixed Use", body:"Daily driving plus occasional longer trips. 250–350 miles WLTP. Factor in rapid charging comfort — you don't need to complete every trip on one charge." },
+                    { icon:"🗺️", title:"Long-Distance Regular", body:"Frequent motorway miles or trips over 200 miles. 350+ miles WLTP AND fast charge speed matters. Look for 150 kW+ DC charging." }
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"Dan's Range Calculation Method",
+                  text:"Take your 3 longest journeys in the past year. Add 20% buffer. That's your minimum real-world range requirement — not your WLTP requirement. If your longest trip was 150 miles, you need 180 miles real-world range. Work backwards from there to WLTP figure (divide by 0.8). You probably need less than you think."
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Home charging changes everything</strong> — if you charge overnight every day, you start every morning full. Long range matters much less.",
+                    "<strong>Rapid charging confidence</strong> — a 200-mile car with fast charging is more practical than a 300-mile car with slow charging on long trips",
+                    "<strong>Range anxiety fades fast</strong> — almost every EV owner reports it disappears within the first month of ownership",
+                    "<strong>Battery degrades slowly</strong> — modern EVs lose roughly 2–3% capacity per year. Factor this into long-term ownership plans"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m1-q1", title:"Quiz: Real World Range", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Module 1 · Knowledge Check",
+            heading:"REAL WORLD RANGE QUIZ",
+            questions:[
+              {
+                q:"An EV is advertised with 300 miles WLTP range. What should you realistically expect in normal mixed driving?",
+                options:["300 miles — WLTP is accurate","Around 240 miles (80% of WLTP)","Around 150 miles (50% of WLTP)","Around 270 miles (90% of WLTP)"],
+                correct:1,
+                feedback:"Correct! The 80% rule is a reliable starting point for real-world range from a WLTP figure in normal mixed driving conditions. In winter or at motorway speeds this drops further — sometimes to 65% or less."
+              },
+              {
+                q:"You're planning a 200-mile winter motorway journey. Your EV has 280 miles WLTP range. What should you do?",
+                options:["Drive straight through — 280 miles WLTP is more than enough","Plan a rapid charging stop — winter motorway range could be 160–180 miles","Only use your car in summer for long trips","Avoid EVs if you do long winter trips"],
+                correct:1,
+                feedback:"Correct! Cold weather plus motorway speed can reduce range to 55–65% of WLTP — meaning your 280-mile car might only manage 155–180 miles. Always plan charging stops on winter long-distance trips. Pre-condition the car while plugged in to help."
+              },
+              {
+                q:"Which is the most energy-efficient way to heat the cabin of an EV in winter?",
+                options:["Blast the air conditioning on full","Use heated seats and steering wheel instead of cabin heating","Open the windows to stay alert","Turn the heating off entirely"],
+                correct:1,
+                feedback:"Correct! Heated seats and steering wheel warm the occupants directly using far less energy than heating the entire cabin volume. This is one of the best real-world range-saving tips for winter EV driving."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // MODULE 2 — CHARGING
+    // ═══════════════════════════════
+    {
+      id:"m2", title:"Charging — Home & Public",
+      lessons:[
+        {
+          id:"m2-l1", title:"Home Charging Essentials", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 2 · Lesson 1",
+            heading:"HOME CHARGING",
+            headingAccent:"ESSENTIALS",
+            intro:"Home charging is the foundation of EV ownership. If you can charge at home, you will almost never need to think about range. Get this right first.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:2,
+                  items:[
+                    { icon:"🔌", title:"3-Pin Plug (Mode 2)", body:"Emergency only. 2.3 kW. Charges roughly 8–10 miles of range per hour. Adequate for occasional top-ups but not for daily charging. Not recommended as primary solution." },
+                    { icon:"⚡", title:"Dedicated Home Charger (Mode 3)", body:"7 kW is standard. Adds roughly 25–30 miles per hour. Full charge overnight for most EVs. This is what you want. Costs £750–£1,200 installed." }
+                  ]
+                },
+                {
+                  type:"table",
+                  headers:["Charger Speed","Output","Miles Added per Hour","Full Charge Time (75 kWh)"],
+                  rows:[
+                    ["3-pin socket","2.3 kW","~8 miles","33 hours ❌"],
+                    ["7 kW home charger","7 kW","~25 miles","11 hours ✅"],
+                    ["22 kW home charger","22 kW","~75 miles","3.5 hours (most cars limited to 7–11 kW AC)"]
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"OZEV Grant — Check Eligibility",
+                  text:"The UK government's OZEV (Office for Zero Emission Vehicles) grant provides £350 off a home EV charger installation for flat residents and people in rental accommodation. Homeowners with off-street parking no longer qualify for the main grant, but the grant still applies in specific circumstances. Check ozev.gov.uk for current eligibility."
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Smart charger is essential</strong> — required for OZEV grant and enables off-peak scheduling to charge cheaply overnight",
+                    "<strong>Octopus Intelligent Go</strong> — charges your EV automatically during cheapest overnight periods. Can drop cost to ~7p/kWh",
+                    "<strong>Solar integration</strong> — combine home charging with solar panels and charge your EV from the sun during the day",
+                    "<strong>Install before delivery</strong> — get your charger installed before your EV arrives so you can plug in on day one"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m2-l2", title:"Public Charging Networks", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 2 · Lesson 2",
+            heading:"PUBLIC CHARGING",
+            headingAccent:"NETWORKS",
+            intro:"The UK's public charging network has improved enormously but remains inconsistent. Knowing which networks to trust — and which to avoid — is essential knowledge before you buy.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Network","Speed","Reliability","Cost (approx)","Notes"],
+                  rows:[
+                    ["Tesla Supercharger","Up to 250 kW","⭐⭐⭐⭐⭐","~45p–65p/kWh","Now open to all EVs. Best reliability in the UK by far."],
+                    ["Gridserve / Electric Highway","Up to 350 kW","⭐⭐⭐⭐","~79p/kWh","Good hardware, consistent. Major motorway presence."],
+                    ["BP Pulse","Up to 150 kW","⭐⭐⭐","~79p/kWh","Large network but reliability has been patchy historically."],
+                    ["Pod Point","Up to 7–22 kW","⭐⭐⭐","Free–35p/kWh","Common in supermarkets and workplaces. Mostly slow/fast."],
+                    ["Osprey","Up to 150 kW","⭐⭐⭐⭐","~75p/kWh","Smaller but reliable rapid network."],
+                    ["GeniePoint / Mer","Up to 50 kW","⭐⭐","~65p/kWh","Older hardware, reliability issues. Use as backup."]
+                  ]
+                },
+                {
+                  type:"warn",
+                  label:"Public Charging Is Expensive",
+                  text:"Public rapid charging typically costs 65–85p/kWh — equivalent to paying £1.50–£2.00 per litre for petrol in terms of pence per mile. The EV cost advantage is at home charging (7–14p/kWh overnight), not on public networks. If you can't charge at home, the economics of EV ownership change significantly."
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Use Zap-Map</strong> — best app for finding chargers, filtering by speed and network, and checking real-time availability and reliability",
+                    "<strong>A Better Route Planner (ABRP)</strong> — plans long routes with charging stops, accounts for your specific car and real-world conditions",
+                    "<strong>Contactless payment</strong> — since 2023 all new public chargers over 8 kW must accept contactless. Older chargers may need RFID cards",
+                    "<strong>Download network apps in advance</strong> — Tesla, Gridserve, BP Pulse. Some offer better rates for app/RFID vs ad-hoc"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m2-l3", title:"Charging Speeds & Connectors", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 2 · Lesson 3",
+            heading:"CHARGING SPEEDS",
+            headingAccent:"& CONNECTORS",
+            intro:"Not all charging is equal. Understanding connector types and charge rates helps you know exactly what your car can do — and what it can't.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Connector Type","Used For","Max Speed","Common Cars"],
+                  rows:[
+                    ["Type 2 (AC)","Home & destination charging","7–22 kW","All modern EVs in UK"],
+                    ["CCS (DC Rapid)","Public rapid charging","50–350 kW","Most modern EVs"],
+                    ["CHAdeMO (DC)","Legacy rapid charging","50 kW","Nissan Leaf (older), Mitsubishi"],
+                    ["Tesla (NACS)","Tesla Superchargers","Up to 250 kW","Tesla (adapters available for others)"],
+                    ["3-pin (Type G)","Emergency home use","2.3 kW","All EVs via cable adapter"]
+                  ]
+                },
+                {
+                  type:"cards", cols:3,
+                  items:[
+                    { icon:"🐢", title:"Slow (3–7 kW)", body:"Lamp posts, car parks, workplaces. Overnight or multi-hour stops only. Fine for topping up while parked." },
+                    { icon:"🚶", title:"Fast (7–22 kW)", body:"Home chargers, supermarkets, leisure centres. 1–4 hours for most EVs. The everyday workhorse." },
+                    { icon:"🚀", title:"Rapid / Ultra (50–350 kW)", body:"Motorway services, dedicated hubs. 20–40 mins for 80% charge. For long journeys." }
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"The 80% Rule for Rapid Charging",
+                  text:"EV batteries charge fastest from 20–80%. Above 80%, charging slows dramatically to protect the battery. On long journeys, it's almost always faster to charge to 80% and continue than to wait for 100%. Plan stops of 20–30 minutes at rapids rather than full charges."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m2-l4", title:"Charging Without a Driveway", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 2 · Lesson 4",
+            heading:"CHARGING WITHOUT",
+            headingAccent:"A DRIVEWAY",
+            intro:"Around 40% of UK households don't have off-street parking. This is one of the biggest barriers to EV ownership — but there are more options than most people realise.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"facts",
+                  items:[
+                    { num:"🏘️", numClass:"", title:"On-Street Charging", body:"Local councils are installing lamp post chargers and dedicated on-street EV points rapidly. Check your council's EV charging map. Speeds are typically 3–7 kW — slow but adequate overnight." },
+                    { num:"🏢", numClass:"green", title:"Workplace Charging", body:"Many employers now offer free or subsidised EV charging as a benefit. The workplace charging scheme previously offered grants to businesses. If your employer doesn't have chargers, make the case — there are financial incentives for them too." },
+                    { num:"🛒", numClass:"", title:"Destination Charging", body:"Supermarkets, leisure centres, retail parks, and hotels increasingly offer free or cheap charging while you shop or stay. Build these into your routine and top up whenever you stop." },
+                    { num:"🔌", numClass:"red", title:"The Honest Answer", body:"If you have no driveway, no workplace charging, and limited local infrastructure — EV ownership is genuinely harder right now. A plug-in hybrid (PHEV) may be a better bridge option while infrastructure improves." }
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"Pavement Cable Channels",
+                  text:"Some councils now permit cable channels across pavements for overnight home charging where no driveway exists. Check with your local council — this is expanding rapidly across the UK as EV adoption grows."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m2-q1", title:"Quiz: Charging", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Module 2 · Knowledge Check",
+            heading:"CHARGING QUIZ",
+            questions:[
+              {
+                q:"What is the recommended home charging solution for daily EV use?",
+                options:["A 3-pin plug socket — it's free and already installed","A dedicated 7 kW smart home charger","A 22 kW three-phase charger","Public rapid charging only"],
+                correct:1,
+                feedback:"Correct! A dedicated 7 kW smart home charger is the standard recommendation. It adds ~25 miles per hour, completes most charges overnight, and enables smart scheduling to charge on cheap overnight tariffs. A 3-pin socket is too slow for daily use."
+              },
+              {
+                q:"Why should you typically stop rapid charging at 80% rather than waiting for 100%?",
+                options:["The charger automatically stops at 80%","Charging slows dramatically above 80% to protect the battery — it's usually faster to drive on and charge again","Public chargers charge extra above 80%","Battery damage occurs above 80% state of charge"],
+                correct:1,
+                feedback:"Correct! EV batteries use a tapering charge curve — fast up to 80%, then progressively slower to protect cell longevity. On a long journey it's almost always more time-efficient to charge to 80% and continue than to wait for a full charge."
+              },
+              {
+                q:"Which public charging network currently has the best reliability reputation in the UK?",
+                options:["BP Pulse","GeniePoint","Tesla Supercharger (now open to all EVs)","Mer"],
+                correct:2,
+                feedback:"Correct! Tesla's Supercharger network has consistently topped reliability surveys in the UK. Now open to non-Tesla EVs (with CCS adapter or natively), it's the gold standard for UK public rapid charging reliability and uptime."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // MODULE 3 — TARIFFS & COSTS
+    // ═══════════════════════════════
+    {
+      id:"m3", title:"Tariffs & True Costs",
+      lessons:[
+        {
+          id:"m3-l1", title:"EV-Optimised Energy Tariffs", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 3 · Lesson 1",
+            heading:"EV-OPTIMISED",
+            headingAccent:"ENERGY TARIFFS",
+            intro:"Your choice of energy tariff is almost as important as your choice of EV. The right tariff can cut your charging costs by 70% compared to standard rates.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Tariff","Provider","EV Rate","How It Works","Best For"],
+                  rows:[
+                    ["Intelligent Octopus Go","Octopus Energy","~7p/kWh overnight","Smart charger schedules charging in cheapest 6hr window automatically","Best overall — set and forget"],
+                    ["Octopus Go","Octopus Energy","~7p/kWh (00:30–04:30)","Fixed cheap rate overnight, standard rate rest of day","Good if no smart charger"],
+                    ["Octopus Flux","Octopus Energy","Varies by time","Import cheap overnight, export premium in evening. Requires battery/solar.","Solar + battery + EV households"],
+                    ["EDF GoElectric","EDF","~7–9p/kWh overnight","Fixed overnight window, standard daytime","Good alternative to Octopus"],
+                    ["E.ON Drive","E.ON","~10p/kWh overnight","Fixed cheap overnight window","Worth comparing"]
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"The Maths on Octopus Intelligent Go",
+                  text:"At 7p/kWh overnight vs the standard rate of ~24p/kWh, you save 17p per kWh. A typical EV uses 25–30 kWh per 100 miles. At 7p that's £1.75–£2.10 per 100 miles. At 24p that's £6–£7.20 per 100 miles. At 80p/kWh public rapid charging it's £20–£24 per 100 miles. Home charging on the right tariff is transformative."
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Switch before you get your EV</strong> — get the tariff in place before delivery so you can charge cheaply from day one",
+                    "<strong>Intelligent Octopus Go requires a smart charger</strong> — it communicates with your car or charger to schedule automatically",
+                    "<strong>Use Dan's Octopus referral</strong> — you both get £100 when you sign up. Link in the course description",
+                    "<strong>Review annually</strong> — tariff rates change. What's best today may not be best in 12 months"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m3-l2", title:"True Cost of EV Ownership", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 3 · Lesson 2",
+            heading:"TRUE COST OF",
+            headingAccent:"EV OWNERSHIP",
+            intro:"The purchase price is just the beginning. When you factor in running costs, tax, and servicing, the total cost of EV ownership often surprises people — in a good way.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Cost Category","Petrol Car","Electric Car","EV Saving"],
+                  rows:[
+                    ["Fuel / Charging (10k miles/yr)","~£1,500–£1,800","~£350–£500 (home)","£1,000–£1,400/yr ✅"],
+                    ["Road Tax (VED)","£190–£600+/yr","£0 (until Apr 2025, now £195/yr for new EVs)","Reduces over time"],
+                    ["Service & Maintenance","£400–£800/yr","£150–£350/yr","£250–£450/yr ✅"],
+                    ["Insurance","£600–£1,200/yr","£700–£1,400/yr","❌ EVs often cost more"],
+                    ["Congestion Charge (London)","£15/day","£0 (100% discount)","£3,900+/yr if applicable ✅"],
+                    ["Company Car Tax (BIK)","20–37% of P11D","2% of P11D (2024/25)","Enormous saving for company car drivers ✅"]
+                  ]
+                },
+                {
+                  type:"warn",
+                  label:"EV Insurance Can Be Higher",
+                  text:"EV insurance premiums are currently 15–30% higher than equivalent petrol cars on average. Repair costs are higher (specialist technicians, expensive battery checks), and the market is still maturing. Shop around aggressively — there's significant variation between insurers. Specialists like Octopus EV insurance and LV= are worth checking."
+                },
+                {
+                  type:"tip",
+                  label:"Company Car Tax Is a Game Changer",
+                  text:"If you receive a company car or car allowance, the Benefit in Kind (BIK) rate for pure EVs is just 2% of P11D value in 2024/25, rising to 5% by 2027/28. A £40,000 EV at 2% BIK costs a 40% taxpayer just £320/year in tax. The equivalent petrol car at 30% BIK costs £4,800/year. This alone makes EVs overwhelmingly attractive for company car drivers."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m3-l3", title:"EV Grants & Incentives", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 3 · Lesson 3",
+            heading:"EV GRANTS",
+            headingAccent:"& INCENTIVES",
+            intro:"The UK government has gradually reduced direct consumer EV grants, but significant incentives remain — particularly for businesses, fleets, and specific vehicle categories.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"facts",
+                  items:[
+                    { num:"£2,500", numClass:"green", title:"Plug-In Car Grant (Motorcycles & Taxis)", body:"The general plug-in car grant for private buyers was discontinued in 2022. However, grants remain for plug-in motorcycles (£500), mopeds (£150), taxis, and wheelchair accessible vehicles (£4,500–£5,000). Check ozev.gov.uk for current availability." },
+                    { num:"£350", numClass:"green", title:"EV Charger Grant", body:"OZEV grant for home EV charger installation applies to renters and flat owners. Homeowners with off-street parking no longer qualify for the main grant but installations in Scotland may attract additional support." },
+                    { num:"0%", numClass:"green", title:"Zero BIK for Company Cars", body:"Pure EVs attract just 2% Benefit in Kind tax vs up to 37% for high-emission petrol cars. Rising to 5% by 2027/28 but still dramatically lower than ICE vehicles." },
+                    { num:"💼", numClass:"", title:"Business First-Year Allowance", body:"Businesses can claim 100% first-year capital allowance on new zero-emission cars and EV charging equipment. This means the full cost can be deducted from taxable profits in year one — a significant cash flow benefit." }
+                  ]
+                },
+                {
+                  type:"warn",
+                  label:"VED Road Tax Changed in April 2025",
+                  text:"From April 2025, new pure electric cars registered on or after 1 April 2025 became subject to Vehicle Excise Duty (road tax). Cars over £40,000 also pay the expensive car supplement (currently £620/yr) for years 2–6. Factor this into your long-term running cost calculations, especially on premium EVs."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m3-q1", title:"Quiz: Tariffs & Costs", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Module 3 · Knowledge Check",
+            heading:"TARIFFS & COSTS QUIZ",
+            questions:[
+              {
+                q:"Approximately how much does it cost to charge an EV for 100 miles on Octopus Intelligent Go at 7p/kWh? (Assume 25 kWh/100 miles)",
+                options:["£1.75","£6.00","£17.50","£0.75"],
+                correct:0,
+                feedback:"Correct! 25 kWh × £0.07 = £1.75 per 100 miles. Compare this to ~£15–£16 per 100 miles for a typical petrol car, or £20+ on public rapid chargers. Home charging on the right tariff is the biggest single financial advantage of EV ownership."
+              },
+              {
+                q:"What is the current Benefit in Kind (BIK) rate for pure electric company cars in 2024/25?",
+                options:["20%","10%","5%","2%"],
+                correct:3,
+                feedback:"Correct! The BIK rate for zero-emission company cars is just 2% in 2024/25, rising to 5% by 2027/28. This compares to 25–37% for high-emission petrol vehicles, making EVs extraordinarily tax-efficient as company cars."
+              },
+              {
+                q:"Which of these is a genuine current financial disadvantage of EV ownership?",
+                options:["Higher fuel costs than petrol","More expensive servicing","Higher insurance premiums on average","No road tax whatsoever"],
+                correct:2,
+                feedback:"Correct! EV insurance is currently 15–30% higher on average than equivalent petrol cars, due to higher repair costs, specialist technicians, and the maturing insurance market. Always get multiple quotes — there's significant variation between insurers."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // MODULE 4 — BUYING AN EV
+    // ═══════════════════════════════
+    {
+      id:"m4", title:"Buying New vs Used",
+      lessons:[
+        {
+          id:"m4-l1", title:"Buying a New EV", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 4 · Lesson 1",
+            heading:"BUYING",
+            headingAccent:"A NEW EV",
+            intro:"New EV prices have fallen significantly since 2022 but still carry a premium over equivalent petrol cars. Here's how to navigate the new EV market.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"cards", cols:2,
+                  items:[
+                    { icon:"🏭", title:"Direct vs Dealer", body:"Tesla, Polestar, and several Chinese brands sell direct — fixed pricing, no haggling, online ordering. Traditional brands sell through dealers where negotiation is possible, especially on outgoing models or demonstrators." },
+                    { icon:"📋", title:"PCP vs PCP vs Cash", body:"PCP (Personal Contract Purchase) is the most popular EV finance method. Lower monthly payments, optional balloon at end. PCH (lease) is effectively renting — no ownership but lowest monthly cost. Cash or HP gives full ownership from day one." }
+                  ]
+                },
+                {
+                  type:"table",
+                  headers:["Finance Type","Monthly Cost","Ownership","Mileage Limit","Best For"],
+                  rows:[
+                    ["Cash / HP","Medium-High","Yes, immediately","None","Long-term keepers, high mileage"],
+                    ["PCP","Low-Medium","Option at end","Yes — penalty if exceeded","Those who change car every 2–4 years"],
+                    ["PCH / Lease","Lowest","No","Yes — strictly enforced","Businesses, those wanting latest tech regularly"],
+                    ["Salary Sacrifice","Very low (pre-tax)","No","Yes","Employees — highly tax efficient"]
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"Salary Sacrifice Is Underused",
+                  text:"If your employer offers an EV salary sacrifice scheme, this is currently one of the most tax-efficient ways to drive an EV in the UK. Payments come from gross salary before tax and NI, and the BIK rate is just 2%. A basic rate taxpayer can drive a £40,000 EV for as little as £350–£450/month all-in. Check if your employer offers this — many do and few employees use it."
+                },
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Negotiate on outgoing models</strong> — when a new version is announced, dealers discount the old model significantly",
+                    "<strong>Check the delivery timeline</strong> — some popular EVs have 3–6 month waits. Factor this into your plans",
+                    "<strong>Ex-demonstrator / pre-reg</strong> — can save 10–20% on a near-new car with manufacturer warranty intact",
+                    "<strong>Check what's included</strong> — some brands include free charging (e.g. Tesla Supercharger credits, Kia/Hyundai charging bundles)"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m4-l2", title:"The Second-Hand EV Market", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 4 · Lesson 2",
+            heading:"THE SECOND-HAND",
+            headingAccent:"EV MARKET",
+            intro:"The used EV market has matured rapidly. Prices have fallen significantly since 2022, creating genuine opportunities — but there are things you must check that don't apply to petrol cars.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"tip",
+                  label:"Used EV Prices Have Dropped",
+                  text:"Between 2022 and 2024, used EV prices fell 30–40% as supply increased and the market normalised. A Nissan Leaf that was £25,000 used in 2022 is now £12,000–£16,000. This has created excellent value in the used market for buyers willing to do their homework."
+                },
+                {
+                  type:"facts",
+                  items:[
+                    { num:"01", numClass:"", title:"Battery Health Report", body:"The most important check. Many EVs can produce a State of Health (SoH) report via the OBD port using apps like Leaf Spy, EVBatMon, or through the manufacturer's own diagnostic system. A healthy battery should show 85%+ SoH. Below 75% expect noticeably reduced range." },
+                    { num:"02", numClass:"green", title:"Service History & Software Updates", body:"EVs need less mechanical servicing but software/firmware updates matter. Check the service history confirms updates have been applied. Some early EVs had battery management improvements delivered via updates that significantly improved range and longevity." },
+                    { num:"03", numClass:"", title:"Charging History", body:"Fast charging frequently degrades batteries faster than regular home AC charging. While modern batteries handle this better than older ones, a car with a history of daily rapid charging will typically show more degradation than one charged at home." },
+                    { num:"04", numClass:"red", title:"Warranty Status", body:"Check if the battery warranty is still active and transferable to a new owner. Most manufacturers offer 8-year / 100,000-mile battery warranties. A car still under battery warranty is significantly lower risk." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m4-l3", title:"Best Used EV Buys in 2025", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 4 · Lesson 3",
+            heading:"BEST USED EV",
+            headingAccent:"BUYS IN 2025",
+            intro:"These models represent the best combination of value, reliability, practicality, and ownership cost in the current used market.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"table",
+                  headers:["Model","Budget","Real Range","Why It's a Good Buy","Watch Out For"],
+                  rows:[
+                    ["Nissan Leaf (2018–2022)","£10k–£18k","100–160 miles","Cheap, reliable, easy to service. Huge supply.","Battery degradation on 40 kWh. Check SoH carefully. No CCS on older models."],
+                    ["Renault Zoe (2020–2022)","£10k–£18k","160–190 miles","Good range, comfortable, French reliability improved.","Battery was leased separately on older models — check ownership status."],
+                    ["Tesla Model 3 (2019–2022)","£22k–£32k","200–260 miles","Supercharger network, excellent software, great performance.","Repair costs can be high. Check panel gaps and paint condition."],
+                    ["Volkswagen ID.3 (2020–2022)","£18k–£25k","160–220 miles","Practical, comfortable, solid German build.","Early software bugs largely resolved by now via updates."],
+                    ["Kia e-Niro / Hyundai Kona EV","£18k–£26k","220–250 miles","Excellent real-world range, very reliable, still under warranty if bought carefully.","Higher demand keeps prices up. Worth the premium."],
+                    ["MG ZS EV (2021+)","£14k–£20k","150–180 miles","Outstanding value, improving quality, good range for money.","Charging network limited to 76 kW DC max. Less premium feel."]
+                  ]
+                },
+                {
+                  type:"tip",
+                  label:"Where to Buy Used EVs",
+                  text:"AutoTrader and CarGurus have the widest selection. Cazoo and Cinch offer online purchase with home delivery and return periods — good for peace of mind. Manufacturer-approved used programmes (Tesla Certified, Volkswagen Das WeltAuto) include battery checks and extended warranties. EV-specialist dealers like EV Experts and Electra are worth checking for curated stock."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m4-l4", title:"Used EV Pre-Purchase Checklist", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 4 · Lesson 4",
+            heading:"PRE-PURCHASE",
+            headingAccent:"CHECKLIST",
+            intro:"Before handing over any money on a used EV, run through these checks. Some are EV-specific — petrol car buying experience doesn't fully prepare you for this.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"keypoints",
+                  items:[
+                    "<strong>Battery State of Health (SoH)</strong> — request a report or use an OBD app. 85%+ is good, below 80% warrants a price reduction",
+                    "<strong>Battery warranty status</strong> — confirm it's still valid and transferable. Get this in writing",
+                    "<strong>Full charge and range test</strong> — charge to 100% and check the range estimate. Compare to what's expected for a battery of that SoH",
+                    "<strong>Charging port condition</strong> — check all ports (AC Type 2, CCS DC). Test with a charger if possible. Port replacements are expensive",
+                    "<strong>Software version</strong> — confirm the car is on the latest firmware. Ask when it was last updated",
+                    "<strong>HPI check</strong> — same as any used car. Check for outstanding finance, write-off history, stolen status",
+                    "<strong>MOT and service history</strong> — EVs still need MOTs. Check for any advisory notes, especially relating to tyres and brakes",
+                    "<strong>Tyre condition</strong> — EVs are heavier than petrol equivalents and wear tyres faster. Budget for replacement if below 3mm",
+                    "<strong>12V auxiliary battery</strong> — often overlooked. A failing 12V battery causes all sorts of weird issues. Ask when it was last replaced",
+                    "<strong>Test all charging modes</strong> — slow AC, fast AC if available, and DC rapid if possible. Each uses different hardware"
+                  ]
+                },
+                {
+                  type:"warn",
+                  label:"Avoid Cars Without Charging History Transparency",
+                  text:"Some sellers don't know the charging history of the car they're selling. That's acceptable. What's not acceptable is a seller who refuses to allow an independent battery health check or won't let you charge the car before purchase. Walk away from any seller who won't allow proper due diligence."
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m4-q1", title:"Quiz: Buying New vs Used", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Module 4 · Knowledge Check",
+            heading:"BUYING QUIZ",
+            questions:[
+              {
+                q:"What is the most important check to make when buying a used EV?",
+                options:["The colour and trim level","The battery State of Health (SoH)","Whether it has a sunroof","The number of previous owners"],
+                correct:1,
+                feedback:"Correct! Battery State of Health (SoH) is the single most critical check on a used EV. It determines real-world range and overall value. A battery showing below 80% SoH should result in either a price reduction or walking away from the purchase."
+              },
+              {
+                q:"Which finance method is likely to give an employed person the lowest effective monthly cost for a new EV?",
+                options:["Cash purchase","PCP finance","Salary sacrifice (if employer offers it)","Hire Purchase (HP)"],
+                correct:2,
+                feedback:"Correct! Salary sacrifice uses pre-tax, pre-NI salary, making it extremely tax-efficient — especially combined with the 2% BIK rate for pure EVs. Basic rate taxpayers can save 32% compared to net pay, and the effective monthly cost can be significantly lower than any other method."
+              },
+              {
+                q:"A used Renault Zoe is listed at a great price. You discover the battery was originally leased rather than owned. What should you check?",
+                options:["Nothing — this is standard and doesn't matter","Whether the battery lease has been bought out and the battery is now owned outright","Whether the battery is a newer model","Whether it has a full service history"],
+                correct:1,
+                feedback:"Correct! Older Renault Zoes were sold with a battery lease arrangement — you owned the car but paid a monthly fee to lease the battery. If the seller hasn't bought out the lease, you inherit a monthly cost. Always confirm battery ownership status on any pre-2021 Zoe."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // MODULE 5 — CHOOSING THE RIGHT EV
+    // ═══════════════════════════════
+    {
+      id:"m5", title:"Choosing the Right EV",
+      lessons:[
+        {
+          id:"m5-l1", title:"Key Specs to Compare", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 5 · Lesson 1",
+            heading:"KEY SPECS",
+            headingAccent:"TO COMPARE",
+            intro:"Marketing materials highlight the glamorous numbers. Here are the specs that actually matter for day-to-day EV ownership.",
+            body:{
+              type:"table",
+              headers:["Spec","Why It Matters","What to Look For"],
+              rows:[
+                ["Real-world range","Your actual daily capability","80% of WLTP as baseline. Cross-reference with Bjørn Nyland or EV Database real-world tests."],
+                ["DC fast charge speed (kW)","How quickly it charges on rapid chargers","100 kW+ for confident long journeys. 150 kW+ for stress-free motorway use."],
+                ["Charge curve","How consistently it charges at peak speed","Flat curve = consistently fast. Tapered curve = slows early. Check EV Database for curves."],
+                ["AC charging speed","Home and destination charging rate","7.2 kW or 11 kW is ideal. 3.7 kW is slow for larger batteries."],
+                ["Battery thermal management","Protects battery in heat and cold","Liquid cooling is superior to air cooling for longevity and consistent rapid charging."],
+                ["Heat pump","Efficient cabin heating in winter","Significantly reduces winter range loss. Worth paying for in UK climate."],
+                ["V2G / V2H capability","Vehicle-to-Grid or Vehicle-to-Home","Emerging tech — use your EV as a home battery. Nissan Leaf and some newer models support this."],
+                ["Ground clearance","For UK roads and speed bumps","Lower EVs (many are sports-car low) can struggle with steep driveways or speed bumps."]
+              ]
+            }
+          }
+        },
+        {
+          id:"m5-l2", title:"EV Ownership Tips from Real Experience", type:"lesson",
+          content:{
+            type:"lesson",
+            eyebrow:"Module 5 · Lesson 2",
+            heading:"REAL OWNERSHIP",
+            headingAccent:"TIPS",
+            intro:"These are the things you only learn after actually owning an EV. No marketing material tells you any of this.",
+            body:{
+              type:"mixed",
+              items:[
+                {
+                  type:"facts",
+                  items:[
+                    { num:"🔋", numClass:"", title:"Don't Charge to 100% Daily", body:"Most manufacturers recommend keeping daily charging to 80–90% to preserve long-term battery health. Only charge to 100% when you need the full range for a specific journey. Most cars let you set a charge limit in the app." },
+                    { num:"⚡", numClass:"green", title:"Pre-Conditioning Is a Game Changer", body:"Remotely heating or cooling the cabin while still plugged in uses grid power, not battery. In winter this can add 15–20% real-world range. In summer it makes the car comfortable without range penalty. Set this up in the app." },
+                    { num:"🛞", numClass:"", title:"Tyres Cost More", body:"EVs are heavier and have more torque. They wear tyres faster than equivalent petrol cars — often 20–30% faster. Buy quality tyres with low rolling resistance (look for EV-specific variants). Budget accordingly." },
+                    { num:"📱", numClass:"green", title:"The App Is Part of the Car", body:"EV ownership is fundamentally tied to a smartphone app — remote locking, charge scheduling, pre-conditioning, range monitoring, trip planning. Make sure you're comfortable with the manufacturer's app before buying." },
+                    { num:"🔇", numClass:"", title:"Regenerative Braking Takes Adjustment", body:"One-pedal driving — where lifting off the accelerator applies strong regen — is the most efficient way to drive an EV and reduces brake wear to near zero. It takes 1–2 weeks to feel natural but most drivers never go back." },
+                    { num:"🏠", numClass:"green", title:"Your Energy Bill Goes Up, Your Fuel Bill Disappears", body:"Expect your electricity bill to increase by £60–£120/month depending on mileage. Your petrol spend disappears. The net saving is real but requires adjustment to how you think about transport costs." }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          id:"m5-q1", title:"Quiz: Choosing the Right EV", type:"quiz",
+          content:{
+            type:"quiz",
+            eyebrow:"Module 5 · Knowledge Check",
+            heading:"CHOOSING YOUR EV QUIZ",
+            questions:[
+              {
+                q:"Why does DC fast charge speed matter even if you mainly charge at home?",
+                options:["It doesn't matter at all if you charge at home","It determines how quickly you can top up on long journeys — critical for motorway trips","It affects how fast your home charger works","It determines the battery warranty period"],
+                correct:1,
+                feedback:"Correct! Even if 95% of your charging is at home, DC fast charge speed determines your confidence on long journeys. A car that can charge at 150 kW adds 100 miles of range in about 20 minutes. A car limited to 50 kW takes over an hour for the same. This matters on every long trip."
+              },
+              {
+                q:"What daily charge limit do most manufacturers recommend for long-term battery health?",
+                options:["50%","80–90%","100% always — maximise your range","70% maximum"],
+                correct:1,
+                feedback:"Correct! Most manufacturers recommend setting a daily charge limit of 80–90% to preserve long-term battery health. Lithium batteries last longer when not kept at maximum charge. Only charge to 100% when you need the full range for a specific journey."
+              },
+              {
+                q:"What is pre-conditioning and why is it useful in winter?",
+                options:["A special tyre preparation technique for cold weather","Heating or cooling the cabin while still plugged in, using grid power not battery","A software update applied before your first drive","Warming up the motor before driving"],
+                correct:1,
+                feedback:"Correct! Pre-conditioning heats (or cools) the car while it's still plugged in, using electricity from the grid rather than the battery. In winter this means you start every journey with a warm cabin AND a full-capacity battery — adding 15–20% to your real-world winter range."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    // ═══════════════════════════════
+    // COMPLETE
+    // ═══════════════════════════════
+    {
+      id:"m6", title:"Course Complete",
+      lessons:[
+        {
+          id:"complete", title:"You're EV Ready!", type:"lesson",
+          content:{ type:"complete" }
+        },
+        {
+          id:"feedback", title:"Share Your Feedback", type:"lesson",
+          content:{ type:"feedback" }
+        }
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let allSlides = [];
+let currentIdx = 0;
+let completed = new Set();
+let quizAnswered = {};
+
+course.modules.forEach((mod,mi) => {
+  mod.lessons.forEach((lesson,li) => {
+    allSlides.push({ mod, lesson, mi, li });
+  });
+});
+
+// ═══════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════
+function buildSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  course.modules.forEach((mod,mi) => {
+    const group = document.createElement('div');
+    group.className = 'module-group';
+    group.id = 'mod-group-' + mi;
+    const allDone = mod.lessons.every(l => completed.has(l.id));
+    const isOpen = allSlides[currentIdx]?.mi === mi;
+    group.innerHTML = `
+      <div class="module-head ${isOpen?'active':''}" onclick="toggleModule(${mi})">
+        <div class="mod-num">MOD ${String(mi+1).padStart(2,'0')}</div>
+        <div class="mod-name">${mod.title}</div>
+        <div class="mod-check ${allDone?'done':''}">✓</div>
+      </div>
+      <div class="lesson-list">
+        ${mod.lessons.map((l,li) => {
+          const slideIdx = allSlides.findIndex(s => s.lesson.id === l.id);
+          const isCurrent = slideIdx === currentIdx;
+          const isDone = completed.has(l.id);
+          return `<div class="lesson-item ${isCurrent?'active':''} ${isDone&&!isCurrent?'completed':''}" onclick="goToSlide(${slideIdx})">
+            <div class="lesson-dot"></div>
+            <span>${l.title}</span>
+            <span class="lesson-type type-${l.type}">${l.type==='quiz'?'Quiz':'Lesson'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    if (isOpen) group.classList.add('open');
+    nav.appendChild(group);
+  });
+}
+
+function toggleModule(mi) {
+  document.getElementById('mod-group-' + mi)?.classList.toggle('open');
+}
+
+// ═══════════════════════════════════
+// SLIDES
+// ═══════════════════════════════════
+function buildAllSlides() {
+  const area = document.getElementById('slideArea');
+  area.innerHTML = '';
+  allSlides.forEach((s,idx) => {
+    const div = document.createElement('div');
+    div.className = 'slide' + (idx === 0 ? ' active' : '');
+    div.id = 'slide-' + idx;
+    div.innerHTML = renderSlide(s.lesson.content, s.lesson.id);
+    area.appendChild(div);
+  });
+}
+
+function renderSlide(content, id) {
+  if (content.type === 'cover') return renderCover();
+  if (content.type === 'complete') return renderComplete();
+  if (content.type === 'feedback') return renderFeedback();
+  if (content.type === 'quiz') return renderQuiz(content, id);
+  return renderLesson(content, id);
+}
+
+function renderCover() {
+  return `<div class="slide-cover">
+    <div class="cover-eyebrow">DanEVSolar · UK EV Purchasing Course</div>
+    <div class="cover-h1">THE COMPLETE<br>UK <span class="a">EV PURCHASING</span><br><span class="g">GUIDE</span></div>
+    <div class="cover-sub">Everything you need to choose, buy, and run an electric vehicle in the UK. Real-world data, honest advice, no marketing fluff — from someone who actually drives one.</div>
+    <div class="cover-stats">
+      <div class="cstat"><div class="cstat-val">6</div><div class="cstat-lbl">Modules</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">25+</div><div class="cstat-lbl">Lessons</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">UK</div><div class="cstat-lbl">Specific</div></div>
+      <div class="cdiv"></div>
+      <div class="cstat"><div class="cstat-val">Real</div><div class="cstat-lbl">World Data</div></div>
+    </div>
+  </div>`;
+}
+
+function renderComplete() {
+  return `<div class="slide-complete">
+    <div class="complete-icon">⚡</div>
+    <div class="complete-h">YOU'RE<br><span>EV READY!</span></div>
+    <div class="complete-sub">You've completed The Complete UK EV Purchasing Guide. You now have the knowledge to choose, buy, and run an electric vehicle with real confidence.</div>
+    <div class="complete-badge">
+      <div class="badge-icon">🚗</div>
+      <div class="badge-text">
+        <div class="badge-title">Course Complete</div>
+        <div class="badge-sub">DanEVSolar · UK EV Purchasing Guide</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--muted);max-width:420px;line-height:1.7;margin:0 auto;">
+      Subscribe to the YouTube channel for ongoing EV reviews and real-world data. Use the Tesla and Octopus referral links if this course helped your decision.
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <a href="https://www.youtube.com/@DanEVSolar7" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 24px;background:var(--amber);color:var(--bg);text-decoration:none;border-radius:2px;">Watch on YouTube →</a>
+      <a href="https://ts.la/daniel96415" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:12px 24px;background:transparent;color:var(--muted);text-decoration:none;border-radius:2px;border:1px solid var(--border);">Tesla Referral (up to £500 off)</a>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--muted);">Hit Next → to leave your feedback and help improve the course</div>
+  </div>`;
+}
+
+function renderFeedback() {
+  return `<div class="slide-lesson" style="max-width:700px;">
+    <div class="slide-eyebrow">Course Feedback</div>
+    <div class="slide-h2">HOW DID WE <span>DO?</span></div>
+    <div class="slide-intro">Your feedback helps Dan improve the course and create better content. Less than 2 minutes — and genuinely appreciated.</div>
+    <div id="feedback-form">
+      <div class="fb-section">
+        <div class="fb-label">Overall, how would you rate this course? <span class="fb-required">*</span></div>
+        <div class="star-row" id="starRow">
+          <span class="star" data-val="1" onclick="setStars(1)">★</span>
+          <span class="star" data-val="2" onclick="setStars(2)">★</span>
+          <span class="star" data-val="3" onclick="setStars(3)">★</span>
+          <span class="star" data-val="4" onclick="setStars(4)">★</span>
+          <span class="star" data-val="5" onclick="setStars(5)">★</span>
+        </div>
+        <div class="star-label" id="starLabel">Select a rating</div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Which module was most useful?</div>
+        <div class="fb-options">
+          ${['Real World Range','Charging (Home & Public)','Tariffs & True Costs','Buying New vs Used','Choosing the Right EV'].map(m =>
+            `<div class="fb-chip" data-group="module" data-val="${m}" onclick="selectChip(this,'module')">${m}</div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">How confident do you feel about buying an EV after this course?</div>
+        <div class="fb-options">
+          ${['Much more confident','Somewhat more confident','About the same','Still unsure'].map(o =>
+            `<div class="fb-chip" data-group="confidence" data-val="${o}" onclick="selectChip(this,'confidence')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Are you now more likely to buy an EV?</div>
+        <div class="fb-options">
+          ${['Definitely — I\'m ready to buy','Very likely','Possibly','Not yet — still considering'].map(o =>
+            `<div class="fb-chip" data-group="likelihood" data-val="${o}" onclick="selectChip(this,'likelihood')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Would you consider using a consultancy service if it was offered?</div>
+        <div class="fb-hint" style="margin-bottom:10px;">A personal 1-to-1 session with Dan to review your specific EV choices, charging setup, or tariff questions.</div>
+        <div class="fb-options">
+          ${['Yes — definitely','Possibly','Not right now','No'].map(o =>
+            `<div class="fb-chip" data-group="consultancy" data-val="${o}" onclick="selectChip(this,'consultancy')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">What topics would you like more coverage on?</div>
+        <div class="fb-options">
+          ${['V2G / Vehicle to Grid','EV fleet & business use','Towing with an EV','Specific car comparisons','EV + Solar integration','Charging on holiday abroad','Motorbikes & e-bikes'].map(o =>
+            `<div class="fb-chip" data-group="missing" data-val="${o}" onclick="selectChip(this,'missing')">${o}</div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Any other comments or suggestions for Dan?</div>
+        <textarea class="fb-textarea" id="fbComment" placeholder="Tell Dan what you thought — good or bad. All feedback is read personally..."></textarea>
+      </div>
+      <div class="fb-section">
+        <div class="fb-label">Optional: leave your email if you'd like Dan to follow up</div>
+        <input class="fb-input" type="email" id="fbEmail" placeholder="your@email.com">
+        <div class="fb-hint">Never shared. Only used to reply to your feedback if relevant.</div>
+      </div>
+      <div class="fb-section" style="padding-bottom:0;">
+        <div id="fb-error" class="fb-error" style="display:none;">Please select a star rating before submitting.</div>
+        <button class="fb-submit" onclick="submitFeedback()">Submit Feedback →</button>
+      </div>
+    </div>
+    <div id="feedback-thanks" style="display:none;margin-top:16px;">
+      <div class="fb-thanks">
+        <div class="fb-thanks-icon">🙏</div>
+        <div class="fb-thanks-title">THANK YOU!</div>
+        <div class="fb-thanks-sub">Your feedback has been recorded. Dan reads every response personally and uses it to improve the course and plan future content.</div>
+        <div class="fb-thanks-summary" id="fbSummary"></div>
+        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <a href="https://www.youtube.com/@DanEVSolar7" target="_blank" class="fb-cta-btn">Subscribe on YouTube →</a>
+          <a href="https://ts.la/daniel96415" target="_blank" class="fb-cta-btn-outline">Tesla Referral (up to £500 off)</a>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLesson(content, id) {
+  let body = content.body ? renderBody(content.body) : '';
+  return `<div class="slide-lesson">
+    <div class="slide-eyebrow">${content.eyebrow||''}</div>
+    <div class="slide-h2">${content.heading||''} <span>${content.headingAccent||''}</span></div>
+    ${content.intro ? `<div class="slide-intro">${content.intro}</div>` : ''}
+    ${body}
+  </div>`;
+}
+
+function renderBody(body) {
+  if (!body) return '';
+  switch(body.type) {
+    case 'cards': return renderCards(body);
+    case 'facts': return renderFacts(body);
+    case 'table': return renderTable(body);
+    case 'keypoints': return renderKeyPoints(body);
+    case 'mixed': return renderMixed(body);
+    default: return '';
+  }
+}
+
+function renderCards(body) {
+  const cls = body.cols===3?'three-col':body.cols===2?'two-col':'';
+  return `<div class="content-grid ${cls}">${body.items.map(c=>`
+    <div class="content-card">
+      <div class="card-icon">${c.icon||''}</div>
+      <div class="card-title">${c.title}</div>
+      <div class="card-body">${c.body}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderFacts(body) {
+  return `<div class="content-grid">${body.items.map(f=>`
+    <div class="fact-row">
+      <div class="fact-num ${f.numClass||''}">${f.num}</div>
+      <div class="fact-content">
+        <div class="fact-title">${f.title}</div>
+        <div class="fact-body">${f.body}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderTable(body) {
+  return `<table class="compare-table">
+    <thead><tr>${body.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${body.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderKeyPoints(body) {
+  return `<div class="key-points">${body.items.map(k=>`
+    <div class="key-point">
+      <div class="kp-arrow">→</div>
+      <div class="kp-text">${k}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderMixed(body) {
+  return body.items.map(item => {
+    if (item.type==='cards') return renderCards(item);
+    if (item.type==='facts') return renderFacts(item);
+    if (item.type==='table') return renderTable(item);
+    if (item.type==='keypoints') return renderKeyPoints({items:item.items});
+    if (item.type==='warn') return `<div class="warn-box"><strong>⚠️ ${item.label}</strong>${item.text}</div>`;
+    if (item.type==='tip') return `<div class="tip-box"><strong>💡 ${item.label}</strong>${item.text}</div>`;
+    return '';
+  }).join('');
+}
+
+function renderQuiz(content, id) {
+  return `<div class="slide-quiz">
+    <div class="slide-eyebrow">${content.eyebrow||''}</div>
+    <div class="slide-h2">${content.heading||''}</div>
+    <div style="margin-top:24px;" id="quiz-${id}">
+      ${content.questions.map((q,qi)=>renderQuestion(q,qi,id)).join('<div style="height:24px;border-top:1px solid var(--bord2);margin:24px 0;"></div>')}
+    </div>
+    <div id="quiz-complete-${id}" style="display:none;margin-top:24px;">
+      <div class="tip-box"><strong>✅ Quiz Complete</strong>You can now move to the next lesson.</div>
+    </div>
+  </div>`;
+}
+
+function renderQuestion(q, qi, id) {
+  return `<div class="quiz-question" id="qq-${id}-${qi}">
+    <div class="quiz-q">Q${qi+1}. ${q.q}</div>
+    <div class="quiz-sub">Select the correct answer</div>
+    <div class="quiz-options">
+      ${q.options.map((opt,oi)=>`
+        <div class="quiz-option" id="qo-${id}-${qi}-${oi}" onclick="answerQuiz('${id}',${qi},${oi},${q.correct},'${q.feedback.replace(/'/g,"\\'").replace(/\n/g,' ')}')">
+          <span class="q-letter">${String.fromCharCode(65+oi)}</span>
+          <span>${opt}</span>
+        </div>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="qf-${id}-${qi}"></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════
+// QUIZ LOGIC
+// ═══════════════════════════════════
+function answerQuiz(id, qi, chosen, correct, feedback) {
+  const key = `${id}-${qi}`;
+  if (quizAnswered[key]) return;
+  quizAnswered[key] = true;
+  const isCorrect = chosen === correct;
+  document.querySelectorAll(`[id^="qo-${id}-${qi}-"]`).forEach(o => o.classList.add('disabled'));
+  document.getElementById(`qo-${id}-${qi}-${chosen}`)?.classList.add(isCorrect?'correct':'wrong');
+  if (!isCorrect) document.getElementById(`qo-${id}-${qi}-${correct}`)?.classList.add('correct');
+  const fb = document.getElementById(`qf-${id}-${qi}`);
+  if (fb) { fb.className=`quiz-feedback show ${isCorrect?'correct-fb':'wrong-fb'}`; fb.innerHTML=(isCorrect?'✅ ':'❌ ')+feedback; }
+  const lesson = allSlides[currentIdx].lesson;
+  if (lesson.content.type==='quiz') {
+    const allAnswered = lesson.content.questions.every((_,i)=>quizAnswered[`${id}-${i}`]);
+    if (allAnswered) { const d=document.getElementById(`quiz-complete-${id}`); if(d) d.style.display='block'; }
+  }
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function goToSlide(idx) {
+  if (idx < 0 || idx >= allSlides.length) return;
+  completed.add(allSlides[currentIdx].lesson.id);
+  document.getElementById('slide-'+currentIdx)?.classList.remove('active');
+  currentIdx = idx;
+  document.getElementById('slide-'+currentIdx)?.classList.add('active');
+  document.getElementById('slideArea').scrollTop = 0;
+  updateUI();
+}
+
+function navigate(dir) {
+  const newIdx = currentIdx + dir;
+  if (newIdx >= 0 && newIdx < allSlides.length) goToSlide(newIdx);
+}
+
+function updateUI() {
+  const s = allSlides[currentIdx];
+  const total = allSlides.length;
+  const pct = Math.round((completed.size / total) * 100);
+  document.getElementById('topFill').style.width = pct + '%';
+  document.getElementById('topLabel').textContent = pct + '%';
+  document.getElementById('navLessonName').textContent = s.lesson.title;
+  document.getElementById('navLessonPos').textContent = `Lesson ${currentIdx+1} of ${total}`;
+  document.getElementById('btnPrev').disabled = currentIdx === 0;
+  document.getElementById('btnNext').disabled = currentIdx === total - 1;
+  buildSidebar();
+  const group = document.getElementById('mod-group-' + s.mi);
+  if (group && !group.classList.contains('open')) group.classList.add('open');
+}
+
+// ═══════════════════════════════════
+// FEEDBACK
+// ═══════════════════════════════════
+let starRating = 0;
+const starLabels = ['','Terrible — not helpful at all','Poor — needs a lot of work','Average — useful but could be better','Good — really helpful','Excellent — exactly what I needed'];
+const chipSelections = {};
+
+function setStars(val) {
+  starRating = val;
+  document.querySelectorAll('.star').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= val));
+  const lbl = document.getElementById('starLabel');
+  if (lbl) lbl.textContent = starLabels[val] || '';
+}
+
+function selectChip(el, group) {
+  if (group === 'missing') {
+    el.classList.toggle('selected');
+    if (!chipSelections[group]) chipSelections[group] = new Set();
+    el.classList.contains('selected') ? chipSelections[group].add(el.dataset.val) : chipSelections[group].delete(el.dataset.val);
+  } else {
+    document.querySelectorAll(`.fb-chip[data-group="${group}"]`).forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    chipSelections[group] = el.dataset.val;
+  }
+}
+
+function submitFeedback() {
+  if (!starRating) {
+    const err = document.getElementById('fb-error');
+    if (err) { err.style.display='block'; err.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return;
+  }
+  document.getElementById('fb-error').style.display = 'none';
+  const comment = document.getElementById('fbComment')?.value?.trim() || '';
+  const email = document.getElementById('fbEmail')?.value?.trim() || '';
+  const missing = chipSelections['missing'] ? [...chipSelections['missing']].join(', ') : 'None selected';
+  const lines = [
+    `⭐ Rating: ${starRating}/5 — ${starLabels[starRating]}`,
+    `📚 Most useful module: ${chipSelections['module']||'Not selected'}`,
+    `💪 Confidence: ${chipSelections['confidence']||'Not selected'}`,
+    `🚗 Likelihood to buy EV: ${chipSelections['likelihood']||'Not selected'}`,
+    `🤝 Would use consultancy: ${chipSelections['consultancy']||'Not selected'}`,
+    `➕ Topics to add: ${missing}`,
+    comment ? `💬 "${comment}"` : '',
+    email ? `📧 ${email}` : ''
+  ].filter(Boolean);
+  const summary = document.getElementById('fbSummary');
+  if (summary) summary.innerHTML = lines.map(l=>`<div>${l}</div>`).join('');
+  document.getElementById('feedback-form').style.display = 'none';
+  const thanks = document.getElementById('feedback-thanks');
+  if (thanks) { thanks.style.display='block'; thanks.scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+
+// ═══════════════════════════════════
+// PASSWORD GATE
+// ═══════════════════════════════════
+// SHA-256 hash of "EV2025" — change the hash to change the password
+// To generate a new hash: https://emn178.github.io/online-tools/sha256.html
+const PASS_HASH = '8002d1c1ee73703f3216e8c4ef146a71895bdf06e329d3eb4a420cd11061a51c';
+
+async function hashInput(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('gateInput').value.trim();
+  const err = document.getElementById('gateError');
+  if (!input) { err.style.display = 'block'; return; }
+  const hash = await hashInput(input);
+  if (hash === PASS_HASH) {
+    const gate = document.getElementById('gate');
+    gate.style.opacity = '0';
+    gate.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => gate.style.display = 'none', 400);
+    sessionStorage.setItem('ev_access', '1');
+  } else {
+    err.style.display = 'block';
+    document.getElementById('gateInput').value = '';
+    document.getElementById('gateInput').focus();
+  }
+}
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('ev_access') === '1') {
+  document.getElementById('gate').style.display = 'none';
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+buildAllSlides();
+buildSidebar();
+updateUI();
+</script>
+</body>
+</html>
