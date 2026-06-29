@@ -748,6 +748,22 @@ footer {
   /* Buttons — ensure touch-friendly sizing */
   .btn { min-height: 44px; }
   .btn-lg { padding: 14px 24px; font-size: 14px; }
+
+  /* Override any inline small padding on buttons so they're tappable */
+  a.btn[style], button.btn[style] {
+    min-height: 44px !important;
+    padding: 12px 20px !important;
+    font-size: 13px !important;
+  }
+
+  /* Referral card buttons — full width for easy tapping */
+  .ref-card .btn { width: 100%; justify-content: center; }
+
+  /* YouTube section subscribe button — full width */
+  .yt-text .btn { width: 100%; justify-content: center; }
+
+  /* FAQ contact button — full width */
+  .faq .btn { width: 100%; justify-content: center; }
 }
 
 /* ── TOOLS ── */
