@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Members Area — DanEVSolar</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f0a; --bg2:#131509; --bg3:#1a1d0e;
+  --green:#a8cc00; --amber:#e8a020; --pink:#f426b6;
+  --white:#f0f2e8; --muted:#7a8060;
+  --border:rgba(168,204,0,0.15); --bord2:rgba(168,204,0,0.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.35;}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(13,15,10,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--bord2);height:64px;display:flex;align-items:center;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--white);text-decoration:none;}
+.nav-brand span{color:var(--green);}
+
+.hero{padding:72px 0 52px;border-bottom:1px solid var(--bord2);position:relative;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 0%,rgba(168,204,0,0.06) 0%,transparent 70%);pointer-events:none;}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.hero-eyebrow::before{content:'';display:inline-block;width:24px;height:2px;background:var(--green);}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(48px,7vw,80px);font-weight:900;line-height:.92;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:16px;}
+.hero-title .accent{color:var(--green);}
+.hero-title .dim{color:var(--muted);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:520px;line-height:1.65;}
+
+.tools-section{padding:60px 0 80px;}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:36px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--bord2);}
+
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2px;}
+
+.tool-card{background:var(--bg2);border:1px solid var(--bord2);padding:32px 28px;display:flex;flex-direction:column;text-decoration:none;color:inherit;position:relative;overflow:hidden;transition:border-color .2s,background .2s;}
+.tool-card:hover{border-color:var(--border);background:var(--bg3);}
+.tool-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--card-accent,var(--green));transform:scaleY(0);transform-origin:bottom;transition:transform .3s ease;}
+.tool-card:hover::before{transform:scaleY(1);}
+.tool-card.tariff{--card-accent:#a8cc00;}
+.tool-card.solar{--card-accent:#e8a020;}
+.tool-card.ev{--card-accent:#f426b6;}
+
+.tool-icon{width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px;}
+.tariff .tool-icon{background:rgba(168,204,0,0.1);}
+.solar  .tool-icon{background:rgba(232,160,32,0.1);}
+.ev     .tool-icon{background:rgba(244,38,182,0.1);}
+
+.tool-kicker{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
+.tariff .tool-kicker{color:rgba(168,204,0,0.6);}
+.solar  .tool-kicker{color:rgba(232,160,32,0.6);}
+.ev     .tool-kicker{color:rgba(244,38,182,0.6);}
+
+.tool-name{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin-bottom:12px;}
+.tool-desc{font-size:14px;color:var(--muted);line-height:1.6;flex:1;margin-bottom:28px;}
+
+.tool-cta{display:inline-flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--card-accent,var(--green));transition:gap .2s;}
+.tool-card:hover .tool-cta{gap:12px;}
+.tool-cta svg{width:14px;height:14px;}
+
+.footer-strip{border-top:1px solid var(--bord2);padding:28px 0;}
+.footer-strip p{font-size:12px;color:var(--muted);}
+.footer-strip a{color:var(--green);text-decoration:none;}
+.footer-strip a:hover{text-decoration:underline;}
+
+@media(max-width:640px){.tools-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a href="index.html" class="nav-brand">Dan<span>EV</span>Solar</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">Member tools</div>
+    <h1 class="hero-title">
+      Your<br><span class="accent">exclusive</span><br><span class="dim">calculators</span>
+    </h1>
+    <p class="hero-sub">Three tools built with real UK data. Run the numbers on your tariff, your solar payback, and the true cost of going electric.</p>
+  </div>
+</section>
+
+<section class="tools-section">
+  <div class="wrap">
+    <div class="section-label">3 tools available</div>
+    <div class="tools-grid">
+
+      <a href="octopus-tariff-comparison.html" class="tool-card tariff">
+        <div class="tool-icon">⚡</div>
+        <div class="tool-kicker">Smart tariffs</div>
+        <div class="tool-name">Octopus Tariff<br>Comparison</div>
+        <p class="tool-desc">Compare Flexible, Tracker, Agile, Go, Intelligent Go, Cosy and more — side by side with your own usage figures.</p>
+        <span class="tool-cta">Open tool <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </a>
+
+      <a href="solar-roi-calculator.html" class="tool-card solar">
+        <div class="tool-icon">☀️</div>
+        <div class="tool-kicker">Solar panels</div>
+        <div class="tool-name">Solar ROI<br>Calculator</div>
+        <p class="tool-desc">Enter your roof size, usage, and install cost to get a real payback timeline including SEG export rates and battery impact.</p>
+        <span class="tool-cta">Open tool <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </a>
+
+      <a href="ev-vs-ice-calculator.html" class="tool-card ev">
+        <div class="tool-icon">🚗</div>
+        <div class="tool-kicker">Electric vehicles</div>
+        <div class="tool-name">EV vs Petrol<br>Cost Calculator</div>
+        <p class="tool-desc">Compare your current petrol car against an EV over 1, 3, and 5 years — home charging, rapid charging, insurance and servicing included.</p>
+        <span class="tool-cta">Open tool <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="footer-strip">
+    <p>DanEVSolar · <a href="https://www.patreon.com/" target="_blank" rel="noopener">Manage your Patreon membership</a></p>
+  </div>
+</div>
+
+</body>
+</html>
