@@ -294,7 +294,7 @@ const TARIFFS=[
 
 const v=id=>Number(document.getElementById(id).value);
 const chk=id=>document.getElementById(id).checked;
-const fmt=n=>'£'+Math.abs(Math.round(n)).toLocaleString();
+const fmt=n=>n<0?'£'+Math.abs(Math.round(n)).toLocaleString()+' credit':'£'+Math.round(n).toLocaleString();
 
 function eligible(t,p){
   if(t.reqEV&&!p.hasEV)return false;
@@ -402,7 +402,7 @@ function calculate(){
       <div class="tc-head">
         <div class="tc-name-row"><div class="tc-dot" style="background:${t.color}"></div><div class="tc-name">${t.name}</div>${tagHtml}</div>
         <div class="tc-annual">
-          <div class="tc-amount" style="color:${isW?'var(--lime)':'var(--off-white)'}">${fmt(t.cost)}/yr</div>
+          <div class="tc-amount" style="color:${t.cost<0?'var(--lime)':isW?'var(--lime)':'var(--off-white)'}">${fmt(t.cost)}${t.cost<0?'':'/yr'}</div>
           <div class="tc-diff">${t.id!=='flexible'?fmtDiff(t.cost,flexCost):'<span style="color:rgba(244,244,232,.35)">baseline</span>'}</div>
         </div>
       </div>
@@ -442,6 +442,8 @@ function calculate(){
   else if(winner.id==='flux') txt=`<strong>Octopus Flux</strong> would have been ideal — but it <strong>closed to new customers in March 2026</strong>. If you're already on it, stay. If not, Cosy or Intelligent Go are the next best options depending on your setup.`;
   else if(winner.id==='cosy') txt=`<strong>Cosy Octopus</strong> looks like a solid fit, saving around <strong>£${Math.round(saving).toLocaleString()}/yr</strong>. Three cheap windows spread through the day work well if you run a heat pump or have solar generating in the 1–4pm window. Avoid peak hours (4–7pm) where possible — rates hit 38p+.`;
   else txt=`<strong>Flexible Octopus</strong> is your best option right now, giving you simple pricing with no contract tie-in. To unlock bigger savings: add an EV (Intelligent Go, 8p overnight), or solar to earn export income on any tariff.`;
+
+  if(winner.cost<0) txt+=` <strong style="color:var(--lime)">Your solar export is projected to outearn your import and standing charges on this tariff</strong> — based on these numbers, you'd end the year in credit by around £${Math.abs(Math.round(winner.cost)).toLocaleString()} rather than owing anything, before accounting for any payment plan smoothing Octopus applies.`;
 
   // Why other tariffs aren't suitable
   const unsuitable=[];
