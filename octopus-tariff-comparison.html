@@ -77,7 +77,6 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(168,196,
 
 /* TARIFF CARDS */
 .tariff-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
-.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;overflow:hidden;transition:border-color .2s;}
 .tc.winner{border-color:var(--lime);box-shadow:0 0 0 1px rgba(168,196,30,0.15),0 4px 24px rgba(168,196,30,0.07);}
 .tc.unavail{opacity:.4;}
 .tc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid var(--border-dark);flex-wrap:wrap;gap:10px;}
@@ -130,6 +129,34 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 .footer-links a{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(168,196,30,.5);transition:color .2s;}
 .footer-links a:hover{color:var(--lime);}
 .footer-copy{font-size:11px;color:rgba(168,196,30,.2);font-weight:300;width:100%;border-top:1px solid rgba(168,196,30,.1);padding-top:16px;margin-top:8px;}
+.tag-inelig{border-color:rgba(255,120,80,0.4);color:rgba(255,140,100,0.9);background:rgba(255,80,40,0.07);cursor:help;position:relative;}
+.tag-inelig .tip{
+  display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:#1f2210;border:1px solid rgba(255,140,100,0.35);border-radius:8px;
+  padding:10px 13px;width:230px;font-size:11px;letter-spacing:.02em;text-transform:none;
+  color:rgba(244,244,232,.82);line-height:1.55;z-index:999;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.tag-inelig .tip::before{
+  content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-bottom-color:#1f2210;
+}
+.tag-inelig:hover .tip,.tag-inelig.tip-open .tip{display:block;}
+.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;transition:border-color .2s;}
+.rate-tip-wrap{position:relative;}
+.rate-tip{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;
+  background:#1f2210;border:1px solid rgba(168,196,30,0.25);border-radius:8px;
+  padding:10px 13px;width:260px;font-size:11px;font-weight:400;
+  letter-spacing:.01em;text-transform:none;font-family:'Exo 2',sans-serif;
+  color:rgba(244,244,232,.82);line-height:1.6;z-index:999;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.rate-tip::before{
+  content:'';position:absolute;bottom:100%;left:16px;
+  border:6px solid transparent;border-bottom-color:#1f2210;
+}
+.rate-tip-wrap:hover .rate-tip{display:block;}
 </style>
 </head>
 <body>
@@ -249,7 +276,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
         <div class="bar-card-title" style="margin-bottom:0;">💷 Current unit rates &amp; standing charges</div>
         <div id="ratesStatus" style="font-size:11px;color:rgba(244,244,232,.35);"></div>
       </div>
-      <div style="overflow-x:auto;">
+      <div style="overflow-x:auto;overflow-y:visible;">
         <table id="ratesTable" style="width:100%;border-collapse:collapse;font-size:13px;">
           <thead>
             <tr>
@@ -409,12 +436,25 @@ function calculate(){
   const flexCost=results.find(r=>r.id==='flexible').cost;
   const winner=sorted.find(r=>r.available&&r.elig);
 
+  // Build ineligibility reason per tariff for tooltip
+  function ineligReason(t){
+    if(!t.available) return t.id==='intelligentflux'?'Currently paused by Octopus due to market volatility.':'Closed to new customers.';
+    const reasons=[];
+    if(t.reqEV&&!p.hasEV) reasons.push(t.id==='drivepack'?'Requires an EV — there\'s nothing to charge without one.':'Requires an EV or compatible smart charger.');
+    if(t.reqSolar&&!p.hasSolar) reasons.push('Requires solar panels.');
+    if(t.reqBattery&&!p.hasBattery) reasons.push('Requires a home battery.');
+    if(t.reqFlex&&!p.isFlexible) reasons.push('Relies on shifting usage to off-peak windows — you\'ve said you can\'t do this.');
+    if(t.id==='drivepack'&&p.hasEV&&p.evUsage<2400) reasons.push('At your EV usage, the £30/month flat fee costs more than a per-kWh tariff.');
+    return reasons.length?reasons.join(' '):'Not suitable for your current setup.';
+  }
+
   // Cards
   const cards=document.getElementById('tariffCards');
   cards.innerHTML='';
   sorted.forEach(t=>{
     const isW=winner&&t.id===winner.id;
     const notElig=!t.elig&&t.available;
+    const inelig=notElig||!t.available;
     let rateStr=t.id==='drivepack'?`£${t.addOnFee}/mo flat + ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='flux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
       :t.id==='intelligentflux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
@@ -422,11 +462,14 @@ function calculate(){
       :t.id==='intelligent'?`8p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='go'?`9.5p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :`${(t.unitRate*100).toFixed(0)}p flat`;
-    const tagHtml=isW?'<span class="tag tag-best">⭐ Best for you</span>'
-      :notElig?'<span class="tag tag-closed">Not eligible</span>'
-      :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
+    const tagHtml=isW
+      ?'<span class="tag tag-best">⭐ Best for you</span>'
+      :inelig
+        ?`<span class="tag tag-inelig" ontouchstart="this.classList.toggle('tip-open')">Not eligible ⓘ<span class="tip">${ineligReason(t)}</span></span>`
+        :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
     const div=document.createElement('div');
     div.className='tc'+(isW?' winner':'')+((!t.available)?' unavail':'');
+    if(isW) div.style.order='-1';
     div.innerHTML=`
       <div class="tc-head">
         <div class="tc-name-row"><div class="tc-dot" style="background:${t.color}"></div><div class="tc-name">${t.name}</div>${tagHtml}</div>
@@ -801,15 +844,27 @@ function renderRatesTable(rows, regionKey, live) {
   const rowOrder = ['flexible','go','intelligent','flux','cosy','drivepack','intelligentflux'];
   const sorted = rowOrder.map(id => rows.find(r => r.id === id)).filter(Boolean);
 
+  const TARIFF_DESCRIPTIONS = {
+    flexible:       'The standard variable tariff — no smart meter scheduling needed. Works for anyone. Bills at one flat rate all day.',
+    go:             'Fixed 5-hour cheap window (12:30am–5:30am) at 9.5p/kWh. Works with any EV charger — no smart integration required. Best for lower-mileage EV drivers.',
+    intelligent:    'Smart-scheduled EV charging at 8p/kWh (11:30pm–5:30am). The whole home benefits from the cheap rate during that window. Requires a compatible EV or smart charger.',
+    flux:           'Time-of-use tariff for solar + battery homes. Cheap import 2–5am to charge your battery, peak export 4–7pm to earn from the grid. You schedule manually.',
+    intelligentflux:'Automated version of Flux for compatible batteries (GivEnergy, Tesla, FoxESS, Sigenergy). Import and export rates match — earns most when your system exports heavily at peak.',
+    cosy:           'Three cheap windows daily (4–7am, 1–4pm, 10pm–midnight). Best for heat pump owners who can shift loads. Avoid peak hours (4–7pm) where possible.',
+    drivepack:      'Flat £30/month add-on covering unlimited smart EV charging. Home energy billed at standard Flexible rates. Only cost-effective above ~1,000–1,500 miles/month.',
+  };
+
   tbody.innerHTML = sorted.map(r => {
     const unavail = TARIFFS.find(t=>t.id===r.id)?.available === false;
     const opacity = unavail ? 'opacity:.45;' : '';
+    const desc = TARIFF_DESCRIPTIONS[r.id] || '';
     return `<tr style="${opacity}">
       <td style="padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);">
-        <span style="display:inline-flex;align-items:center;gap:7px;">
+        <span style="display:inline-flex;align-items:center;gap:7px;position:relative;" class="rate-tip-wrap">
           <span style="width:8px;height:8px;border-radius:50%;background:${r.color};flex-shrink:0;display:inline-block;"></span>
-          <span style="color:rgba(244,244,232,.85);font-weight:500;">${r.name}</span>
+          <span style="color:rgba(244,244,232,.85);font-weight:500;cursor:help;border-bottom:1px dotted rgba(244,244,232,.25);">${r.name}</span>
           ${unavail?'<span style="font-size:10px;color:rgba(244,244,232,.3);">(unavailable)</span>':''}
+          ${desc?`<span class="rate-tip">${desc}</span>`:''}
         </span>
       </td>
       <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:${r.offPeak!=null?'#a8cc00':'rgba(244,244,232,.25)'};">${p(r.offPeak)}</td>
