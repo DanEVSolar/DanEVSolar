@@ -77,7 +77,7 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(168,196,
 
 /* TARIFF CARDS */
 .tariff-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
-.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;transition:border-color .2s;}
+.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;overflow:hidden;transition:border-color .2s;}
 .tc.winner{border-color:var(--lime);box-shadow:0 0 0 1px rgba(168,196,30,0.15),0 4px 24px rgba(168,196,30,0.07);}
 .tc.unavail{opacity:.4;}
 .tc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid var(--border-dark);flex-wrap:wrap;gap:10px;}
@@ -90,20 +90,6 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(168,196,
 .tag-solar{border-color:var(--amber);color:var(--amber);background:rgba(232,184,75,0.08);}
 .tag-plain{border-color:rgba(255,255,255,0.2);color:var(--on-dark-muted);background:rgba(255,255,255,0.04);}
 .tag-closed{border-color:rgba(255,255,255,0.15);color:rgba(244,244,232,0.35);}
-.tag-inelig{border-color:rgba(255,120,80,0.4);color:rgba(255,140,100,0.9);background:rgba(255,80,40,0.07);cursor:help;position:relative;}
-.tag-inelig .tip{
-  display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:#1f2210;border:1px solid rgba(255,140,100,0.35);border-radius:8px;
-  padding:10px 13px;width:230px;font-size:11px;letter-spacing:.02em;text-transform:none;
-  color:rgba(244,244,232,.82);line-height:1.55;z-index:999;pointer-events:none;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);
-}
-.tag-inelig .tip::before{
-  content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
-  border:6px solid transparent;border-bottom-color:#1f2210;
-}
-.tag-inelig:hover .tip,.tag-inelig.tip-open .tip{display:block;}
-.tc-winner-pin{order:-1;}
 .tc-annual{text-align:right;}
 .tc-amount{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.01em;}
 .tc-diff{font-family:'Rajdhani',monospace;font-size:10px;margin-top:2px;}
@@ -256,6 +242,35 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
       <canvas id="dailyChart" width="900" height="320" style="width:100%;max-width:900px;height:auto;display:block;"></canvas>
     </div>
     <div style="font-size:11px;color:rgba(244,244,232,.4);margin-top:10px;">Hover or tap a checkbox above to toggle a tariff. Rates shown reflect the selected region. Cosy's three off-peak windows and Flux/Intelligent Flux's peak window are time-of-day specific — Flexible and Drive Pack's home rate are flat all day.</div>
+
+    <!-- Live rates table -->
+    <div style="margin-top:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div class="bar-card-title" style="margin-bottom:0;">💷 Current unit rates &amp; standing charges</div>
+        <div id="ratesStatus" style="font-size:11px;color:rgba(244,244,232,.35);"></div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="ratesTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Tariff</th>
+              <th style="text-align:right;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Off-peak</th>
+              <th style="text-align:right;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Standard</th>
+              <th style="text-align:right;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Peak</th>
+              <th style="text-align:right;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Standing</th>
+              <th style="text-align:right;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Export</th>
+              <th style="text-align:center;padding:8px 12px;border-bottom:1px solid rgba(168,196,30,0.15);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,244,232,.5);">Source</th>
+            </tr>
+          </thead>
+          <tbody id="ratesTableBody">
+            <tr><td colspan="7" style="padding:20px 12px;text-align:center;color:rgba(244,244,232,.3);font-size:12px;">Loading live rates from Octopus API…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:10px;color:rgba(244,244,232,.25);margin-top:10px;line-height:1.6;">
+        ⚡ Live = fetched from the Octopus public API for the selected region. Fallback = hardcoded rates used when the API is unavailable (e.g. when file is opened locally rather than from a web server). All values include 5% VAT. Standing charge per day. Export rates are Octopus SEG rates, not cap-regulated.
+      </div>
+    </div>
   </div>
 
   <p class="disclaimer">Rates based on published Octopus Energy data, July 2026 (Ofgem price cap period 1 July–30 Sept 2026). Regional unit rates and standing charges follow the 14 Ofgem distribution regions and are scaled proportionally across all tariffs — Octopus's actual regional smart-tariff pricing may differ slightly from this scaling. Cosy is a 6-month fixed contract with a £25 exit fee. Intelligent Octopus Go has no exit fee. Octopus Flux reopened to new customers and is shown as available, manually scheduled by you. Intelligent Octopus Flux is currently paused by Octopus due to market volatility — rates shown are indicative based on recent regional data and may not reflect current availability; check the Octopus site directly before planning around it. Intelligent Drive Pack is a £30/month add-on for unlimited EV charging on top of your home tariff, not a standalone tariff. Flexible remains variable. Agile Octopus is not included in this comparison — its half-hourly, day-ahead pricing changes daily, making accurate annual cost estimates impractical here; check live rates on the Octopus website if you're considering it. Actual savings vary by exact postcode, smart meter compatibility and usage patterns.</p>
@@ -279,21 +294,21 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 // unitRate and standingCharge are this region's confirmed cap-period electricity figures.
 // National average: 26.11p/kWh, 57.19p/day — used to derive per-region scale factors below.
 const REGIONS={
-  national:        {name:'National average',                  unitRate:.2611, standingCharge:.5719},
-  london:           {name:'London',                            unitRate:.2635, standingCharge:.4478},
-  southeast:        {name:'South East',                        unitRate:.2667, standingCharge:.5445},
-  southern:         {name:'Southern',                          unitRate:.2642, standingCharge:.4970},
-  southwest:        {name:'South West',                        unitRate:.2639, standingCharge:.5789},
-  southwales:       {name:'South Wales',                       unitRate:.2633, standingCharge:.5784},
-  eastern:          {name:'Eastern',                           unitRate:.2638, standingCharge:.5394},
-  eastmidlands:     {name:'East Midlands',                     unitRate:.2510, standingCharge:.5360},
-  westmidlands:     {name:'West Midlands',                     unitRate:.2533, standingCharge:.5971},
-  northwest:        {name:'North West',                        unitRate:.2613, standingCharge:.4761},
-  merseyside:       {name:'Merseyside, North Wales & Cheshire', unitRate:.2766, standingCharge:.7076},
-  yorkshire:        {name:'Yorkshire',                         unitRate:.2531, standingCharge:.6438},
-  northeast:        {name:'Northern (North East)',             unitRate:.2522, standingCharge:.6429},
-  southernscotland: {name:'Southern Scotland',                 unitRate:.2585, standingCharge:.6417},
-  northernscotland: {name:'Northern Scotland',                 unitRate:.2642, standingCharge:.5755},
+  national:        {name:'National average',                   unitRate:.2611, standingCharge:.5719, gsp:null},
+  london:          {name:'London',                             unitRate:.2635, standingCharge:.4478, gsp:'C'},
+  southeast:       {name:'South East',                         unitRate:.2667, standingCharge:.5445, gsp:'J'},
+  southern:        {name:'Southern',                           unitRate:.2642, standingCharge:.4970, gsp:'H'},
+  southwest:       {name:'South West',                         unitRate:.2639, standingCharge:.5789, gsp:'L'},
+  southwales:      {name:'South Wales',                        unitRate:.2633, standingCharge:.5784, gsp:'K'},
+  eastern:         {name:'Eastern',                            unitRate:.2638, standingCharge:.5394, gsp:'A'},
+  eastmidlands:    {name:'East Midlands',                      unitRate:.2510, standingCharge:.5360, gsp:'B'},
+  westmidlands:    {name:'West Midlands',                      unitRate:.2533, standingCharge:.5971, gsp:'F'},
+  northwest:       {name:'North West',                         unitRate:.2613, standingCharge:.4761, gsp:'G'},
+  merseyside:      {name:'Merseyside, North Wales & Cheshire', unitRate:.2766, standingCharge:.7076, gsp:'D'},
+  yorkshire:       {name:'Yorkshire',                          unitRate:.2531, standingCharge:.6438, gsp:'E'},
+  northeast:       {name:'Northern (North East)',              unitRate:.2522, standingCharge:.6429, gsp:'N'},
+  southernscotland:{name:'Southern Scotland',                  unitRate:.2585, standingCharge:.6417, gsp:'M'},
+  northernscotland:{name:'Northern Scotland',                  unitRate:.2642, standingCharge:.5755, gsp:'P'},
 };
 
 const TARIFFS=[
@@ -394,25 +409,12 @@ function calculate(){
   const flexCost=results.find(r=>r.id==='flexible').cost;
   const winner=sorted.find(r=>r.available&&r.elig);
 
-  // Build ineligibility reason per tariff for tooltip
-  function ineligReason(t){
-    if(!t.available) return t.id==='intelligentflux'?'Currently paused by Octopus due to market volatility.':'Closed to new customers.';
-    const reasons=[];
-    if(t.reqEV&&!p.hasEV) reasons.push(t.id==='drivepack'?'Requires an EV — there\'s nothing to charge without one.':'Requires an EV or compatible smart charger.');
-    if(t.reqSolar&&!p.hasSolar) reasons.push('Requires solar panels.');
-    if(t.reqBattery&&!p.hasBattery) reasons.push('Requires a home battery.');
-    if(t.reqFlex&&!p.isFlexible) reasons.push('Relies on shifting usage to off-peak windows — you\'ve said you can\'t do this.');
-    if(t.id==='drivepack'&&p.hasEV&&p.evUsage<2400) reasons.push('At your EV usage, the £30/month flat fee costs more than a per-kWh tariff.');
-    return reasons.length?reasons.join(' '):'Not suitable for your current setup.';
-  }
-
   // Cards
   const cards=document.getElementById('tariffCards');
   cards.innerHTML='';
   sorted.forEach(t=>{
     const isW=winner&&t.id===winner.id;
     const notElig=!t.elig&&t.available;
-    const inelig=notElig||!t.available;
     let rateStr=t.id==='drivepack'?`£${t.addOnFee}/mo flat + ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='flux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
       :t.id==='intelligentflux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
@@ -420,14 +422,11 @@ function calculate(){
       :t.id==='intelligent'?`8p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='go'?`9.5p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :`${(t.unitRate*100).toFixed(0)}p flat`;
-    const tagHtml=isW
-      ?'<span class="tag tag-best">⭐ Best for you</span>'
-      :inelig
-        ?`<span class="tag tag-inelig" ontouchstart="this.classList.toggle('tip-open')">Not eligible ⓘ<span class="tip">${ineligReason(t)}</span></span>`
-        :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
+    const tagHtml=isW?'<span class="tag tag-best">⭐ Best for you</span>'
+      :notElig?'<span class="tag tag-closed">Not eligible</span>'
+      :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
     const div=document.createElement('div');
     div.className='tc'+(isW?' winner':'')+((!t.available)?' unavail':'');
-    if(isW) div.style.order='-1';
     div.innerHTML=`
       <div class="tc-head">
         <div class="tc-name-row"><div class="tc-dot" style="background:${t.color}"></div><div class="tc-name">${t.name}</div>${tagHtml}</div>
@@ -501,6 +500,7 @@ function calculate(){
   el.innerHTML=txt;
 
   if(typeof drawDailyChart==='function') drawDailyChart();
+  if(typeof loadLiveRates==='function') loadLiveRates();
 }
 
 // ── Daily Rate Chart ──
@@ -642,6 +642,189 @@ function drawDailyChart(){
 }
 
 window.addEventListener('resize',()=>{ if(document.getElementById('dailyChart')) drawDailyChart(); });
+
+// ── Live rates table ──
+// Maps our region keys to API GSP letters, and defines the product/tariff codes for each tariff.
+// Tariff code format: E-1R-{PRODUCT_CODE}-{GSP_LETTER}
+const API_BASE = 'https://api.octopus.energy/v1';
+const TARIFF_API_DEFS = [
+  {id:'flexible',     name:'Flexible Octopus',        color:'#94A3B8', product:'VAR-22-11-01',        hasOffPeak:false, hasPeak:false,  exportProduct:null},
+  {id:'go',           name:'Octopus Go',               color:'#5EA8A0', product:'GO-VAR-22-10-14',     hasOffPeak:true,  hasPeak:false,  exportProduct:null},
+  {id:'intelligent',  name:'Intelligent Octopus Go',   color:'#A8C41E', product:'INTELLI-VAR-22-10-14', hasOffPeak:true, hasPeak:false,  exportProduct:null},
+  {id:'flux',         name:'Octopus Flux',             color:'#F05A28', product:'FLUX-IMPORT-23-02-14', hasOffPeak:true, hasPeak:true,   exportProduct:'FLUX-EXPORT-23-02-14'},
+  {id:'cosy',         name:'Cosy Octopus',             color:'#E91E8C', product:'COSY-22-12-08',        hasOffPeak:true, hasPeak:true,   exportProduct:null},
+];
+
+let liveRatesCache = {}; // cache by region key to avoid repeat fetches
+
+async function fetchTariffRates(productCode, gsp) {
+  const tariffCode = `E-1R-${productCode}-${gsp}`;
+  const url = `${API_BASE}/products/${productCode}/electricity-tariffs/${tariffCode}/standard-unit-rates/?page_size=10`;
+  const scUrl = `${API_BASE}/products/${productCode}/electricity-tariffs/${tariffCode}/standing-charges/?page_size=5`;
+  try {
+    const [ratesRes, scRes] = await Promise.all([fetch(url), fetch(scUrl)]);
+    if (!ratesRes.ok || !scRes.ok) return null;
+    const [ratesData, scData] = await Promise.all([ratesRes.json(), scRes.json()]);
+    return { rates: ratesData.results || [], standing: scData.results || [] };
+  } catch(e) { return null; }
+}
+
+function getCurrentRate(results) {
+  if (!results || !results.length) return null;
+  const now = new Date();
+  // Find the rate that is currently valid (valid_from <= now < valid_to, or valid_to is null)
+  const current = results.find(r => {
+    const from = new Date(r.valid_from);
+    const to = r.valid_to ? new Date(r.valid_to) : null;
+    return from <= now && (!to || to > now);
+  });
+  return current ? current.value_inc_vat : results[0].value_inc_vat;
+}
+
+async function loadLiveRates() {
+  const regionKey = document.getElementById('region').value;
+  const region = REGIONS[regionKey];
+  const statusEl = document.getElementById('ratesStatus');
+  const tbody = document.getElementById('ratesTableBody');
+
+  // If cached, render immediately
+  if (liveRatesCache[regionKey]) { renderRatesTable(liveRatesCache[regionKey], regionKey, true); return; }
+
+  statusEl.textContent = 'Fetching live rates from Octopus API…';
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:20px 12px;text-align:center;color:rgba(244,244,232,.3);font-size:12px;">Loading…</td></tr>';
+
+  const gsp = region.gsp;
+
+  if (!gsp) {
+    // National average — no specific region to query, use fallback
+    renderRatesTable(null, regionKey, false);
+    statusEl.textContent = 'National average — using hardcoded rates (no specific region selected)';
+    return;
+  }
+
+  const rows = [];
+  let anyLive = false;
+
+  for (const def of TARIFF_API_DEFS) {
+    const data = await fetchTariffRates(def.product, gsp);
+    let row = { id: def.id, name: def.name, color: def.color, live: false,
+                offPeak: null, standard: null, peak: null, standing: null, export: null };
+
+    if (data) {
+      anyLive = true;
+      row.live = true;
+      const allRates = data.rates.sort((a,b) => a.value_inc_vat - b.value_inc_vat);
+      if (!def.hasOffPeak && !def.hasPeak) {
+        row.standard = getCurrentRate(data.rates);
+      } else if (def.hasOffPeak && def.hasPeak) {
+        row.offPeak = allRates[0]?.value_inc_vat;
+        row.peak = allRates[allRates.length-1]?.value_inc_vat;
+        // middle rate is standard if 3 tiers
+        row.standard = allRates.length >= 3 ? allRates[Math.floor(allRates.length/2)]?.value_inc_vat : null;
+      } else {
+        row.offPeak = allRates[0]?.value_inc_vat;
+        row.standard = allRates[allRates.length-1]?.value_inc_vat;
+      }
+      row.standing = getCurrentRate(data.standing);
+
+      if (def.exportProduct) {
+        const expData = await fetchTariffRates(def.exportProduct, gsp);
+        if (expData) {
+          const expRates = expData.rates.sort((a,b) => b.value_inc_vat - a.value_inc_vat);
+          row.export = expRates[0]?.value_inc_vat; // highest export (peak)
+        }
+      }
+    } else {
+      // API failed — use fallback from TARIFFS array
+      const t = TARIFFS.find(t => t.id === def.id);
+      const scale = region.unitRate / REGIONS.national.unitRate;
+      row.standard = t.unitRate * scale * 100;
+      row.offPeak = def.hasOffPeak ? t.offPeakRate * scale * 100 : null;
+      row.peak = def.hasPeak ? t.peakRate * scale * 100 : null;
+      row.standing = region.standingCharge * 100;
+      row.export = t.exportRate * 100;
+    }
+    rows.push(row);
+  }
+
+  // Add tariffs not in the API def list (Drive Pack, Intelligent Flux) as fallback-only rows
+  ['drivepack','intelligentflux'].forEach(id => {
+    const t = TARIFFS.find(t => t.id === id);
+    if (!t) return;
+    const scale = region.unitRate / REGIONS.national.unitRate;
+    rows.push({
+      id, name: t.name, color: t.color, live: false,
+      offPeak: t.offPeakRate !== t.unitRate ? t.offPeakRate * scale * 100 : null,
+      standard: t.unitRate * scale * 100,
+      peak: t.peakRate !== t.unitRate ? t.peakRate * scale * 100 : null,
+      standing: region.standingCharge * 100,
+      export: t.exportRate * 100,
+    });
+  });
+
+  liveRatesCache[regionKey] = rows;
+  renderRatesTable(rows, regionKey, anyLive);
+  statusEl.innerHTML = anyLive
+    ? `<span style="color:#a8cc00">⚡ Live</span> — fetched from Octopus API · ${new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}`
+    : `<span style="color:#e8a020">⚠ Fallback</span> — API unavailable (CORS when opened locally); showing hardcoded rates`;
+}
+
+function renderRatesTable(rows, regionKey, live) {
+  const tbody = document.getElementById('ratesTableBody');
+  const region = REGIONS[regionKey];
+
+  if (!rows) {
+    // National average fallback
+    const scale = 1;
+    rows = TARIFF_API_DEFS.map(def => {
+      const t = TARIFFS.find(t => t.id === def.id);
+      return {
+        id: def.id, name: def.name, color: def.color, live: false,
+        offPeak: def.hasOffPeak ? t.offPeakRate * 100 : null,
+        standard: t.unitRate * 100,
+        peak: def.hasPeak ? t.peakRate * 100 : null,
+        standing: region.standingCharge * 100,
+        export: t.exportRate * 100,
+      };
+    });
+    ['drivepack','intelligentflux'].forEach(id => {
+      const t = TARIFFS.find(t => t.id === id);
+      if (!t) return;
+      rows.push({id, name:t.name, color:t.color, live:false,
+        offPeak: t.offPeakRate !== t.unitRate ? t.offPeakRate*100 : null,
+        standard: t.unitRate*100, peak: t.peakRate !== t.unitRate ? t.peakRate*100 : null,
+        standing: region.standingCharge*100, export: t.exportRate*100 });
+    });
+  }
+
+  const p = v => v != null ? v.toFixed(2)+'p' : '—';
+  const rowOrder = ['flexible','go','intelligent','flux','cosy','drivepack','intelligentflux'];
+  const sorted = rowOrder.map(id => rows.find(r => r.id === id)).filter(Boolean);
+
+  tbody.innerHTML = sorted.map(r => {
+    const unavail = TARIFFS.find(t=>t.id===r.id)?.available === false;
+    const opacity = unavail ? 'opacity:.45;' : '';
+    return `<tr style="${opacity}">
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);">
+        <span style="display:inline-flex;align-items:center;gap:7px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${r.color};flex-shrink:0;display:inline-block;"></span>
+          <span style="color:rgba(244,244,232,.85);font-weight:500;">${r.name}</span>
+          ${unavail?'<span style="font-size:10px;color:rgba(244,244,232,.3);">(unavailable)</span>':''}
+        </span>
+      </td>
+      <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:${r.offPeak!=null?'#a8cc00':'rgba(244,244,232,.25)'};">${p(r.offPeak)}</td>
+      <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:rgba(244,244,232,.85);">${p(r.standard)}</td>
+      <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:${r.peak!=null?'#F87171':'rgba(244,244,232,.25)'};">${p(r.peak)}</td>
+      <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:rgba(244,244,232,.6);">${p(r.standing)}/day</td>
+      <td style="text-align:right;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);font-family:'Rajdhani',monospace;color:rgba(244,244,232,.6);">${p(r.export)}</td>
+      <td style="text-align:center;padding:9px 12px;border-bottom:1px solid rgba(168,196,30,0.07);">
+        <span style="font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${r.live?'#a8cc00':'rgba(232,160,32,.7)'};">
+          ${r.live ? '⚡ Live' : '📋 Fallback'}
+        </span>
+      </td>
+    </tr>`;
+  }).join('');
+}
 
 buildChartLegend();
 drawDailyChart();
