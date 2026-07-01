@@ -77,7 +77,7 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(168,196,
 
 /* TARIFF CARDS */
 .tariff-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
-.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;overflow:hidden;transition:border-color .2s;}
+.tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;transition:border-color .2s;}
 .tc.winner{border-color:var(--lime);box-shadow:0 0 0 1px rgba(168,196,30,0.15),0 4px 24px rgba(168,196,30,0.07);}
 .tc.unavail{opacity:.4;}
 .tc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid var(--border-dark);flex-wrap:wrap;gap:10px;}
@@ -90,6 +90,20 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(168,196,
 .tag-solar{border-color:var(--amber);color:var(--amber);background:rgba(232,184,75,0.08);}
 .tag-plain{border-color:rgba(255,255,255,0.2);color:var(--on-dark-muted);background:rgba(255,255,255,0.04);}
 .tag-closed{border-color:rgba(255,255,255,0.15);color:rgba(244,244,232,0.35);}
+.tag-inelig{border-color:rgba(255,120,80,0.4);color:rgba(255,140,100,0.9);background:rgba(255,80,40,0.07);cursor:help;position:relative;}
+.tag-inelig .tip{
+  display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:#1f2210;border:1px solid rgba(255,140,100,0.35);border-radius:8px;
+  padding:10px 13px;width:230px;font-size:11px;letter-spacing:.02em;text-transform:none;
+  color:rgba(244,244,232,.82);line-height:1.55;z-index:999;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.tag-inelig .tip::before{
+  content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-bottom-color:#1f2210;
+}
+.tag-inelig:hover .tip,.tag-inelig.tip-open .tip{display:block;}
+.tc-winner-pin{order:-1;}
 .tc-annual{text-align:right;}
 .tc-amount{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.01em;}
 .tc-diff{font-family:'Rajdhani',monospace;font-size:10px;margin-top:2px;}
@@ -380,12 +394,25 @@ function calculate(){
   const flexCost=results.find(r=>r.id==='flexible').cost;
   const winner=sorted.find(r=>r.available&&r.elig);
 
+  // Build ineligibility reason per tariff for tooltip
+  function ineligReason(t){
+    if(!t.available) return t.id==='intelligentflux'?'Currently paused by Octopus due to market volatility.':'Closed to new customers.';
+    const reasons=[];
+    if(t.reqEV&&!p.hasEV) reasons.push(t.id==='drivepack'?'Requires an EV — there\'s nothing to charge without one.':'Requires an EV or compatible smart charger.');
+    if(t.reqSolar&&!p.hasSolar) reasons.push('Requires solar panels.');
+    if(t.reqBattery&&!p.hasBattery) reasons.push('Requires a home battery.');
+    if(t.reqFlex&&!p.isFlexible) reasons.push('Relies on shifting usage to off-peak windows — you\'ve said you can\'t do this.');
+    if(t.id==='drivepack'&&p.hasEV&&p.evUsage<2400) reasons.push('At your EV usage, the £30/month flat fee costs more than a per-kWh tariff.');
+    return reasons.length?reasons.join(' '):'Not suitable for your current setup.';
+  }
+
   // Cards
   const cards=document.getElementById('tariffCards');
   cards.innerHTML='';
   sorted.forEach(t=>{
     const isW=winner&&t.id===winner.id;
     const notElig=!t.elig&&t.available;
+    const inelig=notElig||!t.available;
     let rateStr=t.id==='drivepack'?`£${t.addOnFee}/mo flat + ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='flux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
       :t.id==='intelligentflux'?`${(t.offPeakRate*100).toFixed(0)}p off / ${(t.peakRate*100).toFixed(0)}p peak`
@@ -393,11 +420,14 @@ function calculate(){
       :t.id==='intelligent'?`8p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :t.id==='go'?`9.5p EV / ${(t.unitRate*100).toFixed(0)}p home`
       :`${(t.unitRate*100).toFixed(0)}p flat`;
-    const tagHtml=isW?'<span class="tag tag-best">⭐ Best for you</span>'
-      :notElig?'<span class="tag tag-closed">Not eligible</span>'
-      :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
+    const tagHtml=isW
+      ?'<span class="tag tag-best">⭐ Best for you</span>'
+      :inelig
+        ?`<span class="tag tag-inelig" ontouchstart="this.classList.toggle('tip-open')">Not eligible ⓘ<span class="tip">${ineligReason(t)}</span></span>`
+        :`<span class="tag ${t.tag.c}">${t.tag.t}</span>`;
     const div=document.createElement('div');
     div.className='tc'+(isW?' winner':'')+((!t.available)?' unavail':'');
+    if(isW) div.style.order='-1';
     div.innerHTML=`
       <div class="tc-head">
         <div class="tc-name-row"><div class="tc-dot" style="background:${t.color}"></div><div class="tc-name">${t.name}</div>${tagHtml}</div>
