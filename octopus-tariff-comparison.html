@@ -266,7 +266,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
     <div class="bar-card-title">📈 Daily Rate Profile — p/kWh by hour</div>
     <div id="dailyChartLegend" style="display:flex;flex-wrap:wrap;gap:14px;margin:12px 0 18px;"></div>
     <div style="position:relative;width:100%;overflow-x:auto;">
-      <canvas id="dailyChart" width="900" height="320" style="width:100%;max-width:900px;height:auto;display:block;"></canvas>
+      <canvas id="dailyChart" width="900" height="320" style="width:100%;max-width:900px;height:auto;display:block;cursor:crosshair;"></canvas>
     </div>
     <div style="font-size:11px;color:rgba(244,244,232,.4);margin-top:10px;">Hover or tap a checkbox above to toggle a tariff. Rates shown reflect the selected region. Cosy's three off-peak windows and Flux/Intelligent Flux's peak window are time-of-day specific — Flexible and Drive Pack's home rate are flat all day.</div>
 
@@ -542,7 +542,7 @@ function calculate(){
   txt+=`<br><br><strong>Agile Octopus</strong> is also worth considering if you can shift usage to off-peak windows, but it's left out of this comparison — its half-hourly pricing changes daily and is genuinely difficult to estimate accurately without live market data. Check current Agile rates directly on the <a href="https://octopus.energy/agile/" target="_blank">Octopus website</a> if you want to explore it.`;
   el.innerHTML=txt;
 
-  if(typeof drawDailyChart==='function') drawDailyChart();
+  if(typeof drawDailyChart==='function') drawDailyChart(null,null);
   if(typeof loadLiveRates==='function') loadLiveRates();
 }
 
@@ -605,10 +605,14 @@ function buildChartLegend(){
 function toggleChartTariff(id){
   chartVisible[id]=!chartVisible[id];
   buildChartLegend();
-  drawDailyChart();
+  drawDailyChart(null,null);
 }
 
-function drawDailyChart(){
+// Hover state for daily chart
+let chartHoverTariff = null;
+let chartHoverSlot = null;
+
+function drawDailyChart(hoverTariffId, hoverSlot){
   const canvas=document.getElementById('dailyChart');
   if(!canvas) return;
   const ctx=canvas.getContext('2d');
@@ -618,7 +622,6 @@ function drawDailyChart(){
 
   ctx.clearRect(0,0,W,H);
 
-  // Get regionalized tariffs (reuse the same scaling as calculate())
   const regionKey=document.getElementById('region')?document.getElementById('region').value:'national';
   const region=REGIONS[regionKey]||REGIONS.national;
   const unitScale=region.unitRate/REGIONS.national.unitRate;
@@ -660,7 +663,7 @@ function drawDailyChart(){
     ctx.fillText((r*100).toFixed(0)+'p',padL-6,y+3);
   }
 
-  // X-axis labels (every 4 hours)
+  // X-axis labels
   ctx.textAlign='center';
   for(let h=0;h<=24;h+=4){
     const i=h*2;
@@ -668,11 +671,44 @@ function drawDailyChart(){
     ctx.fillText(h===24?'24:00':String(h).padStart(2,'0')+':00',x,H-padB+16);
   }
 
-  // Draw each tariff as a step line
-  visibleTariffs.forEach(t=>{
+  // Vertical hover line
+  if(hoverSlot!=null){
+    const x=xFor(hoverSlot);
+    ctx.save();
+    ctx.strokeStyle='rgba(244,244,232,.15)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(x,padT);
+    ctx.lineTo(x,padT+plotH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // Draw non-hovered tariffs first (dimmed), then hovered on top (glowing)
+  const isHovering = hoverTariffId != null;
+  const drawOrder = isHovering
+    ? [...visibleTariffs.filter(t=>t.id!==hoverTariffId), ...visibleTariffs.filter(t=>t.id===hoverTariffId)]
+    : visibleTariffs;
+
+  drawOrder.forEach(t=>{
     const profile=getDailyProfile(t);
+    const isActive=!isHovering||t.id===hoverTariffId;
+    ctx.save();
+    if(!isActive){
+      ctx.globalAlpha=0.18;
+      ctx.shadowBlur=0;
+    } else if(isHovering){
+      // Glow effect on active line
+      ctx.globalAlpha=1;
+      ctx.shadowColor=t.color;
+      ctx.shadowBlur=14;
+    } else {
+      ctx.globalAlpha=1;
+    }
     ctx.strokeStyle=t.color;
-    ctx.lineWidth=2;
+    ctx.lineWidth=isActive&&isHovering?3:2;
     ctx.beginPath();
     for(let i=0;i<48;i++){
       const x1=xFor(i), x2=xFor(i+1>47?47:i+1);
@@ -681,10 +717,139 @@ function drawDailyChart(){
       ctx.lineTo(x2,y);
     }
     ctx.stroke();
+
+    // Dot at hover position for active tariff
+    if(isActive&&isHovering&&hoverSlot!=null){
+      const dotX=xFor(hoverSlot);
+      const dotY=yFor(profile[hoverSlot]);
+      ctx.beginPath();
+      ctx.arc(dotX,dotY,5,0,Math.PI*2);
+      ctx.fillStyle=t.color;
+      ctx.shadowBlur=16;
+      ctx.fill();
+    }
+    ctx.restore();
   });
 }
 
-window.addEventListener('resize',()=>{ if(document.getElementById('dailyChart')) drawDailyChart(); });
+// Chart mouse/touch interaction
+(function setupChartInteraction(){
+  const canvas=document.getElementById('dailyChart');
+  if(!canvas) return;
+
+  // Tooltip div
+  const tip=document.createElement('div');
+  tip.id='chartTooltip';
+  tip.style.cssText='position:absolute;display:none;pointer-events:none;background:#1a1d0e;border:1px solid rgba(168,204,0,0.25);border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.6;z-index:100;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);';
+  canvas.parentElement.style.position='relative';
+  canvas.parentElement.appendChild(tip);
+
+  function getSlotFromX(canvasX){
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width;
+    const cx=canvasX*scaleX;
+    const padL=48, padR=16;
+    const plotW=canvas.width-padL-padR;
+    const frac=(cx-padL)/plotW;
+    return Math.max(0,Math.min(47,Math.round(frac*47)));
+  }
+
+  function getClosestTariff(slot, canvasY){
+    const rect=canvas.getBoundingClientRect();
+    const scaleY=canvas.height/rect.height;
+    const cy=canvasY*scaleY;
+    const padL=48,padR=16,padT=16,padB=32;
+    const plotW=canvas.width-padL-padR, plotH=canvas.height-padT-padB;
+    const regionKey=document.getElementById('region')?document.getElementById('region').value:'national';
+    const region=REGIONS[regionKey]||REGIONS.national;
+    const unitScale=region.unitRate/REGIONS.national.unitRate;
+    const regionalTariffs=TARIFFS.map(t=>({...t,unitRate:t.unitRate*unitScale,offPeakRate:t.offPeakRate*unitScale,peakRate:t.peakRate*unitScale}));
+    const visibleTariffs=regionalTariffs.filter(t=>chartVisible[t.id]);
+    if(!visibleTariffs.length) return null;
+    const allRates=visibleTariffs.flatMap(t=>getDailyProfile(t));
+    const maxRate=Math.max(...allRates,0.1)*1.1;
+    const yFor=r=>padT+plotH-((r/(maxRate))*plotH);
+    let best=null, bestDist=Infinity;
+    visibleTariffs.forEach(t=>{
+      const profile=getDailyProfile(t);
+      const y=yFor(profile[slot]);
+      const dist=Math.abs(cy-y);
+      if(dist<bestDist){bestDist=dist;best=t;}
+    });
+    return bestDist<40?best:null;
+  }
+
+  function showTooltip(e, clientX, clientY){
+    const rect=canvas.getBoundingClientRect();
+    const localX=clientX-rect.left;
+    const localY=clientY-rect.top;
+    const slot=getSlotFromX(localX);
+    const t=getClosestTariff(slot, localY);
+    if(!t){
+      tip.style.display='none';
+      chartHoverTariff=null; chartHoverSlot=null;
+      drawDailyChart(null,null);
+      return;
+    }
+    if(t.id===chartHoverTariff&&slot===chartHoverSlot) return;
+    chartHoverTariff=t.id; chartHoverSlot=slot;
+    drawDailyChart(t.id, slot);
+
+    const regionKey=document.getElementById('region')?document.getElementById('region').value:'national';
+    const region=REGIONS[regionKey]||REGIONS.national;
+    const unitScale=region.unitRate/REGIONS.national.unitRate;
+    const scaledT={...t,offPeakRate:t.offPeakRate,peakRate:t.peakRate};
+    const profile=getDailyProfile(scaledT);
+    const rate=profile[slot];
+    const hh=slot>>1, mm=(slot&1)?'30':'00';
+    const timeStr=`${String(hh).padStart(2,'0')}:${mm}`;
+    const nextHH=((slot+1)>>1)%24, nextMM=((slot+1)&1)?'30':'00';
+    const nextTimeStr=`${String(nextHH).padStart(2,'0')}:${nextMM}`;
+
+    tip.innerHTML=`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${t.color};flex-shrink:0;display:inline-block;box-shadow:0 0 6px ${t.color};"></span>
+        <strong style="color:${t.color};font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">${t.name}</strong>
+      </div>
+      <div style="color:rgba(244,244,232,.5);font-size:11px;margin-bottom:4px;">${timeStr} – ${nextTimeStr}</div>
+      <div style="font-size:22px;font-family:'Rajdhani',monospace;font-weight:700;color:#f0f2e8;">${(rate*100).toFixed(2)}<span style="font-size:13px;color:rgba(244,244,232,.5);">p/kWh</span></div>
+    `;
+    tip.style.display='block';
+
+    // Position: above cursor, clamp to canvas bounds
+    const tipW=180, tipH=90;
+    let tx=localX+12, ty=localY-tipH-12;
+    if(tx+tipW>rect.width-4) tx=localX-tipW-12;
+    if(ty<4) ty=localY+16;
+    tip.style.left=tx+'px';
+    tip.style.top=ty+'px';
+  }
+
+  canvas.addEventListener('mousemove', e=>{
+    const r=canvas.getBoundingClientRect();
+    showTooltip(e, e.clientX, e.clientY);
+  });
+  canvas.addEventListener('mouseleave', ()=>{
+    tip.style.display='none';
+    chartHoverTariff=null; chartHoverSlot=null;
+    drawDailyChart(null,null);
+  });
+  canvas.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    showTooltip(e, t.clientX, t.clientY);
+  },{passive:false});
+  canvas.addEventListener('touchend', ()=>{
+    setTimeout(()=>{
+      tip.style.display='none';
+      chartHoverTariff=null; chartHoverSlot=null;
+      drawDailyChart(null,null);
+    }, 1200);
+  });
+})();
+
+window.addEventListener('resize',()=>{ if(document.getElementById('dailyChart')) drawDailyChart(null,null); });
+
 
 // ── Live rates table ──
 // Maps our region keys to API GSP letters, and defines the product/tariff codes for each tariff.
@@ -882,7 +1047,7 @@ function renderRatesTable(rows, regionKey, live) {
 }
 
 buildChartLegend();
-drawDailyChart();
+drawDailyChart(null,null);
 
 calculate();
 </script>
