@@ -344,8 +344,8 @@ const TARIFFS=[
   {id:'flexible',name:'Flexible Octopus',color:'#94A3B8',tag:{t:'Baseline',c:'tag-plain'},available:true,exitFee:0,contract:'Variable — no exit fee',unitRate:.2638,offPeakRate:.2638,peakRate:.2638,exportRate:.12,standingCharge:.5719,usesOffPeak:false,usesSolar:true,usesEV:false,reqBattery:false,reqEV:false,reqSolar:false,reqFlex:false,notes:'Standard variable tariff. No smart meter scheduling required. Works for anyone.'},
   {id:'go',name:'Octopus Go',color:'#5EA8A0',tag:{t:'Simple EV tariff',c:'tag-ev'},available:true,exitFee:0,contract:'Variable — no exit fee',unitRate:.2638,offPeakRate:.095,peakRate:.301,exportRate:.12,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:true,reqBattery:false,reqEV:true,reqSolar:false,reqFlex:false,notes:'9.5p/kWh fixed overnight window (12:30am–5:30am). Works with any home charger — no compatibility check or app scheduling needed. Best for low-mileage EV drivers who can charge comfortably within the 5-hour window.'},
   {id:'intelligent',name:'Intelligent Octopus Go',color:'#A8C41E',tag:{t:'Best for EVs',c:'tag-ev'},available:true,exitFee:0,contract:'Variable — no exit fee',unitRate:.2638,offPeakRate:.08,peakRate:.2638,exportRate:.12,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:true,reqBattery:false,reqEV:true,reqSolar:false,reqFlex:false,notes:'8p/kWh EV charging and whole-home rate for 6 hours overnight (11:30pm–5:30am). Standard rate rest of day. Requires compatible EV or charger.'},
-  {id:'flux',name:'Octopus Flux',color:'#F05A28',tag:{t:'Solar + battery',c:'tag-solar'},available:true,exitFee:0,contract:'Variable — no exit fee',unitRate:.2551,offPeakRate:.1531,peakRate:.3572,exportRate:.2932,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:false,reqBattery:true,reqEV:false,reqSolar:true,reqFlex:false,notes:'Open to new customers again. Cheap import 02:00–05:00, peak import/export 16:00–19:00 — you manually schedule your battery around these windows. Requires solar panels and a home battery with an Export MPAN.'},
-  {id:'intelligentflux',name:'Intelligent Octopus Flux',color:'#FB7185',tag:{t:'Temporarily unavailable',c:'tag-closed'},available:false,exitFee:0,contract:'Variable — temporarily unavailable',unitRate:.2551,offPeakRate:.1531,peakRate:.3572,exportRate:.3572,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:false,reqBattery:true,reqEV:false,reqSolar:true,reqFlex:true,notes:'⚠ Paused by Octopus due to market volatility — check the Octopus site for current availability. When live, import and export rates match across the three bands, fully automated for compatible batteries (GivEnergy, Tesla, FoxESS, Sigenergy). Best for strong net-exporting homes — if you import more than you export, it can cost more than it earns.'},
+  {id:'flux',name:'Octopus Flux',color:'#F05A28',tag:{t:'Solar + battery',c:'tag-solar'},available:true,exitFee:0,contract:'Variable — no exit fee',unitRate:.2551,offPeakRate:.1531,peakRate:.3572,exportRate:.2932,exportRateStandard:.1011,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:false,reqBattery:true,reqEV:false,reqSolar:true,reqFlex:false,notes:'Open to new customers again. Cheap import 02:00–05:00, peak import/export 16:00–19:00 — you manually schedule your battery around these windows. Requires solar panels and a home battery with an Export MPAN.'},
+  {id:'intelligentflux',name:'Intelligent Octopus Flux',color:'#FB7185',tag:{t:'Temporarily unavailable',c:'tag-closed'},available:false,exitFee:0,contract:'Variable — temporarily unavailable',unitRate:.2551,offPeakRate:.1531,peakRate:.3572,exportRate:.3572,exportRateStandard:.1011,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:false,reqBattery:true,reqEV:false,reqSolar:true,reqFlex:true,notes:'⚠ Paused by Octopus due to market volatility — check the Octopus site for current availability. When live, import and export rates match across the three bands, fully automated for compatible batteries (GivEnergy, Tesla, FoxESS, Sigenergy). Best for strong net-exporting homes — if you import more than you export, it can cost more than it earns.'},
   {id:'cosy',name:'Cosy Octopus',color:'#E91E8C',tag:{t:'Heat pump focused',c:'tag-solar'},available:true,exitFee:25,contract:'6-month fixed — £25 exit fee',unitRate:.2638,offPeakRate:.13,peakRate:.3957,exportRate:.12,standingCharge:.5719,usesOffPeak:true,usesSolar:true,usesEV:false,reqBattery:false,reqEV:false,reqSolar:false,reqFlex:true,notes:'Three off-peak windows daily (4–7am, 1–4pm, 10pm–midnight). Best for heat pump owners.'},
   {id:'drivepack',name:'Intelligent Drive Pack',color:'#7C3AED',tag:{t:'High mileage EV',c:'tag-ev'},available:true,exitFee:0,contract:'£30/month add-on — no separate exit fee',unitRate:.2638,offPeakRate:.2638,peakRate:.2638,exportRate:.12,standingCharge:.5719,addOnFee:30,usesOffPeak:false,usesSolar:true,usesEV:true,reqBattery:false,reqEV:true,reqSolar:false,reqFlex:false,notes:'Flat £30/month covers unlimited scheduled EV charging — home energy billed at standard Flexible rates. Only worth it above ~1,000–1,500 miles/month; lower mileage drivers are usually better off on Intelligent Octopus Go.'},
 ];
@@ -386,9 +386,14 @@ function computeCost(t,p){
   let exportIncome=0;
   if(p.hasSolar&&t.usesSolar){
     const exp=p.solarGen*(1-p.selfcon);
-    if(t.id==='flux'&&p.hasBattery) exportIncome=exp*t.exportRate*.7+exp*.12*.3;
-    else if(t.id==='intelligentflux'&&p.hasBattery) exportIncome=exp*t.exportRate*.8+exp*.12*.2;
-    else exportIncome=exp*t.exportRate;
+    if((t.id==='flux'||t.id==='intelligentflux')&&t.exportRateStandard){
+      // 50/50 blend of peak export rate and standard export rate — realistic for a
+      // battery that shifts roughly half its export into the 16:00–19:00 peak window.
+      const blended=(t.exportRate*0.5)+(t.exportRateStandard*0.5);
+      exportIncome=exp*blended;
+    } else {
+      exportIncome=exp*t.exportRate;
+    }
   }
   return Math.round(standing+importCost+evCost-exportIncome-battSaving);
 }
@@ -482,7 +487,11 @@ function calculate(){
       </div>
       <div class="tc-body">
         <div class="cell"><div class="cell-lbl">Import rate</div><div class="cell-val">${rateStr}</div></div>
-        <div class="cell"><div class="cell-lbl">Export rate</div><div class="cell-val">${(t.exportRate*100).toFixed(1)}p/kWh${t.id==='flux'?' (peak)':t.id==='intelligentflux'?' (peak, matched)':''}</div></div>
+        <div class="cell"><div class="cell-lbl">Export rate</div><div class="cell-val">${
+          (t.id==='flux'||t.id==='intelligentflux')&&t.exportRateStandard
+            ?`${(t.exportRateStandard*100).toFixed(1)}p / ${(t.exportRate*100).toFixed(1)}p peak (50/50 blend)`
+            :`${(t.exportRate*100).toFixed(1)}p/kWh`
+        }</div></div>
         <div class="cell"><div class="cell-lbl">Contract</div><div class="cell-val ${t.exitFee?'warn':'good'}">${t.exitFee?'£'+t.exitFee+' exit fee':'No exit fee'}</div></div>
       </div>
       <div class="tc-foot">${t.notes}</div>
