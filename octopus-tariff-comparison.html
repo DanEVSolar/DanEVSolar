@@ -384,77 +384,67 @@ function computeCost(t,p){
   let homeImport=p.usage;
   if(p.hasSolar) homeImport=Math.max(0,p.usage-(p.solarGen*p.selfcon));
 
-  // Battery saving — calculated differently per tariff to avoid double-counting.
-  // For Intelligent Go and Go: battery effect is folded into the import fraction directly below.
-  // For all others: separate battSaving represents the spread captured per daily cycle.
-  let battSaving=0;
-  if(p.hasBattery&&t.usesOffPeak&&t.available&&t.id!=='intelligent'&&t.id!=='go'){
-    const dailyCyc=Math.min(p.battCap,homeImport/365)*0.9;
-    battSaving=dailyCyc*365*(t.peakRate-t.offPeakRate)*0.8;
-  }
-
   let evCost=0;
   if(p.hasEV){
     if(t.id==='drivepack') evCost=t.addOnFee*12;
     else if(t.id==='intelligent'||t.id==='go') evCost=p.evUsage*t.offPeakRate;
-    else if(t.usesOffPeak&&t.available) evCost=p.evUsage*(p.isFlexible?t.offPeakRate*.8+t.unitRate*.2:t.unitRate);
+    else if(t.usesOffPeak&&t.available) evCost=p.evUsage*(p.offpeak*t.offPeakRate+(1-p.offpeak)*t.unitRate);
     else evCost=p.evUsage*t.unitRate;
   }
 
-  let importCost;
+  let importCost, importCostNoShift, battSaving=0;
+
   if(t.id==='intelligent'){
-    const baseOffPeakFrac=0.25;
-    let offPeakFrac=baseOffPeakFrac;
-    if(p.hasBattery&&homeImport>0){
-      const annualBattKwh=Math.min(p.battCap, homeImport/365)*0.9*365;
-      const extraFrac=annualBattKwh/homeImport;
-      offPeakFrac=Math.min(0.95, offPeakFrac+extraFrac);
-    }
-    importCost=homeImport*(offPeakFrac*t.offPeakRate+(1-offPeakFrac)*t.unitRate);
-    // Explicit battery saving = what import would have cost without battery
-    if(p.hasBattery&&homeImport>0){
-      const importWithoutBatt=homeImport*(baseOffPeakFrac*t.offPeakRate+(1-baseOffPeakFrac)*t.unitRate);
-      battSaving=importWithoutBatt-importCost;
-    }
+    // Fixed 6hr window = 25% base. Slider shifts additional usage into cheap rate,
+    // capped at the window size (25%) — you can't exceed what the window allows.
+    const windowFrac=0.25;
+    const baseFrac=windowFrac; // without any extra shifting
+    const shiftedFrac=Math.min(windowFrac+p.offpeak*(1-windowFrac), 0.95);
+    importCostNoShift=homeImport*(baseFrac*t.offPeakRate+(1-baseFrac)*t.unitRate);
+    importCost       =homeImport*(shiftedFrac*t.offPeakRate+(1-shiftedFrac)*t.unitRate);
+    battSaving=Math.max(0, importCostNoShift-importCost);
   } else if(t.id==='go'){
-    const baseOffPeakFrac=0.208;
-    let offPeakFrac=baseOffPeakFrac;
-    if(p.hasBattery&&homeImport>0){
-      const annualBattKwh=Math.min(p.battCap, homeImport/365)*0.9*365;
-      const extraFrac=annualBattKwh/homeImport;
-      offPeakFrac=Math.min(0.95, offPeakFrac+extraFrac);
-    }
-    importCost=homeImport*(offPeakFrac*t.offPeakRate+(1-offPeakFrac)*t.peakRate);
-    // Explicit battery saving = what import would have cost without battery
-    if(p.hasBattery&&homeImport>0){
-      const importWithoutBatt=homeImport*(baseOffPeakFrac*t.offPeakRate+(1-baseOffPeakFrac)*t.peakRate);
-      battSaving=importWithoutBatt-importCost;
-    }
+    // Fixed 5hr window = ~21% base. Same logic.
+    const windowFrac=0.208;
+    const baseFrac=windowFrac;
+    const shiftedFrac=Math.min(windowFrac+p.offpeak*(1-windowFrac), 0.95);
+    importCostNoShift=homeImport*(baseFrac*t.offPeakRate+(1-baseFrac)*t.peakRate);
+    importCost       =homeImport*(shiftedFrac*t.offPeakRate+(1-shiftedFrac)*t.peakRate);
+    battSaving=Math.max(0, importCostNoShift-importCost);
   } else if(t.id==='cosy'){
-    // Three bands: 33% off-peak (8hrs), 12.5% peak 16:00–19:00 (3hrs), 54.5% standard day (13hrs).
-    const offPeakFrac=0.33, peakFrac=0.125, stdFrac=0.545;
-    importCost=homeImport*(offPeakFrac*t.offPeakRate+peakFrac*t.peakRate+stdFrac*t.unitRate);
+    // Slider controls off-peak fraction, capped at 8hrs/33% (the total Cosy window).
+    // Peak is always fixed at 12.5% (3hrs). Remainder is standard day rate.
+    const maxOffPeak=0.33, peakFrac=0.125;
+    const offPeakFrac=Math.min(p.offpeak, maxOffPeak);
+    const stdFrac=Math.max(0, 1-offPeakFrac-peakFrac);
+    importCostNoShift=homeImport*(0*t.offPeakRate+peakFrac*t.peakRate+(1-peakFrac)*t.unitRate); // 0% off-peak baseline
+    importCost       =homeImport*(offPeakFrac*t.offPeakRate+peakFrac*t.peakRate+stdFrac*t.unitRate);
+    battSaving=Math.max(0, importCostNoShift-importCost);
   } else if(t.usesOffPeak&&t.available){
+    // Flux, Intelligent Flux etc — slider directly controls off-peak fraction
+    importCostNoShift=homeImport*t.unitRate; // 0% off-peak baseline
     importCost=homeImport*(p.offpeak*t.offPeakRate+(1-p.offpeak)*t.peakRate);
+    battSaving=Math.max(0, importCostNoShift-importCost);
   } else {
     importCost=homeImport*t.unitRate;
+    importCostNoShift=importCost;
   }
+
   let exportIncome=0;
   if(p.hasSolar&&t.usesSolar){
     const exp=p.solarGen*(1-p.selfcon);
     if((t.id==='flux'||t.id==='intelligentflux')&&t.exportRateStandard){
-      // 50/50 blend of peak export rate and standard export rate — realistic for a
-      // battery that shifts roughly half its export into the 16:00–19:00 peak window.
       const blended=(t.exportRate*0.5)+(t.exportRateStandard*0.5);
       exportIncome=exp*blended;
     } else {
       exportIncome=exp*t.exportRate;
     }
   }
+
   return {
-    cost: Math.round(standing+importCost+evCost-exportIncome-battSaving),
+    cost: Math.round(standing+importCost+evCost-exportIncome),
     standing: Math.round(standing),
-    importCost: Math.round(importCost+battSaving), // show pre-battery import cost so breakdown adds up visually
+    importCost: Math.round(importCostNoShift), // gross import before shifting, so breakdown adds up: import - battSaving = actual
     evCost: Math.round(evCost),
     exportIncome: Math.round(exportIncome),
     battSaving: Math.round(battSaving),
@@ -547,7 +537,7 @@ function calculate(){
     bkRows.push(`<div class="bk-row"><span class="bk-lbl">Home import</span><span class="bk-val">+£${t.importCost.toLocaleString()}</span></div>`);
     if(t.evCost>0) bkRows.push(`<div class="bk-row"><span class="bk-lbl">EV charging</span><span class="bk-val">+£${t.evCost.toLocaleString()}</span></div>`);
     if(t.exportIncome>0) bkRows.push(`<div class="bk-row bk-credit"><span class="bk-lbl">Solar export income</span><span class="bk-val">−£${t.exportIncome.toLocaleString()}</span></div>`);
-    if(t.battSaving>0) bkRows.push(`<div class="bk-row bk-credit"><span class="bk-lbl">Battery saving</span><span class="bk-val">−£${t.battSaving.toLocaleString()}</span></div>`);
+    if(t.battSaving>0) bkRows.push(`<div class="bk-row bk-credit"><span class="bk-lbl">Off-peak shifting saving</span><span class="bk-val">−£${t.battSaving.toLocaleString()}</span></div>`);
     bkRows.push(`<div class="bk-row bk-total"><span class="bk-lbl">Net annual cost</span><span class="bk-val" style="color:${t.cost<0?'var(--lime)':'var(--off-white)'}">${fmt(t.cost)}${t.cost<0?'':'/yr'}</span></div>`);
 
     div.innerHTML=`
