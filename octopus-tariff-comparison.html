@@ -143,6 +143,23 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 }
 .tag-inelig:hover .tip,.tag-inelig.tip-open .tip{display:block;}
 .tc{background:rgba(168,196,30,0.03);border:1px solid var(--border-dark);border-radius:13px;transition:border-color .2s;}
+.bk-section{border-top:1px solid var(--border-dark);}
+.bk-details{padding:0;}
+.bk-details summary{padding:9px 20px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(244,244,232,.3);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;transition:color .15s;}
+.bk-details summary::-webkit-details-marker{display:none;}
+.bk-details summary::after{content:'▸';font-size:9px;transition:transform .2s;}
+.bk-details[open] summary::after{transform:rotate(90deg);}
+.bk-details summary:hover{color:rgba(244,244,232,.55);}
+.bk-inner{padding:0 20px 14px;}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(244,244,232,.04);font-size:12px;}
+.bk-row:last-child{border-bottom:none;}
+.bk-lbl{color:rgba(244,244,232,.5);}
+.bk-val{font-family:'Rajdhani',monospace;font-weight:700;font-size:13px;color:rgba(244,244,232,.7);}
+.bk-credit .bk-lbl{color:rgba(168,204,0,.7);}
+.bk-credit .bk-val{color:var(--lime);}
+.bk-total{margin-top:6px;padding-top:8px;border-top:1px solid rgba(244,244,232,.1)!important;border-bottom:none!important;}
+.bk-total .bk-lbl{color:rgba(244,244,232,.7);font-weight:500;}
+.bk-total .bk-val{font-size:15px;}
 .rate-tip-wrap{position:relative;}
 .rate-tip{
   display:none;position:absolute;top:calc(100% + 8px);left:0;
@@ -366,11 +383,16 @@ function computeCost(t,p){
   const standing=t.standingCharge*365;
   let homeImport=p.usage;
   if(p.hasSolar) homeImport=Math.max(0,p.usage-(p.solarGen*p.selfcon));
+
+  // Battery saving — calculated differently per tariff to avoid double-counting.
+  // For Intelligent Go and Go: battery effect is folded into the import fraction directly below.
+  // For all others: separate battSaving represents the spread captured per daily cycle.
   let battSaving=0;
-  if(p.hasBattery&&t.usesOffPeak&&t.available){
+  if(p.hasBattery&&t.usesOffPeak&&t.available&&t.id!=='intelligent'&&t.id!=='go'){
     const dailyCyc=Math.min(p.battCap,homeImport/365)*0.9;
     battSaving=dailyCyc*365*(t.peakRate-t.offPeakRate)*0.8;
   }
+
   let evCost=0;
   if(p.hasEV){
     if(t.id==='drivepack') evCost=t.addOnFee*12;
@@ -378,11 +400,45 @@ function computeCost(t,p){
     else if(t.usesOffPeak&&t.available) evCost=p.evUsage*(p.isFlexible?t.offPeakRate*.8+t.unitRate*.2:t.unitRate);
     else evCost=p.evUsage*t.unitRate;
   }
+
   let importCost;
-  if(t.usesOffPeak&&t.available){
-    const opF=t.id==='intelligent'?p.offpeak*.6:t.id==='go'?p.offpeak*.5:p.offpeak;
-    importCost=homeImport*(opF*t.offPeakRate+(1-opF)*t.peakRate);
-  } else { importCost=homeImport*t.unitRate; }
+  if(t.id==='intelligent'){
+    const baseOffPeakFrac=0.25;
+    let offPeakFrac=baseOffPeakFrac;
+    if(p.hasBattery&&homeImport>0){
+      const annualBattKwh=Math.min(p.battCap, homeImport/365)*0.9*365;
+      const extraFrac=annualBattKwh/homeImport;
+      offPeakFrac=Math.min(0.95, offPeakFrac+extraFrac);
+    }
+    importCost=homeImport*(offPeakFrac*t.offPeakRate+(1-offPeakFrac)*t.unitRate);
+    // Explicit battery saving = what import would have cost without battery
+    if(p.hasBattery&&homeImport>0){
+      const importWithoutBatt=homeImport*(baseOffPeakFrac*t.offPeakRate+(1-baseOffPeakFrac)*t.unitRate);
+      battSaving=importWithoutBatt-importCost;
+    }
+  } else if(t.id==='go'){
+    const baseOffPeakFrac=0.208;
+    let offPeakFrac=baseOffPeakFrac;
+    if(p.hasBattery&&homeImport>0){
+      const annualBattKwh=Math.min(p.battCap, homeImport/365)*0.9*365;
+      const extraFrac=annualBattKwh/homeImport;
+      offPeakFrac=Math.min(0.95, offPeakFrac+extraFrac);
+    }
+    importCost=homeImport*(offPeakFrac*t.offPeakRate+(1-offPeakFrac)*t.peakRate);
+    // Explicit battery saving = what import would have cost without battery
+    if(p.hasBattery&&homeImport>0){
+      const importWithoutBatt=homeImport*(baseOffPeakFrac*t.offPeakRate+(1-baseOffPeakFrac)*t.peakRate);
+      battSaving=importWithoutBatt-importCost;
+    }
+  } else if(t.id==='cosy'){
+    // Three bands: 33% off-peak (8hrs), 12.5% peak 16:00–19:00 (3hrs), 54.5% standard day (13hrs).
+    const offPeakFrac=0.33, peakFrac=0.125, stdFrac=0.545;
+    importCost=homeImport*(offPeakFrac*t.offPeakRate+peakFrac*t.peakRate+stdFrac*t.unitRate);
+  } else if(t.usesOffPeak&&t.available){
+    importCost=homeImport*(p.offpeak*t.offPeakRate+(1-p.offpeak)*t.peakRate);
+  } else {
+    importCost=homeImport*t.unitRate;
+  }
   let exportIncome=0;
   if(p.hasSolar&&t.usesSolar){
     const exp=p.solarGen*(1-p.selfcon);
@@ -395,7 +451,14 @@ function computeCost(t,p){
       exportIncome=exp*t.exportRate;
     }
   }
-  return Math.round(standing+importCost+evCost-exportIncome-battSaving);
+  return {
+    cost: Math.round(standing+importCost+evCost-exportIncome-battSaving),
+    standing: Math.round(standing),
+    importCost: Math.round(importCost+battSaving), // show pre-battery import cost so breakdown adds up visually
+    evCost: Math.round(evCost),
+    exportIncome: Math.round(exportIncome),
+    battSaving: Math.round(battSaving),
+  };
 }
 
 function fmtDiff(n,base){
@@ -433,7 +496,7 @@ function calculate(){
     standingCharge:region.standingCharge,
   }));
 
-  const results=regionalTariffs.map(t=>({...t,cost:computeCost(t,p),elig:eligible(t,p)}));
+  const results=regionalTariffs.map(t=>{const b=computeCost(t,p);return{...t,...b,elig:eligible(t,p)};});
   document.getElementById('regionNote').textContent=`Showing rates for: ${region.name} — ${(region.unitRate*100).toFixed(2)}p/kWh unit rate, ${(region.standingCharge*100).toFixed(2)}p/day standing charge`;
   const sorted=[...results].sort((a,b)=>{
     if(!a.available&&b.available)return 1;
@@ -477,6 +540,16 @@ function calculate(){
     const div=document.createElement('div');
     div.className='tc'+(isW?' winner':'')+((!t.available)?' unavail':'');
     if(isW) div.style.order='-1';
+
+    // Build breakdown rows — only show rows that are non-zero for this profile
+    const bkRows=[];
+    bkRows.push(`<div class="bk-row"><span class="bk-lbl">Standing charge</span><span class="bk-val">+£${t.standing.toLocaleString()}</span></div>`);
+    bkRows.push(`<div class="bk-row"><span class="bk-lbl">Home import</span><span class="bk-val">+£${t.importCost.toLocaleString()}</span></div>`);
+    if(t.evCost>0) bkRows.push(`<div class="bk-row"><span class="bk-lbl">EV charging</span><span class="bk-val">+£${t.evCost.toLocaleString()}</span></div>`);
+    if(t.exportIncome>0) bkRows.push(`<div class="bk-row bk-credit"><span class="bk-lbl">Solar export income</span><span class="bk-val">−£${t.exportIncome.toLocaleString()}</span></div>`);
+    if(t.battSaving>0) bkRows.push(`<div class="bk-row bk-credit"><span class="bk-lbl">Battery saving</span><span class="bk-val">−£${t.battSaving.toLocaleString()}</span></div>`);
+    bkRows.push(`<div class="bk-row bk-total"><span class="bk-lbl">Net annual cost</span><span class="bk-val" style="color:${t.cost<0?'var(--lime)':'var(--off-white)'}">${fmt(t.cost)}${t.cost<0?'':'/yr'}</span></div>`);
+
     div.innerHTML=`
       <div class="tc-head">
         <div class="tc-name-row"><div class="tc-dot" style="background:${t.color}"></div><div class="tc-name">${t.name}</div>${tagHtml}</div>
@@ -493,6 +566,14 @@ function calculate(){
             :`${(t.exportRate*100).toFixed(1)}p/kWh`
         }</div></div>
         <div class="cell"><div class="cell-lbl">Contract</div><div class="cell-val ${t.exitFee?'warn':'good'}">${t.exitFee?'£'+t.exitFee+' exit fee':'No exit fee'}</div></div>
+      </div>
+      <div class="bk-section">
+        <details class="bk-details">
+          <summary>Cost breakdown</summary>
+          <div class="bk-inner">
+            ${bkRows.join('')}
+          </div>
+        </details>
       </div>
       <div class="tc-foot">${t.notes}</div>
     `;
