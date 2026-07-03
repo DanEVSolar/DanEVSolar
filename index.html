@@ -104,6 +104,8 @@ body::before {
 .btn-ghost:hover { color: var(--white); border-color: var(--muted); }
 .btn-lg { padding: 18px 36px; font-size: 15px; }
 .btn-full { width: 100%; justify-content: center; }
+.btn-coming-soon { background: rgba(244,244,232,0.06); color: rgba(244,244,232,0.35); border: 1px solid rgba(244,244,232,0.12); cursor: default; pointer-events: none; letter-spacing: .08em; }
+.btn-coming-soon::before { content: '⏳ '; }
 
 /* ── NAV ── */
 nav {
@@ -392,15 +394,21 @@ nav {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900; font-size: 42px;
   color: var(--white); line-height: 1;
+  filter: blur(6px);
+  user-select: none;
 }
 .product-price-val .currency { font-size: 24px; vertical-align: top; margin-top: 6px; display: inline-block; }
 .product-price-was {
   font-size: 13px; color: var(--muted);
   text-decoration: line-through; margin-left: 6px;
+  filter: blur(4px);
+  user-select: none;
 }
 .product-price-save {
   font-size: 12px; color: var(--green);
   font-weight: 600; margin-left: 6px;
+  filter: blur(4px);
+  user-select: none;
 }
 
 /* ── CHECKLIST SECTION ── */
@@ -1027,7 +1035,7 @@ footer {
     <div class="products-header reveal">
       <span class="eyebrow">Premium Courses & Resources</span>
       <h2 class="section-title">EVERYTHING YOU NEED<br>TO <span>MAKE THE SWITCH</span></h2>
-      <p class="body-text">Practical, UK-specific guides built from real experience. Introductory pricing — all courses half price for a limited time.</p>
+      <p class="body-text">Practical, UK-specific guides built from real experience. Pricing coming soon — join the Patreon for early access.</p>
     </div>
 
     <!-- THREE INDIVIDUAL COURSES -->
@@ -1054,7 +1062,7 @@ footer {
           <span class="product-price-save">50% off — intro price</span>
         </div>
         <!-- ↓ REPLACE with your Gumroad Solar Course URL -->
-        <a href="https://danevsolar.gumroad.com/l/solar-course" class="btn btn-primary btn-full" target="_blank">Buy Now →</a>
+        <a href="#" class="btn btn-coming-soon btn-full" onclick="return false;">Coming Soon</a>
       </div>
 
       <!-- EV Course -->
@@ -1078,7 +1086,7 @@ footer {
           <span class="product-price-save">50% off — intro price</span>
         </div>
         <!-- ↓ REPLACE with your Gumroad EV Course URL -->
-        <a href="https://danevsolar.gumroad.com/l/ev-course" class="btn btn-amber btn-full" target="_blank">Buy Now →</a>
+        <a href="#" class="btn btn-coming-soon btn-full" onclick="return false;">Coming Soon</a>
       </div>
 
       <!-- Heat Pump Course -->
@@ -1102,7 +1110,7 @@ footer {
           <span class="product-price-save">50% off — intro price</span>
         </div>
         <!-- ↓ REPLACE with your Gumroad Heat Pump Course URL -->
-        <a href="https://danevsolar.gumroad.com/l/heat-pump-course" class="btn btn-full" style="background:#00b4d8;color:#0a0d0f;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:14px;border-radius:2px;text-decoration:none;display:flex;align-items:center;justify-content:center;" target="_blank">Buy Now →</a>
+        <a href="#" class="btn btn-coming-soon btn-full" onclick="return false;">Coming Soon</a>
       </div>
 
     </div>
@@ -1122,7 +1130,7 @@ footer {
             <span class="product-price-save">50% off — intro price</span>
           </div>
           <!-- ↓ REPLACE with your Gumroad Triple Bundle URL -->
-          <a href="https://danevsolar.gumroad.com/l/complete-bundle" class="btn btn-pink" style="margin-top:4px;" target="_blank">Get All Three — £49.99 →</a>
+          <a href="#" class="btn btn-coming-soon" style="margin-top:4px;" onclick="return false;">Coming Soon</a>
         </div>
         <div>
           <ul class="product-features">
@@ -1344,7 +1352,7 @@ footer {
             What's included in the bundle?
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-a">The Triple Bundle includes all three courses — Solar, EV, and Heat Pumps for Beginners — for £49.99 (was £99.99). Each course is also available individually for £19.99. Everything delivered as downloadable files, yours forever.</div>
+          <div class="faq-a">The Triple Bundle includes all three courses — Solar, EV, and Heat Pumps for Beginners. Each course is also available individually. Everything delivered as downloadable files, yours forever. Pricing coming soon.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q" onclick="toggleFaq(this)">
@@ -1371,10 +1379,10 @@ footer {
     <div class="cta-band-inner">
       <span class="eyebrow" style="display:block;text-align:center;">Start Today</span>
       <h2 class="section-title">READY TO CUT<br><span>YOUR BILLS?</span></h2>
-      <p class="body-text">Get all three courses at half price — introductory offer, limited time. Everything you need to go electric, go solar, and get off gas.</p>
+      <p class="body-text">Everything you need to go electric, go solar, and get off gas. Coming soon — join the Patreon for early access.</p>
       <div class="cta-band-actions">
         <!-- ↓ REPLACE with your Gumroad Triple Bundle URL -->
-        <a href="https://danevsolar.gumroad.com/l/complete-bundle" class="btn btn-pink btn-lg" target="_blank">Get All Three — £49.99 →</a>
+        <a href="#" class="btn btn-coming-soon btn-lg" onclick="return false;">Coming Soon</a>
         <a href="https://www.youtube.com/@DanEVSolar7" target="_blank" class="btn btn-ghost btn-lg">Watch Free on YouTube</a>
       </div>
     </div>
