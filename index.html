@@ -784,7 +784,7 @@ footer {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2px;
 }
 
@@ -855,6 +855,83 @@ footer {
 }
 
 /* tools-grid responsive handled in main @media blocks above */
+
+/* Combined tools panel */
+.tools-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tools-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.tool-item {
+  padding: 32px 28px;
+  border-right: 1px solid rgba(168,204,0,0.08);
+  border-bottom: 1px solid rgba(168,204,0,0.08);
+  position: relative;
+  transition: background .2s;
+}
+.tool-item:nth-child(2n) { border-right: none; }
+.tool-item:nth-child(3), .tool-item:nth-child(4) { border-bottom: none; }
+.tool-item:hover { background: var(--bg3); }
+.tool-item::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--amber));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .3s ease;
+}
+.tool-item:hover::after { transform: scaleX(1); }
+.tool-item-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.tool-item-icon { font-size: 28px; line-height: 1; }
+.tool-item .tool-name { font-size: 24px; margin-bottom: 10px; }
+.tool-item .tool-desc { font-size: 13px; margin-bottom: 20px; }
+.tool-item .tool-outputs { margin-bottom: 0; gap: 8px; }
+.tool-item .tool-output {
+  font-size: 11px; padding: 5px 12px;
+  background: rgba(168,204,0,0.1);
+  border: 1px solid rgba(168,204,0,0.25);
+  color: var(--green); font-weight: 700;
+}
+.tool-item .tool-output.o {
+  background: rgba(232,160,32,0.12);
+  border-color: rgba(232,160,32,0.35);
+  color: var(--amber);
+}
+.tools-panel-footer {
+  border-top: 1px solid rgba(168,204,0,0.12);
+  padding: 24px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+  background: rgba(168,204,0,0.03);
+}
+.tools-panel-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--green);
+}
+.tools-panel-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; } 50% { opacity: .4; }
+}
+@media (max-width: 700px) {
+  .tools-panel-grid { grid-template-columns: 1fr; }
+  .tool-item { border-right: none; border-bottom: 1px solid rgba(168,204,0,0.08); }
+  .tool-item:last-child { border-bottom: none; }
+  .tools-panel-footer { flex-direction: column; align-items: flex-start; }
+}
 
 
 .reveal {
@@ -1157,58 +1234,82 @@ footer {
       <span class="eyebrow">Membership Tools</span>
       <h2 class="section-title">RUN THE NUMBERS<br><span>BEFORE YOU SPEND</span></h2>
       <p class="body-text">
-        Three tools built on real UK data, included when you become a YouTube or Patreon member. No sign-up beyond membership required — just plug in your numbers and see what the switch actually looks like for you.
+        Four tools built on real UK data, included when you become a YouTube or Patreon member. No sign-up beyond membership required — just plug in your numbers and see what the switch actually looks like for you.
       </p>
     </div>
 
-    <div class="tools-grid">
+    <div class="tools-panel reveal">
 
-      <!-- Solar ROI Calculator -->
-      <div class="tool-card reveal">
-        <div class="tool-icon">☀️</div>
-        <div class="tool-tag"><span class="tag tag-green">Solar</span></div>
-        <div class="tool-name">Solar ROI<br>Calculator</div>
-        <p class="tool-desc">Enter your system size, cost, tariff, and usage — get a full payback analysis, lifetime savings, and monthly breakdown. Based on real UK generation data.</p>
-        <div class="tool-outputs">
-          <span class="tool-output">Payback Period</span>
-          <span class="tool-output">Lifetime Savings</span>
-          <span class="tool-output">Monthly Breakdown</span>
-          <span class="tool-output">SEG Income</span>
+      <div class="tools-panel-grid">
+
+        <div class="tool-item">
+          <div class="tool-item-head">
+            <span class="tool-item-icon">☀️</span>
+            <span class="tag tag-green">Solar</span>
+          </div>
+          <div class="tool-name">Solar ROI Calculator</div>
+          <p class="tool-desc">Full payback analysis, lifetime savings, monthly breakdown and SEG income — based on real UK generation data.</p>
+          <div class="tool-outputs">
+            <span class="tool-output">Payback Period</span>
+            <span class="tool-output">Lifetime Savings</span>
+            <span class="tool-output">Monthly Breakdown</span>
+            <span class="tool-output">SEG Income</span>
+          </div>
         </div>
-        <div class="tool-free-badge">Included with YouTube/Patreon membership</div>
-        <a href="https://www.patreon.com/DanEVSolar" class="btn btn-primary btn-full" target="_blank">Join to Access →</a>
+
+        <div class="tool-item">
+          <div class="tool-item-head">
+            <span class="tool-item-icon">🚗</span>
+            <span class="tag tag-amber">EV</span>
+          </div>
+          <div class="tool-name">EV vs Petrol Cost Calculator</div>
+          <p class="tool-desc">True 5-year cost comparison — purchase price, fuel, insurance, servicing, tax and depreciation all included.</p>
+          <div class="tool-outputs">
+            <span class="tool-output o">5-Year Total Cost</span>
+            <span class="tool-output o">Monthly Saving</span>
+            <span class="tool-output o">Break-Even Point</span>
+            <span class="tool-output o">Cost Per Mile</span>
+          </div>
+        </div>
+
+        <div class="tool-item">
+          <div class="tool-item-head">
+            <span class="tool-item-icon">🐙</span>
+            <span class="tag tag-green">Energy Tariff</span>
+          </div>
+          <div class="tool-name">Octopus Tariff Comparison</div>
+          <p class="tool-desc">Find the optimal Octopus tariff for your setup — Intelligent Go, Flux, Cosy or Go — based on your usage pattern and solar.</p>
+          <div class="tool-outputs">
+            <span class="tool-output">Best Tariff For You</span>
+            <span class="tool-output">Annual Saving</span>
+            <span class="tool-output">Tariff Comparison</span>
+            <span class="tool-output">EV Charging Cost</span>
+          </div>
+        </div>
+
+        <div class="tool-item">
+          <div class="tool-item-head">
+            <span class="tool-item-icon">📊</span>
+            <span class="tag tag-green">Live Data</span>
+          </div>
+          <div class="tool-name">My Solar Generation Stats</div>
+          <p class="tool-desc">Real monthly generation data from Dan's actual system — kWh generated, self-consumption, export income and net savings.</p>
+          <div class="tool-outputs">
+            <span class="tool-output">Monthly Generation</span>
+            <span class="tool-output">Export Income</span>
+            <span class="tool-output">Net Saving</span>
+            <span class="tool-output">Year-on-Year</span>
+          </div>
+        </div>
+
       </div>
 
-      <!-- EV vs Petrol Calculator -->
-      <div class="tool-card reveal reveal-delay-1">
-        <div class="tool-icon">🚗</div>
-        <div class="tool-tag"><span class="tag tag-amber">EV</span></div>
-        <div class="tool-name">EV vs Petrol<br>Cost Calculator</div>
-        <p class="tool-desc">Compare the true 5-year cost of an electric vehicle against a petrol equivalent — purchase price, fuel, insurance, servicing, tax, and depreciation all included.</p>
-        <div class="tool-outputs">
-          <span class="tool-output o">5-Year Total Cost</span>
-          <span class="tool-output o">Monthly Saving</span>
-          <span class="tool-output o">Break-Even Point</span>
-          <span class="tool-output o">Cost Per Mile</span>
+      <div class="tools-panel-footer">
+        <div class="tools-panel-badge">
+          <span class="tools-panel-dot"></span>
+          All four tools included with YouTube / Patreon membership
         </div>
-        <div class="tool-free-badge">Included with YouTube/Patreon membership</div>
-        <a href="https://www.patreon.com/DanEVSolar" class="btn btn-amber btn-full" target="_blank">Join to Access →</a>
-      </div>
-
-      <!-- Octopus Tariff Tool -->
-      <div class="tool-card reveal reveal-delay-2">
-        <div class="tool-icon">🐙</div>
-        <div class="tool-tag"><span class="tag tag-green">Energy Tariff</span></div>
-        <div class="tool-name">Octopus Tariff<br>Comparison</div>
-        <p class="tool-desc">Find out which Octopus Energy tariff saves you the most — Intelligent Go, Flux, Agile, or Go. Enter your usage pattern and solar setup to see the optimal choice.</p>
-        <div class="tool-outputs">
-          <span class="tool-output">Best Tariff For You</span>
-          <span class="tool-output">Annual Saving</span>
-          <span class="tool-output">Tariff Comparison</span>
-          <span class="tool-output">EV Charging Cost</span>
-        </div>
-        <div class="tool-free-badge">Included with YouTube/Patreon membership</div>
-        <a href="https://www.patreon.com/DanEVSolar" class="btn btn-primary btn-full" style="background:#f12a87;color:#0a0d0f;" target="_blank" >Join to Access →</a>
+        <a href="https://www.patreon.com/DanEVSolar" class="btn btn-primary btn-lg" target="_blank">Join to Access All Tools →</a>
       </div>
 
     </div>

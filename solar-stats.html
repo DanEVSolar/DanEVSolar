@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Generation Stats — DanEVSolar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --lime:      #A8C41E;
+  --lime-dark: #7A9010;
+  --lime-light:#C8E040;
+  --amber:     #E8B84B;
+  --pink:      #f426b6;
+  --charcoal:  #2A2A1A;
+  --charcoal2: #1C1C10;
+  --off-white: #F4F4E8;
+  --muted-light: rgba(42,42,26,0.55);
+  --on-dark-muted: rgba(244,244,232,0.55);
+  --bg-dark:  #1E1E0E;
+  --bg-dark2: #151508;
+  --bg-light: #F0F2DE;
+  --bg-mid:   #E6EAC8;
+  --border-dark: rgba(168,196,30,0.15);
+  --nav-h: 70px;
+  /* legacy aliases used throughout page JS/CSS */
+  --bg: var(--bg-dark);
+  --bg2: rgba(168,196,30,0.04);
+  --bg3: rgba(168,196,30,0.07);
+  --bg4: rgba(168,196,30,0.1);
+  --green: var(--lime);
+  --white: var(--off-white);
+  --muted: var(--on-dark-muted);
+  --border: var(--border-dark);
+  --bord2: var(--border-dark);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg-dark);color:var(--off-white);font-family:'Exo 2',sans-serif;font-weight:400;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(28,28,16,0.93);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-dark);z-index:200;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.nav-logo img{height:44px;width:auto;border-radius:6px;}
+.nav-links{display:flex;align-items:center;gap:28px;list-style:none;}
+.nav-links a{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--on-dark-muted);transition:color .2s;}
+.nav-links a:hover{color:var(--lime-light);}
+.nav-links a.active{color:var(--lime);}
+.nav-badge{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lime);background:rgba(168,196,30,0.1);border:1px solid var(--border-dark);border-radius:20px;padding:6px 14px;}
+@media(max-width:680px){.nav-links{display:none;}}
+
+.wrap{max-width:1100px;margin:0 auto;padding:0 40px;}
+@media(max-width:600px){.wrap{padding:0 20px;}}
+
+/* PAGE HEADER / HERO */
+.hero{
+  padding:calc(var(--nav-h) + 52px) 0 56px;
+  background: radial-gradient(ellipse 70% 60% at 60% 40%, rgba(168,196,30,0.14) 0%, transparent 65%),
+              linear-gradient(160deg,#1E1E0E 0%,#131308 60%,#0C0C04 100%);
+  border-bottom:1px solid var(--border-dark);
+  position:relative; overflow:hidden;
+}
+.hero::before{content:'';position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z' fill='none' stroke='%23A8C41E' stroke-width='1'/%3E%3Cpath d='M28 64 L56 80 L56 100' fill='none' stroke='%23A8C41E' stroke-width='1'/%3E%3Cpath d='M28 64 L0 80 L0 100' fill='none' stroke='%23A8C41E' stroke-width='1'/%3E%3C/svg%3E");background-size:56px 100px;}
+.hero-inner{position:relative;z-index:1;}
+.eyebrow{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.eyebrow::before{content:'';display:inline-block;width:24px;height:2px;background:var(--lime);}
+.hero-title{font-family:'Rajdhani',sans-serif;font-size:clamp(42px,8vw,80px);font-weight:700;line-height:.92;text-transform:uppercase;letter-spacing:-.01em;}
+.hero-title span{color:var(--lime);display:block;}
+.hero-title .dim{color:var(--on-dark-muted);}
+.hero-sub{margin-top:18px;font-size:16px;font-weight:300;line-height:1.7;color:var(--on-dark-muted);max-width:560px;}
+.hero-sub strong{color:var(--off-white);font-weight:500;}
+
+/* MAIN LAYOUT */
+.page-content{max-width:1100px;margin:0 auto;padding:56px 40px 80px;}
+@media(max-width:600px){.page-content{padding:40px 20px 60px;}}
+
+/* SECTION LABEL */
+.section-lbl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+.section-lbl::after{content:'';flex:1;height:1px;background:var(--border-dark);}
+
+/* PAYBACK PANEL */
+.payback-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.payback-card{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);border-radius:14px;padding:28px 24px;position:relative;overflow:hidden;}
+.payback-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pb-c,var(--lime));}
+.payback-card.pb-green{--pb-c:var(--lime);}
+.payback-card.pb-amber{--pb-c:var(--amber);}
+.payback-card.pb-pink{--pb-c:var(--pink);}
+.payback-eyebrow{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px;}
+.payback-num{font-family:'Rajdhani',sans-serif;font-size:clamp(44px,5.5vw,64px);font-weight:700;line-height:1;margin-bottom:4px;}
+.payback-unit{font-size:16px;font-weight:400;color:var(--on-dark-muted);margin-left:4px;}
+.payback-label{font-size:13px;color:var(--on-dark-muted);line-height:1.5;margin-top:8px;}
+.payback-label strong{color:var(--off-white);font-weight:500;}
+.payback-sub{font-size:11px;color:rgba(244,244,232,.3);margin-top:10px;border-top:1px solid var(--border-dark);padding-top:10px;line-height:1.6;}
+@media(max-width:700px){.payback-grid{grid-template-columns:1fr;}}
+
+/* SYSTEM SPEC */
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:48px;}
+.spec-item{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);padding:16px 20px;display:flex;gap:12px;align-items:flex-start;}
+.spec-icon{font-size:18px;line-height:1;margin-top:2px;}
+.spec-label{font-size:11px;color:var(--on-dark-muted);margin-bottom:3px;}
+.spec-val{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--off-white);}
+.spec-highlight{border-left:3px solid var(--lime) !important;background:rgba(168,196,30,.08);}
+.spec-val-highlight{color:var(--lime);}
+@media(max-width:700px){.spec-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:420px){.spec-grid{grid-template-columns:1fr 1fr;}}
+
+/* YEAR TABS */
+.year-tabs{display:flex;gap:2px;margin-bottom:24px;}
+.year-tab{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 16px;background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);color:var(--on-dark-muted);cursor:pointer;transition:all .15s;border-radius:4px;}
+.year-tab.active{background:rgba(168,196,30,.12);border-color:var(--lime);color:var(--lime);}
+.year-tab:hover:not(.active){color:var(--off-white);}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin:0 0 48px;}
+.kpi{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);padding:20px 20px 18px;position:relative;}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kpi-c,var(--lime));}
+.kpi-label{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:6px;}
+.kpi-val{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700;line-height:1;color:var(--kpi-c,var(--off-white));}
+.kpi-unit{font-size:14px;font-weight:400;color:var(--on-dark-muted);margin-left:3px;}
+.kpi-delta{font-size:11px;margin-top:4px;color:var(--on-dark-muted);}
+.kpi.amber{--kpi-c:var(--amber);}
+.kpi.pink{--kpi-c:var(--pink);}
+.kpi.green{--kpi-c:var(--lime);}
+.kpi.blue{--kpi-c:#5ea8a0;}
+@media(max-width:700px){.kpi-strip{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:420px){.kpi-strip{grid-template-columns:repeat(2,1fr);}}
+
+/* CHART CARDS */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.chart-card{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);border-radius:14px;padding:28px;}
+.chart-card.full{grid-column:1/-1;}
+.chart-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--off-white);margin-bottom:4px;}
+.chart-sub{font-size:12px;color:var(--on-dark-muted);margin-bottom:20px;}
+.chart-wrap{position:relative;height:240px;}
+.chart-wrap.tall{height:300px;}
+@media(max-width:700px){.chart-grid{grid-template-columns:1fr;}.chart-card.full{grid-column:1;}}
+
+/* MONTH TABLE */
+.month-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+.month-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border-dark);font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--on-dark-muted);}
+.month-table td{padding:9px 12px;border-bottom:1px solid rgba(168,196,30,.06);color:rgba(244,244,232,.8);}
+.month-table tr:last-child td{border-bottom:none;}
+.month-table tr:hover td{background:rgba(168,196,30,.03);}
+.month-table td.val{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;}
+.month-table td.pos{color:var(--lime);}
+.month-table td.neg{color:#f87171;}
+.month-table .bar-cell{width:120px;}
+.mini-bar{height:6px;background:rgba(168,204,0,.15);border-radius:3px;margin-top:4px;}
+.mini-bar-fill{height:6px;background:var(--lime);border-radius:3px;transition:width .6s ease;}
+
+/* NO DATA */
+.no-data{text-align:center;padding:48px 24px;color:var(--on-dark-muted);font-size:14px;}
+.no-data a{color:var(--lime);}
+
+/* FOOTER */
+footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px 40px;}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;}
+.footer-logo img{height:38px;border-radius:5px;}
+.footer-links{display:flex;gap:24px;list-style:none;flex-wrap:wrap;}
+.footer-links a{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(168,196,30,.5);transition:color .2s;}
+.footer-links a:hover{color:var(--lime);}
+.footer-copy{font-size:11px;color:rgba(168,196,30,.2);font-weight:300;width:100%;border-top:1px solid rgba(168,196,30,.1);padding-top:16px;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><a href="index.html"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCACEAnkDASIAAhEBAxEB/8QAHAAAAwADAQEBAAAAAAAAAAAAAgMEAAEHBggF/8QASBAAAgEDAwMCBAMDBQsNAAAAAQIAAwQRBQYhBxIxQVEIEyJhFDJxI1KBFRYzYpEXQ1NygpKhs8HD0iVCRVRzdIOjpLGy0fD/xAAbAQADAQEBAQEAAAAAAAAAAAAAAQMCBAUGB//EADERAAICAQIEAwcDBQEAAAAAAAABAgMRBCEFEjFBE1FhIjJxgZGx0QYU8CNScqHhwf/aAAwDAQACEQMRAD8A8CiyqmkXTWVIs/O5M5hlNZSixaLKqayEmINFlNNYumspRZGTEw0WPRYCLKEWSbBhosoRYFNZQiyUmINFzKEWCix6LIyYmEiyhVgqsciyTYgkWOVZpVjlWTbA2qxyrNKsaok2wNqsaqzFWNVZNsTZirGqs0qxqrMNiMVYwLMVYxVmGwNKsYqzarGhZhsAQsMLCCwgJlsDQWEBCCwwszkWQAsMLCCwgszkAQs32wwJsLFkYAWb7YeJvtiyLIHbMxGdszthkMgdv6zO39YztmdsMiFdsztjO2Z2wyPIor9prtje2aIhkMiu2CVjis12x5DIkrAKx5EEiPIYEEQSseVgFZpMYkrFlZQRAKzSYE5WLKykrFlZpMCYrAZZQyxZWaTAmKxbLKWWLZZtMCVlimWVMsUyyiY0SsuYlllTLFMs2mMlZYlllTLEssomBIyxLrK3WJYSiYEbrEOssdYh1lYsaImWTustqLJ3XiVixkTrEMssdZO6y0WBI6yaostdYh1lIsZC6yZ1lzrJnWWixkLrJqiS+osmdZaLAgYcwMGUVFisSqYyymsqprFIspprIyYhqLKUWLprKKYkZMBqLKEEWgj0Ei2LIxBKEWLQSimslJiGoOJRTWLReZSgkZMA0WUIsBFj1ElJiDUR6LAQR6iSbEEojkWCgjlEm2ASiNVYKiPQSbYmbVY1VmlEcqybYjFWNVZiiMVZNsDAsaqzFWMAmWwMCwwJgEMDImGwNAQws2BDAmWxGgIYEwCGBMtgaAhATYEICLIgQsILCAhARABib7YeJvEWQAxMIwM4hzeOJmWWnjqbg4qScllAATO37TZIQM7kKqjLMxAAHuT6TxWqdX+mGk3FS2vd8aT85D2vTt6hrsp/yARFRVfqa2owbl6LJ0zjXVqE4PMcp/Lr9T2mB7TRE8XpfWHphq1yLaz3vpQqt+VLlzbk/oagUT2oZalJKlNlqIw7lZGBDD0II8iOym7S1pWQaaXkxSUb9Q98Jt7vyBwSeRNETyHUjqPpHTTbttqOpW1e+r3df5FvZ27qtSqcZdstwFUYyfuB6zlVb4qrLB/D7Dvm/wC11Cmv/spnfouFazUVKyMM+uy+5O6MZTbqXs9j6DKwSJ882nxOavquq22laP01/FX93VFC3oDVMmo58D+i49yfQAmfQdp+LawoNfpQp3RQGsluxamr45Ck8kA8ZPmGr0F+kx4yxn1T+zJOLXUIiCRGkQSJyZMiSIJEcRAIjTGJKwCI8iARNJh0EkQSsaRgwTNJjEMsUVlJEWVmkwJmWLZZSyxRE2mBMyxTLKWWKZZRMCVliWEqdYh1m0xondYhhKmESwlExkzCIdZUwiXEomBK6yd1lbCJdZVMZG65kzrgy1xJ6iysWNETrJ3EscSZxLRYEjjmJcSpxEOJVMaJHEmdZa4kziVixkTiTVFlzrJqiy0WBDUWJ7ZW4ie37SyY0V0xKqYiaYlVMSEmIag4lNMRSCUIJGTAaoj0EUolCDiSZkbTHMpQRNMSlByBIyYDqYlCCKQShBIyYmOQcRyiAo4jkEkxDEEeoi1Ecgk2AxBHKOYCjiNUSbYDEEeogII5RJNmQlWOVYKiNA5k2wNqMxyrBURwEwwMAhgTAIQEw2DMAjAJoCGBMsRsCEBMAhgTLYGAQgJgEMCZEYBCAmAQgIsgYBNzeJuIDWJubxN4iyAspz3AZP8Apk2oalZaRo13q2qXK21laUmr169TgIijJP8A+88CW4nEfij1m50/o9Z6Xak92qailF1Bx3rTVqnYfsWCf2Smg0P7jVxhF45nudj1MrK1VOKeOj7o8TbHe3xJblvXrahV23sDT2PzsNhSB9QDZIFSsV+o930UwfHv7vZHTP4eNYp3dptiztd01NNdUubuvc3FZQxyAAw7KTflPCAgTd7sy3FXYXQdWdNDo6bV1zc1KnU+XUvlpsq/KqFTntqXDktzyEA8Cdht6FvZ2FGwsrajaWlBQlG2t0FOnTUcAKo4AleMcYlGChp5yhF+6ovlXLnHNJ9ZOWG8bYWHufR6HQwjs4p465338l8Dm2r/AA+9JdWtHpJtmppVRiT87TbyrTYEj91yyEDzjGJ4/bOw+pfSXqjpWk7d1f8AlrYuoVHa6e8HZTsEVSztUUZ+U4A+lk+lzwQDO+n7TiPxH7/OhbNp7K0yv26lrSE3TIcGjZg4b9DUP0j7BpHgXEeIau9aNz54yzlS3x6pvdNfEXFNNp4UuXLh9sHBuqu+36hdSrrWKLt/JdsDaaah4xRB5qY93b6v07R6TxTMqIWY4AGSZgGBgDx6Cdx6AdKhuPU6e+tw2obR7Or/AMn29ReLuup/pCD5poRx+8w9ln6hbbTw/TZe0YrCXn/1/wDT5ttRR77oJ0oba2kjeG4rUprt9Sxb29VfqsaDeh9qjjBb2GF952siGeTk8n3gkT831mrs1Vrts6v/AF6HM3l7gEQCI0iCROYQoiCRGEQSIwFEQSIwiCZpMYoiARHEQCJpMBREAiMIgmaTGJYRTLKGEWwmkBOwiWEpZYphKJgTMIh1lTiJYSiYEjDmKYSh1iWHEomaJmESwlLiJYSiYEriJccSlxEsJVASOIhxK3EncSkWMjccyaoJZUEncS0WMjcSdxK3HMnccy0QJWEncStxJ3EqhklQcSZxLHEmqCVixkbiK7f0lFQRWBLJgVoJVTEnQSpBxIyAcglCCJQShBJMQ1BzKEESg5lCDmSkwY+mJSg5iaYlFMSMhD0EpQRCCUoOJGQhqiPQRSjmPQSTEMUR6CKUR6CSbAYBHIItfMegk2wY1RHIItRHoJKRkNRGqICiOUSbAJRGLNKIYEwxM2IajiaAhqJlgbAhgTQh+kywNiEBNAQxMsRsCGBNAQhEBsCEBNQpkDJsCYBCAiYGYmEAqR7zc2BECeNxYpL7D+ycK+KrS7ip0p0jVbcFxp2qAsvofmU2Vc+w7go/jO8lgoyTifkbl0DTN37R1DbWrU2azvqJpOV/Mnqrr7MrAMPuJTht1Og1dduMb/67noSu1WojzTy4x+h4i4unvureweqGk2da+03cOjVNFvq9rSeqLf5uLmhUYD8qCqKiMSOPXE6R6TgHRnX9Z6eb/u+h29HKs1Rq+i3YJ7Kvdliin9yoAXUejh19RO/TzeP6eWnvjU17KXsy/ui23F/LOPkfVcPtjbXzxfXr8cfxkWsavp239u32u6vX+RYWNFrivU9lUeB9ycAD3InwTurc2o7z3rqO6NV+m4vqncKWcihTHFOkPsq4H65PrPuPemzNH37tY7e12tqFOyNZK7CxuPks7L+XuODkAnODxkD2nyV1i2Jtfp3u2z0HQNY1S/ualv8Aibqne/LIt1Y/sxlVGWIBPPpj3n1X6Hs0kOaCbd0vTZJev87Hk8XVrs5pLEVsjx+2rXbt5uuzobt1Wtpuid/dd1qFF6tRkH97UKCQW8d3oMnzifZm1uqPSvUn0/bm19yaf8whbWz06nSqU2AA4VVKjgAef7Z8OO606bO7BVUZJPoJ9a/D70trbU0Nt4a/Relrep0QlG3ZgfwtqcMoIxxUfgtzwML7z6L9R00ulW3SeV7qWMN/T6nhWJYyztRHrNQpoz4JEASIJEODGABEAiMIgGaAWYJhnzBIjQAEQCIw+IBE0jQthAIjSIBE0jIoiARGnxAImkaEsIhhgylhFOOJtMCZxEsJSwiHE2mBM4k7DmVuJM4lUxoncRLCUOIlhKoZO4iGEoYRDiUQE7jiTuJU44k7iVQyWoOJM44lbjzJnErEZJUHMnqCV1BJnEtFgTOIhxKGES4lUNkriTVBK3EnqCViMjcRWPtKHEViWQFNMSlBEUxKE8yUgKEHAj1iUj1kmJDklCRCSin5kpCKU8SmmJOniU05GQFCSlBJ0lCSMhDkj1ESkeskxDVj0iUj1kmA1JQg4iElCCTYmNUR6+IpPMcviSYMagjlEWniNWTYg1EMQRDHmZYmEIY8QRDEwCCEKaHmEJkAh5hDxBEMekyIMQhBEMeImBsTc0JuIYUIeIMKZEbHmbmhNwAFk7mByRiGqKv5QBMHmbk/DipcyW5WV9koKtyeF2OPfEVtB9Z6ZDdmlfsdc23UF9b3NPhxSDAuAfsQtQfdD7z3OyN10d8dOdH3ZRUI19QzXpj+911JSqv6B1bH2In72pWVLUtFvNOrIr07q3qUGVvBDqVx/pnzx8MO7tF07YGq7X1rcGmWFzQ1I1rS3vbhaLOjU1FQqWI7vrT+H8Z26uiWs4W2lmVUlj/GXVfVJnr8E1Hh2uDezPoS4ubWysq99fVRRtbek1evUPhKaAsx/gAZ8A7t3Pd7031qm6b3uD39dqlOmzZ+VSHFOmP0QKP1zPpb4iN92Vj0ko6Do2o0LmtuKq1E1rWqKi/haRBrEOpxy3Ynr5YTgPTLp5fdSd809HomrQ0y3xW1O9p4BoUs8KuePmOeFHpy3gT3f0doo6PSWa6/bPn2S/L+xTi+pVlnKntH7nuvh+6VndOv09667bZ0PTq2bOk/i9uVPkgjmkh/tcAf80z62Ockk5PuZLpmm2GjaLaaRpdrTtbG0pLQoUKf5aaKMAD/AO/XzKj5nlcT4hPXXOx7LsvJfnzPBlLmYJgnxDPiCfE84yDBPmFNHzNDBMAwzBPmNCFmCfMI+IJ8xgCfMCGYB8zQwSIBjD5gTSBi4JhHzBPmaGLYRTCOaKabQE5HMU4jn8xTzaAnccSZxKmHEnqSsRombxEuI9vES8qhiGiHj2iXlEAhvEncShoh5VDJnEmfzKnkz+ZWIyWp4kzyqpJnlogTvEP4j2iX8SqGTOPMQ44lDxD+JaIyRxFYMfUEVKICmnKEiKcekwwKU8xyxKeY5ZFiHpKacmSU05OQilPAlNOTJ4lNPxISAppylPEnpyhPEjIQ5I9IhI9ZNiHJHr4iEj18STAdTlKSZJShk2Jjkjx6RCR6yTBj08CNWJTxHLJsQwQx5gCEPMwwGLDHmLEYPPAmWJGx5hiDg+x/shePPH6zIBCGPEWPMMTIhg8wh4gAwxEwCE3BhRAFCHiADNg4mQDHmbm/k1/8BV/zDNilW/wFX/MMABm8zGVlOGVlP9YYmMrKcMrL+oxAAl5cAHHPn2nxpq9t0g3nv+40680fd209w3OovY1bHSqNG9ta10avy+5Q+Ozubk8Ac5n2ROGdctE2Xs+wrdT7ezq2u8KjG10+rbVCBWuXpsgrNT5DPTQs4YYOVX1xPb4Dcq7nWs80tk15+vbH2N1vfBwXdVCrujqra7J2ZQa6stM7dv6LR4AZKRIqVmxwA1T5lRm9v0n2F062HpnTvYtvt+wYVqxPzr27xg3VcgBn+w4wo9FA+88P0E6SpsbbSbg1m17dxX9EL8tuTZW5wVoj+ucAuffC+k7IVYHBUg+xEtxviStxpaX7Eer835/zvuOcs7I1Bm8E+hmjkEgggj0M+eJmjBPibmiY0BqCfMIwYwNGAYRMA+I0AJgnzCPmB6xgaMEzZ8zR8zQwT5gGEYJ8TSAWfME+YXrBmhgtFNGtFNNIBD+Yp41op5RAIaTVJQ0nqSkQJ28GJeObxEvKo0JeIePaIeViAlpPU8yhpPU8yiGid5NU8yl5NU8y0Rk9SSvKakmqeZaICH8RDR7xDSqH2J3iGlFSIaViNEzxWI2pFyqAopx6SenKFmGBQkesQkcsixFCSinJklCSchFaeJTTPEkQymmZGQFdMyhZNTlKHiQkIekesnSPUybEPWPWTqY9DJMBySlDJVPMoQybEyhTHr4k6mOU5EkxFCHiOUydDzHKZNgOEMeIpTGAzLANZz/rbqN/pfRq+vNMvbizuVuKAFa3qGm4BqcjI55nvxOb9eeehuo5/wCsW/8ArBLaNf14Z80aq99HktudPdf3Dt+x1H+6XuxHubanXZVrEhSygkAl/TM/Ru+mvUvRqDXu1upetXNzTHcttfsWWqf3cksOfuMT3HTLH9zPRSPJsqP/AMBPZjGRyB9z6Tpv11kLHHZrPkjcrZJtHgelHUOrvjb9xQ1agltrmnVPkXlJV7Qx5w4X0yQQR6EH0nRB9p89dJK4vet29db0450+vdslN1/K/dVZgR/AE/xnReru+f5k9PqtS0rImq35NrZZOOxiPqqn2Cg5z7lZPVaXOpVdS97G3ln8BZX7fLEQvWjQD1P/AJpmxuBaG6NgNZLj8ObgKD8vx7ntzn7+J0wHInzZcp0rq9FF2Wm+NHW8oJ+KS7NRvrvMZL5xnBP0/wCLidI6L7/G89ipRvawbVrDFC655qcfTU/ygOfuDNavRKNfiVxaS2efv8wsrwspdD9HqL1PsunN1ow1DSri8oag9RXqUKgDUVTtyQpH1fm8ZHiev0bWtL3BotDVtGvqV5ZV17qdamcg+4I8gj1B5E5B1wUVN/dOUZQytqNRCrDIIJpAgj1E/KbQN19Jb2ru3ZVCpf7dqnv1HQ8k9i+r0/0HqOR65Hgjo67KINPE3n4Pfp6B4cXFeZ1Tem/E2fuDbOmvphu/5bvfwfzRW7PkcqO7GD3fn8ceJ7AMGUkHIweZ879Sd46HvO56a63oN2KtE6wRURuHovml9Dj0P+g+RO96UxfSqZJyTmc9+n8KuuTWHvn6mZw5Un3PkPpN09st+7avrzVNT3OLi3vFtkFjekKVNMPlu5WOcn+ydMPw46IqBn1Te4H9bUQP93OW9J9kJuzQ7+udybg0pqF6tD5el3IpK+afd3N7t6fpO8bD6Z1dmbqOtW+5d0ao72z2xoatdirRAZlPeBj8w7MA/cz6biOsnVOXLfh+WPTzL2yxJ4Z+7032JR2DYXmmafW1O5tbuuLiqdUriu2ewJ2ghRhcDx+s5jtetddFviKvtjXFes22tyFbjSnuKjOKT5IRcsTjB7qJ/wDCPrPooH75nNut+wX330yqnTqbHW9JJvtPanw7kD9pSB92Ucf11SeDpNd4t0oah+zZs/j2fyIwnltS7nSaVVa1FaiAkMOB6z551q8Tql8Tvyji42tsjBZM5p3V73ePv+0UD/FoN+9Krfrj8v4X7jdiVlO4ONLSmB9X45l/pAvt2ftse/E9B0l2I21NlWGi3CH8c5/G6m5OSbhwMoT69i9qfqGPrL0ad6CNltnvbxj/AOv6bL4jUfDTb69D9vq3rOrad8O25NUs7qrbXxtQi3FJiroKlVEZgRyD2s3I8ZnKtpdCdqbj2XomrVbbdFS5vdPo3VdqeoMELugLdo7DgZ+5/Wdx39X2dQ6canb77v7ex2/c0vwtzVrVCgw35QpUE9+RlcAnInGh8O+gVqdKtp+7N2VbOrTSpQK3FMZpsoZT+QehHoP0m+G6hV6drncMyznGU9lt8grliOM4Lrr4aduDT7g2dhuU3XyXNAVNTbt+Z2ns7v2fjuxn7ToXSyx3PoPT7TNt7tuqd5qVjSanUr06jVR295KL3uAWKqQuT7Ccqu/h20i0026vF3DuwtQt6tZS11TxlEZhnC58iew+Hvcup650d0w6vd1ry4SpXoLcV3L1GRGBQMx5bAbtyecATeunK7SuSt50muqw116bsc3mOc5KuoPVLcWg9TNO2Ds3bFjrGr3dmb1mv7z8PTVfrPaPHPbTZiSw9AMmfkDfXX1h9PTjaI/XWQf95Pxd7fT8b2gnOM6IR/5V1O36bY2g02kxpIxK5JPMhbKnTVVvwk24p756/VCfLFLbsco0/q7v3S+pG3ttdQNnaJp9DXKpo0K+m35rPTOQvcwywI7ioIyDzkZxPddSd33ezelGpbr0q2tbu4thRNOlclvlt31UQ57SD4Ynj1E5l1np06XxA9K1pKqr+Jbhf+8Up6PrHk/C7refIW3P/qaU26KrJ6exQSU3uu3vYHypuLx1/J7vaGu1dybC0XXLmnRpXN9YULurSoklEZ0DELnnAz6z9kmeE6SNnpVt/J/6Jtf9WJ7knM8rVQULpxj0TZGSw2jD7Dkmca1rrRe6fvi5e00ijc7O0++p6bfaqvcXWqwPcUwcFVI9uceeRPRdYd8Ns3YFRbBz/LGpZtbJV5ZSR9dQAfug8fcicy0beHTS06WJse7sNw1rZ6BW5qpprFqlZuWqefIbGP8AFE7tFpMw8WcOZPb8v8Fqq9uZrJ9EUq1OvRStRqLUpuoZHQ5DAjIIPtOf9Wt86zsbQ9JutEtrKvXvb38KwuwxUDtyCO0j1nl+g+9zd6ZW2PqdWobvTgWs3rIUetb54BU8grkcexHtNfEcah2ptw0iBUGq/SW8Z+WcZ/jFTpPD1apsWV9wjXizlkfqjU+ulRiEsNkjBwcVap/2wdm9QN13XVG+2NvLTtLo3lC2/EJX08t2n8pwck5BDeeORPO6zuLrTtjbdbV+3bt7a0WPz/wtq7vTX1cgkZX3I8R3TvR9U17ftXqTqW4NM1KpeWwoIunUmRU4UYYMB2kBcY85OZ1Spj4cpTUcdsZzk04rlbeDtecrNek0v5ZhnjHOCxinPENjFOZtAKY8xLxpMS5m0AlpPUMe5k1QysRoU3iIaOcxDSqGKaIeOaIcyiAU0RU8xzGIcyqGIeSv5lDmTOeZWIxFSTPKKhkzmXiAholo14lpRAJf1iGjnMQ0rEaJ6kXGPFyqGOpyhZNTMoWYkBShjlMnQx6yTEUJKEMlUyhDJyEV0zKaZ5klMyhDzIyAsQylDxJEMppmRkIoUx6mTqY5DJMRQpj0MmUxyGSYFAMehk6niNQybEypTHoZMpjVMm0IpU4j1MmUxqHnEmwKFMYDEKYwGYAcD6zyfUra99vLpxebf02tb0bmtUpOr3BIQdrhjnAJ8CeqBhCOubrkpx6oE8PKOJaTtrrlodhR0qw3PodK2t6a0qYa378KowOTTyY692Z1i3HbNYbh6g0KNjVHbVpafblS6nyDhVyPsTidoA9YYH3nU9fLPMoxz54RTxn1wjyuydk6dtDRaOn6fSZKVMly1QgvVc+XY+/A48AACflaj08vNwdV6+6dy1bC+023tvw2mab2F1pZ/M9QMO0t5PGeSPYToQhCc/7qxTc87szzvOTy9r072pQT6tB0pmPkmzpn/ZPNr0wvtA6uW279oXVlZ2NSmKOoacUKCoPdAowD4P6j7mdOBhAxR1dsc75ztuJTkjw+/wDY1/u7cW1dUtL62t10W7NzVp1VYtVBKHC44B+k+fee3s6RpWSUmHIHMMGEDJSulKEYPougnJtJHHN29DLO73vZbn2tcU9O7LtLq7sSp+VUZWB7qYH5WPOR459J13TKNS30ylSqcMBzHgwgZq3U2WxUZvOBym5JJ9j510/o11G2W9a32v1AFjb16vzm/DW2ctjAJ7geQOJ+r/M/rewyesOoj9LYf8M7tmZxOqXFbpbzSb+C/Bt3SfX7HiOnOmbz0e2vqG791XW4qlaor0a1dOz5ChcFRwPJ5nuwxBBBwRyD7QPE3kzgutds3NrqTby8nEdR6D2lDq4d3afXpnTmvf5RGk/KPYlx5z5x29+WAx9vE7DpVkbKzxUPdVbl2PJJluZmZa/WW3xUbHnA5TcsZPO772bp+/tiXm2NTrVKNKuyVErUgC1OojdysAfPsR6gmcobpd1StO21o9Ytxrb0lFOmtMuAqgYAA7+AAAJ3nJmpqjXW0x5I9PVJjjZKKwjgj9L+plak9Kv1g3RUpupR0LOQykYII7/BBInQunGyKWydtW2j23eaFt3kPUADOzt3MxA4Htj0AE9zkTWZq7iF10PDl0+AStclhnNuoXSypurdtjvDRdx32ha5Z2xtVr2yBu5Pq9yMHFRxn1BnnV6b9TSoD9Zt1LjjCqv/ABTtJM0THXxC6EFDKaXTKT+6BWySwcWtekOt1d4aTuDcu9da3HX0up820S+VQKbZB85JxkA49SBOg7r2fR3Z00vNo3F49pTukRWr00DlCtRXGASM8qJ6YmCTM2a66coyb3j09BOyTaZxey6R7z0unTsbHqtuahZ0KYpUaVIgIiAYChe7AAE9HtrY+6tG3NbalqPUXcGr29Lu77K7x8qplSBnn0Jz+onQyYJM3ZrrbE1LG/ovwN2SfU8hebDoX/VKlva+1Ovc1rW3NvZWTUwKVrkcuD5Lcsc/f7CehoadQt1+nuLHycy0wcyErpySTfQXM2eI3B06sdX3zpe7rPUrnTNU084+ZRRXFwufyuD6YLD9D9hHb72NZb702ws72/ubNbO5F0jUFVizYxg93pPXt94BxKLUWJxed49A52mt+hNRt0pUDS7QQc5BHBzPF6N030/bG9rnXdu6neafbXRzcaUgVrZz9geV55GPHjxxPdwTgxQunFNJ9eoKTXQFT9PM0TNkxZMyI0xiXMJ2iiZpIAWOIhjDcxLGUSAW7SdjkxjtEMZVIaAYxDGMYxLGUQxbGJcxjGJYyqAWx4k7mOcydzKIYmoZM5jqhk7mWiMRUMmcx7mTuZaICWMSxjWiWPEogEvEtGvEueJWJoneKjHisyiAckpXwJkyZkA9I9ZkyRkJjlj0mTJiQimnKE9JkyRYFNPwJTTmTJGQmULHJMmSTEOWOWZMk2A9YxfMyZJSAehj1mTJhmRqmOBOJkySYDVMaDMmTDAMGGDMmTLEwhDHmZMmWIIQgZkyI0EJvMyZMiYUKZMmRBAzYMyZADeZsHMyZADczJmTImBvJmZMyZEBrJmTJkaA1mamTIwNZMEmZMgBowTMmQQIGaMyZNDBMEzJkaAE+YJmTJpCBMEzJk0jQsmA0yZNIBDHJi2MyZNoBLGJcmZMlIgTv5iWmTJRGhLeYppkyUQCHiWmTJRAJcydzMmSsR9yapJ6kyZLRGTPJ3mTJWICWiXmTJRDJ28xL+JkyViMmeLmTJRAf//Z" alt="DanEVSolar"></a></div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="octopus-tariff-comparison.html">Tariff Tool</a></li>
+      <li><a href="solar-roi-calculator.html">Solar ROI</a></li>
+      <li><a href="ev-vs-ice-calculator.html">EV vs Petrol</a></li>
+      <li><a href="solar-stats.html" class="active">Solar Stats</a></li>
+    </ul>
+    <div class="nav-badge">☀️ Live stats</div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Member data</div>
+    <h1 class="hero-title">My Solar<br><span>Generation Stats</span></h1>
+    <p class="hero-sub">Real data from <strong>Dan's actual system</strong> — monthly generation, self-consumption, export income and financial performance. Updated each month.</p>
+  </div>
+</section>
+
+<div class="page-content">
+
+  <!-- PAYBACK HEADLINES -->
+  <div id="paybackPanel" style="display:none;margin-bottom:40px;"></div>
+
+  <!-- SYSTEM SPEC -->
+  <div class="section-lbl">System specification</div>
+  <div class="spec-grid" id="specGrid">
+    <div class="no-data">No data yet — <a href="solar-stats-admin.html">add your system details</a> to get started.</div>
+  </div>
+
+  <!-- YEAR TABS -->
+  <div class="section-lbl" style="margin-top:8px;">Monthly breakdown</div>
+  <div class="year-tabs" id="yearTabs"></div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip" id="kpiStrip">
+    <div class="kpi green"><div class="kpi-label">Total generated</div><div class="kpi-val">—</div></div>
+    <div class="kpi amber"><div class="kpi-label">Self consumed</div><div class="kpi-val">—</div></div>
+    <div class="kpi blue"><div class="kpi-label">Exported</div><div class="kpi-val">—</div></div>
+    <div class="kpi green"><div class="kpi-label">Export income</div><div class="kpi-val">—</div></div>
+    <div class="kpi amber"><div class="kpi-label">Import avoided</div><div class="kpi-val">—</div></div>
+    <div class="kpi pink"><div class="kpi-label">Net saving</div><div class="kpi-val">—</div></div>
+  </div>
+
+<!-- CHARTS -->
+  <div class="chart-grid">
+
+    <div class="chart-card full">
+      <div class="chart-title">Monthly generation</div>
+      <div class="chart-sub">kWh per month — all years overlaid. Hover a line to highlight it.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;padding:12px 14px;background:rgba(168,204,0,.04);border:1px solid rgba(168,204,0,.1);border-radius:6px;align-items:center;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">Show series:</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_generated" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#a8cc00;display:inline-block;"></span>Generation</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_exported" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#5ea8a0;display:inline-block;"></span>Export</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_home" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#e8a020;display:inline-block;"></span>Home consumption</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_ev" onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#f426b6;display:inline-block;"></span>EV charging</label>
+      </div>
+      <div class="chart-wrap tall"><canvas id="chartGeneration"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Self-consumption vs export</div>
+      <div class="chart-sub">Where the generated energy goes each month</div>
+      <div class="chart-wrap"><canvas id="chartSelfExport"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Financial performance</div>
+      <div class="chart-sub">Monthly saving: import avoided + export income</div>
+      <div class="chart-wrap"><canvas id="chartFinancial"></canvas></div>
+    </div>
+
+    <div class="chart-card full">
+      <div class="chart-title">Cumulative generation</div>
+      <div class="chart-sub">Running total since system install</div>
+      <div class="chart-wrap"><canvas id="chartCumulative"></canvas></div>
+    </div>
+
+    <div class="chart-card full">
+      <div class="chart-title">Tariff comparison — with vs without solar</div>
+      <div class="chart-sub">Monthly electricity cost across four scenarios based on your actual usage</div>
+      <div style="background:rgba(168,204,0,.06);border:1px solid rgba(168,204,0,.15);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:12px;line-height:1.7;color:rgba(240,242,232,.6);">
+        <strong style="color:rgba(240,242,232,.85);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;">Scenario assumptions</strong><br>
+        <strong style="color:rgba(148,163,184,.8);">Flexible, no solar:</strong> No battery. All consumption imported at the flat day rate.<br>
+        <strong style="color:rgba(168,204,0,.8);">Flexible, with solar+battery:</strong> Battery charged from solar (no cheap overnight window on Flexible). Solar export earns SEG rate. Self-consumed solar offsets day-rate import.<br>
+        <strong style="color:rgba(124,58,237,.8);">Int. Go, no solar, no battery:</strong> EV + 25% of home at off-peak; 75% of home + solar-replaced kWh at day rate.<br>
+        <strong style="color:rgba(232,160,32,.8);">Int. Go, with solar+battery:</strong> Battery charged fully overnight at off-peak every night (profitable: export rate > off-peak cost). All daytime home load covered by battery. Solar exported at full SEG rate rather than self-consumed.
+      </div>
+      <div class="chart-wrap tall"><canvas id="chartComparison"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- MONTHLY TABLE -->
+  <div class="section-lbl" id="tableLabel">Monthly data</div>
+  <div style="overflow-x:auto;margin-bottom:64px;">
+    <table class="month-table" id="monthTable">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Generated</th>
+          <th>Home consumption</th>
+          <th>EV charging</th>
+          <th>Exported</th>
+          <th>Export rate</th>
+          <th>Export income</th>
+          <th>Import avoided</th>
+          <th>Solar saving<br><span style="font-weight:400;opacity:.6;">vs Flex / vs Int. Go (no solar)</span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="9" class="no-data">No data yet. <a href="solar-stats-admin.html">Add your first month →</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo"><a href="index.html"><img src="data:image/jpeg;base64,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" alt="DanEVSolar"></a></div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="octopus-tariff-comparison.html">Tariff Compare</a></li>
+      <li><a href="solar-stats-admin.html">Update Stats</a></li>
+      <li><a href="https://youtube.com/@DanEVSolar" target="_blank">YouTube</a></li>
+    </ul>
+    <div class="footer-copy">© 2026 DanEVSolar. Figures are estimates based on member-submitted data.</div>
+  </div>
+</footer>
+
+<script>
+// ── Historical rate lookup ──
+const RATE_HISTORY = [
+  {year:2022,month:1,flex:20.8,iog:null},{year:2022,month:2,flex:20.8,iog:null},{year:2022,month:3,flex:20.8,iog:null},
+  {year:2022,month:4,flex:28.3,iog:null},{year:2022,month:5,flex:28.3,iog:null},{year:2022,month:6,flex:28.3,iog:null},
+  {year:2022,month:7,flex:28.3,iog:null},{year:2022,month:8,flex:28.3,iog:null},{year:2022,month:9,flex:28.3,iog:null},
+  {year:2022,month:10,flex:34.0,iog:7.5},{year:2022,month:11,flex:34.0,iog:7.5},{year:2022,month:12,flex:34.0,iog:7.5},
+  {year:2023,month:1,flex:33.0,iog:7.5},{year:2023,month:2,flex:33.0,iog:7.5},{year:2023,month:3,flex:33.0,iog:7.5},
+  {year:2023,month:4,flex:24.5,iog:7.5},{year:2023,month:5,flex:24.5,iog:7.5},{year:2023,month:6,flex:24.5,iog:7.5},
+  {year:2023,month:7,flex:30.1,iog:7.0},{year:2023,month:8,flex:30.1,iog:7.0},{year:2023,month:9,flex:30.1,iog:7.0},
+  {year:2023,month:10,flex:27.4,iog:7.0},{year:2023,month:11,flex:27.4,iog:7.0},{year:2023,month:12,flex:27.4,iog:7.0},
+  {year:2024,month:1,flex:29.0,iog:7.0},{year:2024,month:2,flex:29.0,iog:7.0},{year:2024,month:3,flex:29.0,iog:7.0},
+  {year:2024,month:4,flex:24.5,iog:7.0},{year:2024,month:5,flex:24.5,iog:7.0},{year:2024,month:6,flex:24.5,iog:7.0},
+  {year:2024,month:7,flex:22.4,iog:7.0},{year:2024,month:8,flex:22.4,iog:7.0},{year:2024,month:9,flex:22.4,iog:7.0},
+  {year:2024,month:10,flex:24.5,iog:7.0},{year:2024,month:11,flex:24.5,iog:7.0},{year:2024,month:12,flex:24.5,iog:7.0},
+  {year:2025,month:1,flex:24.5,iog:7.0},{year:2025,month:2,flex:24.5,iog:7.0},{year:2025,month:3,flex:24.5,iog:7.0},
+  {year:2025,month:4,flex:29.3,iog:7.0},{year:2025,month:5,flex:29.3,iog:7.0},{year:2025,month:6,flex:29.3,iog:7.0},
+  {year:2025,month:7,flex:25.3,iog:7.0},{year:2025,month:8,flex:25.3,iog:7.0},{year:2025,month:9,flex:25.3,iog:7.0},
+  {year:2025,month:10,flex:27.0,iog:7.5},{year:2025,month:11,flex:27.0,iog:7.5},{year:2025,month:12,flex:27.0,iog:7.5},
+  {year:2026,month:1,flex:27.0,iog:9.0},{year:2026,month:2,flex:27.0,iog:9.0},{year:2026,month:3,flex:27.0,iog:9.0},
+  {year:2026,month:4,flex:24.7,iog:5.49},{year:2026,month:5,flex:24.7,iog:7.5},{year:2026,month:6,flex:24.7,iog:7.5},
+  {year:2026,month:7,flex:26.38,iog:8.0},{year:2026,month:8,flex:26.38,iog:8.0},{year:2026,month:9,flex:26.38,iog:8.0},
+];
+
+// ── Data layer ──
+// Data is stored in localStorage under 'danev_solar_stats'.
+// Schema: { system: {...}, months: [{year, month, generated, selfConsumed, exported, exportRate, importRate, forecast}, ...] }
+
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('danev_solar_stats');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function getYears(data) {
+  if (!data?.months?.length) return [];
+  return [...new Set(data.months.map(m => m.year))].sort();
+}
+
+// ── Render system spec ──
+function renderSpec(data) {
+  const el = document.getElementById('specGrid');
+  if (!data?.system) {
+    el.innerHTML = `<div class="no-data" style="grid-column:1/-1">No system data yet — <a href="solar-stats-admin.html">add your system details</a> to get started.</div>`;
+    return;
+  }
+  const s = data.system;
+  const tariffDisplay = s.tariffName || '—';
+  const rateDisplay = s.unitRate
+    ? s.offPeakRate
+      ? `${s.offPeakRate}p off-peak / ${s.unitRate}p day${s.peakRate ? ' / ' + s.peakRate + 'p peak' : ''}`
+      : `${s.unitRate}p/kWh flat`
+    : '—';
+  const items = [
+    { icon:'☀️', label:'Panel capacity', val: s.capacity ? s.capacity+'kWp' : '—' },
+    { icon:'🔢', label:'No. of panels', val: s.panels ? s.panels+' panels' : '—' },
+    { icon:'🔄', label:'Inverter', val: s.inverter || '—' },
+    { icon:'🔋', label:'Battery', val: s.battery || '—' },
+    { icon:'⚡', label:'Battery capacity', val: s.batteryKwh ? s.batteryKwh+'kWh' : '—' },
+    { icon:'📍', label:'Orientation', val: s.orientation || '—' },
+    { icon:'📅', label:'Install date', val: s.installDate || '—' },
+    { icon:'💷', label:'Install cost', val: s.installCost ? '£'+Number(s.installCost).toLocaleString() : '—' },
+    { icon:'🏠', label:'Installer', val: s.installer || '—' },
+    { icon:'⚡', label:'Current tariff', val: tariffDisplay, highlight: true },
+    { icon:'📈', label:'Import rates', val: rateDisplay },
+    { icon:'📤', label:'Export (SEG) rate', val: s.exportRate ? s.exportRate+'p/kWh' : '—' },
+    { icon:'🕐', label:'Off-peak window', val: s.offPeakWindow || (s.offPeakRate ? '—' : 'N/A') },
+  ];
+  el.innerHTML = items.map(i => `
+    <div class="spec-item${i.highlight ? ' spec-highlight' : ''}">
+      <div class="spec-icon">${i.icon}</div>
+      <div><div class="spec-label">${i.label}</div><div class="spec-val${i.highlight ? ' spec-val-highlight' : ''}">${i.val}</div></div>
+    </div>
+  `).join('');
+}
+
+// ── Year tabs ──
+let selectedYear = null;
+function renderYearTabs(data) {
+  const years = getYears(data);
+  const el = document.getElementById('yearTabs');
+  if (!years.length) { el.innerHTML = ''; return; }
+  if (!selectedYear || !years.includes(selectedYear)) selectedYear = years[years.length-1];
+  el.innerHTML = [
+    ...years.map(y => `<button class="year-tab${y===selectedYear?' active':''}" onclick="selectYear(${y})">${y}</button>`),
+    `<button class="year-tab${selectedYear==='all'?' active':''}" onclick="selectYear('all')">All time</button>`
+  ].join('');
+}
+function selectYear(y) {
+  selectedYear = y;
+  const data = loadData();
+  renderYearTabs(data);
+  renderKPIs(data);
+  renderCharts(data);
+  renderTable(data);
+  renderPayback(data);
+}
+
+// ── Filter months by selected year ──
+function filteredMonths(data) {
+  if (!data?.months?.length) return [];
+  const m = [...data.months].sort((a,b) => a.year!==b.year ? a.year-b.year : a.month-b.month);
+  if (selectedYear === 'all') return m;
+  return m.filter(r => r.year === selectedYear);
+}
+
+// ── KPIs ──
+function renderKPIs(data) {
+  const months = filteredMonths(data);
+  const strip = document.getElementById('kpiStrip');
+  if (!months.length) {
+    strip.innerHTML = `
+      <div class="kpi green"><div class="kpi-label">Total generated</div><div class="kpi-val">—</div></div>
+      <div class="kpi amber"><div class="kpi-label">Self consumed</div><div class="kpi-val">—</div></div>
+      <div class="kpi blue"><div class="kpi-label">Exported</div><div class="kpi-val">—</div></div>
+      <div class="kpi green"><div class="kpi-label">Export income</div><div class="kpi-val">—</div></div>
+      <div class="kpi amber"><div class="kpi-label">Import avoided</div><div class="kpi-val">—</div></div>
+      <div class="kpi pink"><div class="kpi-label">Net saving</div><div class="kpi-val">—</div></div>`;
+    return;
+  }
+  const totalGen     = months.reduce((s,m) => s + (m.generated||0), 0);
+  const totalSelf    = months.reduce((s,m) => s + (m.selfConsumed||0), 0);
+  const totalHome    = months.reduce((s,m) => s + (m.homeConsumed||m.selfConsumed||0), 0);
+  const totalEV      = months.reduce((s,m) => s + (m.evCharged||0), 0);
+  const totalExport  = months.reduce((s,m) => s + (m.exported||0), 0);
+  const totalExpInc  = months.reduce((s,m) => s + ((m.exported||0)*(m.exportRate||0)/100), 0);
+  const totalImpAvoid= months.reduce((s,m) => {
+    const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+    const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC   = m.evCharged || 0;
+    const sys2  = data?.system || {};
+    const flexRate   = (m.importRate||0) || (hist?.flex) || parseFloat(sys2.unitRate) || 0;
+    const offPeakRate = (m.iogRate||0)  || (hist?.iog)  || parseFloat(sys2.offPeakRate) || flexRate;
+    return s + (homeC*flexRate/100) + (evC*offPeakRate/100);
+  }, 0);
+  const totalSaving  = totalExpInc + totalImpAvoid;
+  const selfPct      = totalGen > 0 ? Math.round(totalSelf/totalGen*100) : 0;
+  const evPct        = totalSelf > 0 ? Math.round(totalEV/totalSelf*100) : 0;
+
+  const sys2 = data?.system || {};
+  let kpiTotals = { vsFlexNoSolar: 0, vsIGoNoSolar: 0 };
+  try {
+    kpiTotals = months.reduce((acc, m) => {
+      const c = computeMonthComparison(m, sys2);
+      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+      const evC   = m.evCharged || 0;
+      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys2.unitRate) || 0;
+      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys2.offPeakRate) || flexR;
+      const imp   = (homeC*flexR/100) + (evC*opR/100);
+      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const actualWithSolar = c.flexNoSolar - imp - exp;
+      acc.vsFlexNoSolar += c.flexNoSolar - actualWithSolar;
+      acc.vsIGoNoSolar  += c.iGoNoSolar  - actualWithSolar;
+      return acc;
+    }, { vsFlexNoSolar: 0, vsIGoNoSolar: 0 });
+  } catch(e) { console.warn('KPI comparison calc error:', e); }
+
+  const sys = data?.system || {};
+  let comparisonBlock = '';
+  try {
+    const totals = months.reduce((acc, m) => {
+      const c = computeMonthComparison(m, sys);
+      acc.flexNo   += c.flexNoSolar;
+      acc.flexWith += c.flexWithSolar;
+      acc.iGoNo    += c.iGoNoSolar;
+      acc.iGoWith  += c.iGoWithSolar;
+      return acc;
+    }, {flexNo:0, flexWith:0, iGoNo:0, iGoWith:0});
+    comparisonBlock = `
+      <div class="kpi" style="--kpi-c:rgba(148,163,184,.8);border-top:2px solid rgba(148,163,184,.2);margin-top:2px;grid-column:1/-1;">
+        <div class="kpi-label" style="margin-bottom:10px;">Scenario comparison — total electricity cost over this period</div>
+        <div style="display:flex;flex-wrap:wrap;gap:24px;">
+          <div><div style="font-size:10px;color:rgba(148,163,184,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">Flexible, no solar</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:rgba(148,163,184,.8);">£${totals.flexNo.toFixed(0)}</div></div>
+          <div><div style="font-size:10px;color:rgba(168,204,0,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">Flexible, with solar</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--green);">£${totals.flexWith.toFixed(0)}</div><div style="font-size:11px;color:rgba(168,204,0,.5)">−£${(totals.flexNo-totals.flexWith).toFixed(0)} saved by solar</div></div>
+          <div><div style="font-size:10px;color:rgba(124,58,237,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">Int. Go, no solar</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:rgba(124,58,237,.85);">£${totals.iGoNo.toFixed(0)}</div><div style="font-size:11px;color:rgba(124,58,237,.5)">−£${(totals.flexNo-totals.iGoNo).toFixed(0)} vs Flexible</div></div>
+          <div><div style="font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">Int. Go, with solar</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--amber);">£${totals.iGoWith.toFixed(0)}</div><div style="font-size:11px;color:rgba(232,160,32,.5)">−£${(totals.flexNo-totals.iGoWith).toFixed(0)} vs Flexible no solar</div></div>
+        </div>
+      </div>`;
+  } catch(e) { console.warn('Comparison KPI error:', e); }
+
+  strip.innerHTML = `
+    <div class="kpi green">
+      <div class="kpi-label">Total generated</div>
+      <div class="kpi-val">${Math.round(totalGen).toLocaleString()}<span class="kpi-unit">kWh</span></div>
+      <div class="kpi-delta">${months.length} month${months.length!==1?'s':''} of data</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Home consumption</div>
+      <div class="kpi-val">${Math.round(totalHome).toLocaleString()}<span class="kpi-unit">kWh</span></div>
+      <div class="kpi-delta">${totalGen>0?Math.round(totalHome/totalGen*100):0}% of generation</div>
+    </div>
+    ${totalEV > 0 ? `<div class="kpi" style="--kpi-c:#e8a020;">
+      <div class="kpi-label">EV charging (solar)</div>
+      <div class="kpi-val">${Math.round(totalEV).toLocaleString()}<span class="kpi-unit">kWh</span></div>
+      <div class="kpi-delta">${evPct}% of self-consumed</div>
+    </div>` : ''}
+    <div class="kpi blue">
+      <div class="kpi-label">Exported</div>
+      <div class="kpi-val">${Math.round(totalExport).toLocaleString()}<span class="kpi-unit">kWh</span></div>
+      <div class="kpi-delta">${100-selfPct}% of generation</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Export income</div>
+      <div class="kpi-val">£${totalExpInc.toFixed(0)}</div>
+      <div class="kpi-delta">SEG payments</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Import avoided</div>
+      <div class="kpi-val">£${totalImpAvoid.toFixed(0)}</div>
+      <div class="kpi-delta">At your import rate</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Saved vs Flexible no solar</div>
+      <div class="kpi-val">£${Math.round(kpiTotals.vsFlexNoSolar).toLocaleString()}</div>
+      <div class="kpi-delta">Solar saving on Flexible tariff</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Saved vs Int. Go no solar</div>
+      <div class="kpi-val">£${Math.round(kpiTotals.vsIGoNoSolar).toLocaleString()}</div>
+      <div class="kpi-delta">Solar saving on Int. Go tariff</div>
+    </div>
+    ${comparisonBlock}`;
+}
+
+// ── Charts ──
+let charts = {};
+const chartDefaults = {
+  plugins: { legend: { labels: { color: 'rgba(240,242,232,.55)', font: { family: "'Barlow', sans-serif", size: 11 }, boxWidth: 12 } } },
+  scales: {
+    x: { ticks: { color: 'rgba(240,242,232,.4)', font: { family: "'Barlow Condensed', sans-serif", size: 11 }, maxRotation: 0 }, grid: { color: 'rgba(240,242,232,.05)' } },
+    y: { ticks: { color: 'rgba(240,242,232,.4)', font: { family: "'Barlow Condensed', sans-serif", size: 11 } }, grid: { color: 'rgba(240,242,232,.05)' } },
+  },
+  responsive: true, maintainAspectRatio: false,
+};
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderCharts(data) {
+  latestData = data; // keep reference fresh for checkbox re-renders
+  const months = filteredMonths(data);
+  renderGenerationChart(data);
+  renderSelfExportChart(months);
+  renderFinancialChart(months);
+  renderCumulativeChart(data);
+  renderComparisonChart(data, months);
+}
+
+// Store latest data reference so checkboxes can re-render without re-fetching
+let latestData = null;
+
+function renderGenerationChart(data) {
+  if (data) latestData = data;
+  else data = latestData;
+  destroyChart('gen');
+  const ctx = document.getElementById('chartGeneration').getContext('2d');
+  if (!data?.months?.length) { ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); return; }
+
+  const showGenerated = document.getElementById('genShow_generated')?.checked ?? true;
+  const showExported  = document.getElementById('genShow_exported')?.checked ?? true;
+  const showHome      = document.getElementById('genShow_home')?.checked ?? true;
+  const showEV        = document.getElementById('genShow_ev')?.checked ?? false;
+
+  const years = getYears(data);
+
+  // Series definitions — one set per year, per enabled type
+  const seriesDefs = [
+    { key: 'generated',   label: 'Generated', color: '#a8cc00', show: showGenerated, getter: m => m.generated || null, dash: [] },
+    { key: 'exported',    label: 'Export',    color: '#5ea8a0', show: showExported,  getter: m => m.exported  || null, dash: [4,3] },
+    { key: 'home',        label: 'Home',      color: '#e8a020', show: showHome,      getter: m => m.homeConsumed ?? m.selfConsumed ?? null, dash: [2,2] },
+    { key: 'ev',          label: 'EV',        color: '#f426b6', show: showEV,        getter: m => m.evCharged || null, dash: [6,2,2,2] },
+  ].filter(s => s.show);
+
+  const datasets = [];
+  years.forEach((year, yi) => {
+    const opacity = yi === years.length - 1 ? 1 : 0.55; // current year is brighter
+    seriesDefs.forEach(s => {
+      const yData = new Array(12).fill(null);
+      data.months.filter(m => m.year === year).forEach(m => yData[m.month-1] = s.getter(m));
+      const col = s.color;
+      datasets.push({
+        label: `${s.label} ${year}`,
+        data: yData,
+        borderColor: col + (opacity < 1 ? '99' : 'ff'),
+        backgroundColor: col + '12',
+        borderWidth: 2,
+        borderDash: s.dash,
+        pointRadius: 3,
+        pointHoverRadius: 7,
+        pointHoverBorderWidth: 2,
+        tension: 0.35,
+        fill: false,
+        spanGaps: false,
+        _seriesKey: s.key,
+        _year: year,
+      });
+    });
+  });
+
+  // Hover-glow plugin — dims all other lines when one is hovered
+  const hoverGlowPlugin = {
+    id: 'hoverGlow',
+    afterDatasetsDraw(chart) {
+      const active = chart._hoveredDatasetIndex;
+      if (active == null) return;
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (!meta.hidden) {
+          meta.dataset.options.borderWidth = i === active ? 3.5 : 1;
+          meta.dataset.options.borderColor = i === active
+            ? ds.borderColor.replace(/[0-9a-f]{2}$/i, 'ff')
+            : ds.borderColor.replace(/[0-9a-f]{2}$/i, '22');
+        }
+      });
+    },
+    afterEvent(chart, args) {
+      const e = args.event;
+      if (e.type === 'mousemove') {
+        const items = chart.getElementsAtEventForMode(e.native, 'nearest', { intersect: false }, false);
+        const idx = items.length ? items[0].datasetIndex : null;
+        if (chart._hoveredDatasetIndex !== idx) {
+          chart._hoveredDatasetIndex = idx;
+          chart.update('none');
+        }
+      } else if (e.type === 'mouseout') {
+        if (chart._hoveredDatasetIndex !== null) {
+          chart._hoveredDatasetIndex = null;
+          chart.update('none');
+        }
+      }
+    },
+  };
+
+  charts['gen'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: MONTH_NAMES, datasets },
+    options: {
+      ...chartDefaults,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        ...chartDefaults.plugins,
+        legend: {
+          ...chartDefaults.plugins.legend,
+          onClick: (e, item, legend) => {
+            // Toggle dataset visibility on legend click
+            const meta = legend.chart.getDatasetMeta(item.datasetIndex);
+            meta.hidden = !meta.hidden;
+            legend.chart.update();
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: c => ` ${c.dataset.label}: ${c.raw != null ? c.raw.toFixed(0)+' kWh' : '—'}`,
+          },
+        },
+      },
+      scales: {
+        ...chartDefaults.scales,
+        y: { ...chartDefaults.scales.y, title: { display: true, text: 'kWh', color: 'rgba(240,242,232,.3)', font: { size: 10 } } },
+      },
+    },
+    plugins: [hoverGlowPlugin],
+  });
+}
+
+function renderSelfExportChart(months) {
+  destroyChart('se');
+  const ctx = document.getElementById('chartSelfExport').getContext('2d');
+  if (!months.length) return;
+  const labels = months.map(m => MONTH_NAMES[m.month-1] + (selectedYear==='all'?' '+m.year:''));
+  const hasEV = months.some(m => m.evCharged > 0);
+  const datasets = [
+    { label: 'Home consumption', data: months.map(m => m.homeConsumed||m.selfConsumed||0), backgroundColor: 'rgba(168,204,0,.7)', stack: 's' },
+  ];
+  if (hasEV) {
+    datasets.push({ label: 'EV charging', data: months.map(m => m.evCharged||0), backgroundColor: 'rgba(232,160,32,.7)', stack: 's' });
+  }
+  datasets.push({ label: 'Exported', data: months.map(m => m.exported||0), backgroundColor: 'rgba(94,168,160,.7)', stack: 's' });
+
+  charts['se'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      ...chartDefaults,
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw?.toFixed(0)} kWh` } } },
+      scales: { ...chartDefaults.scales, x: { ...chartDefaults.scales.x, stacked: true }, y: { ...chartDefaults.scales.y, stacked: true, title: { display: true, text: 'kWh', color: 'rgba(240,242,232,.3)', font: { size: 10 } } } },
+    },
+  });
+}
+
+function renderFinancialChart(months) {
+  destroyChart('fin');
+  const ctx = document.getElementById('chartFinancial').getContext('2d');
+  if (!months.length) return;
+  const labels = months.map(m => MONTH_NAMES[m.month-1] + (selectedYear==='all'?' '+m.year:''));
+  const expInc = months.map(m => +((m.exported||0)*(m.exportRate||0)/100).toFixed(2));
+  const impAv  = months.map(m => {
+    const sys = loadData()?.system || {};
+    const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
+    const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC   = m.evCharged || 0;
+    return +((homeC*(m.importRate||0)/100) + (evC*offPeakRate/100)).toFixed(2);
+  });
+  charts['fin'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Import avoided', data: impAv, backgroundColor: 'rgba(232,160,32,.7)', stack: 's' },
+        { label: 'Export income',  data: expInc, backgroundColor: 'rgba(168,204,0,.7)', stack: 's' },
+      ],
+    },
+    options: {
+      ...chartDefaults,
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: £${c.raw?.toFixed(2)}` } } },
+      scales: { ...chartDefaults.scales, x: { ...chartDefaults.scales.x, stacked: true }, y: { ...chartDefaults.scales.y, stacked: true, title: { display: true, text: '£', color: 'rgba(240,242,232,.3)', font: { size: 10 } } } },
+    },
+  });
+}
+
+function renderCumulativeChart(data) {
+  destroyChart('cum');
+  const ctx = document.getElementById('chartCumulative').getContext('2d');
+  if (!data?.months?.length) return;
+  const all = [...data.months].sort((a,b) => a.year!==b.year ? a.year-b.year : a.month-b.month);
+  let cum = 0;
+  const labels = all.map(m => MONTH_NAMES[m.month-1]+' '+m.year);
+  const vals   = all.map(m => { cum += (m.generated||0); return +cum.toFixed(0); });
+  const totalCost = data.system?.installCost ? Number(data.system.installCost) : null;
+  const datasets = [{
+    label: 'Cumulative generation (kWh)',
+    data: vals,
+    borderColor: '#a8cc00',
+    backgroundColor: 'rgba(168,204,0,.08)',
+    borderWidth: 2,
+    pointRadius: 3,
+    tension: 0.2,
+    fill: true,
+    yAxisID: 'y',
+  }];
+  // Payback line
+  if (totalCost) {
+    let cCum = 0;
+    const savingVals = all.map(m => {
+      const sys = loadData()?.system || {};
+      const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
+      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+      const evC   = m.evCharged || 0;
+      const s = ((m.exported||0)*(m.exportRate||0)/100)
+              + (homeC*(m.importRate||0)/100)
+              + (evC*offPeakRate/100);
+      cCum += s;
+      return +cCum.toFixed(2);
+    });
+    datasets.push({
+      label: 'Cumulative saving (£)',
+      data: savingVals,
+      borderColor: '#e8a020',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [4,3],
+      pointRadius: 2,
+      tension: 0.2,
+      yAxisID: 'y2',
+    });
+  }
+  charts['cum'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: chartDefaults.scales.x,
+        y: { ...chartDefaults.scales.y, title: { display: true, text: 'kWh', color: 'rgba(240,242,232,.3)', font: { size: 10 } }, position: 'left' },
+        y2: totalCost ? { ...chartDefaults.scales.y, title: { display: true, text: '£', color: 'rgba(232,160,32,.5)', font: { size: 10 } }, position: 'right', grid: { drawOnChartArea: false } } : undefined,
+      },
+    },
+  });
+}
+
+// ── Monthly table ──
+// ── Scenario comparison helper ──
+// Returns monthly cost for 4 scenarios:
+// 1. Flexible, no solar — total usage at flat day rate
+// 2. Flexible, with solar — (usage - selfConsumed) at day rate, minus export income
+// 3. Intelligent Go, no solar — 25% of home + all EV at offPeak, rest at day rate
+// 4. Intelligent Go, with solar — same but offset by self-consumption and export income
+function computeMonthComparison(m, sys) {
+  // Rate priority: 1) per-month stored rate, 2) historical lookup, 3) system setting, 4) fallback
+  const histRates  = RATE_HISTORY ? RATE_HISTORY.find(r => r.year===m.year && r.month===m.month) : null;
+  const dayRate    = (m.importRate||0) || (histRates?.flex) || parseFloat(sys.unitRate) || 0;  // p/kWh
+  const offPeak    = (m.iogRate||0)   || (histRates?.iog)  || parseFloat(sys.offPeakRate) || dayRate; // p/kWh IOG off-peak
+  const exportRate = (m.exportRate||0) || parseFloat(sys.exportRate) || 0; // p/kWh SEG rate
+  const standing   = parseFloat(sys.standingCharge) || 57.19;              // p/day
+  const battCap    = parseFloat(sys.batteryKwh)   || 0;                    // kWh battery capacity
+  const daysInMonth = new Date(m.year, m.month, 0).getDate();
+  const standingCost = standing * daysInMonth / 100;
+
+  const homeUsage = m.homeConsumed ?? m.selfConsumed ?? 0;
+  const evUsage   = m.evCharged || 0;
+  const exported  = m.exported || 0;
+  const selfCon   = m.selfConsumed || 0;
+
+  // totalUsage = everything you actually consumed + what solar exported
+  // (without solar you'd have imported the exported amount too)
+  const totalUsage = homeUsage + evUsage + exported;
+
+  // ── 1. FLEXIBLE — no solar, no battery ──
+  // All usage at flat day rate
+  const flexNoSolar = standingCost + totalUsage * dayRate / 100;
+
+  // ── 2. FLEXIBLE — with solar + battery ──
+  // Battery has no cheap charging window on Flexible (flat rate all day).
+  // Solar reduces import; exported kWh earns SEG rate.
+  // Self-consumed solar offsets day-rate import.
+  // Battery is charged from solar during the day (not from grid overnight since no cheap rate).
+  const flexImport = Math.max(0, totalUsage - selfCon);
+  const flexWithSolar = standingCost + flexImport * dayRate / 100 - exported * exportRate / 100;
+
+  // ── 3. INTELLIGENT GO — no solar, no battery ──
+  // Standard household, no scheduling ability beyond EV.
+  // EV charges at off-peak. Home: 25% shifts to off-peak (natural overnight loads),
+  // 75% at day rate. No battery so no further shifting.
+  const iGoNoSolar = standingCost
+    + (evUsage + homeUsage * 0.25) * offPeak / 100
+    + (homeUsage * 0.75 + exported) * dayRate / 100;
+    // Note: without solar the exported kWh would have been imported at day rate
+
+  // ── 4. INTELLIGENT GO — with solar + battery ──
+  // Assumption: battery is charged FULLY overnight at off-peak every night
+  // (this is profitable because export rate > off-peak charging cost).
+  // During the day: solar generates, you EXPORT it to earn SEG rate rather than
+  // self-consuming, because export rate > off-peak rate paid to charge battery.
+  // Battery (charged overnight) covers all daytime home load.
+  // Result: home import = overnight battery charge + EV charge, both at off-peak.
+  // Solar export earns full SEG rate.
+  // Monthly overnight battery charge = min(battCap, homeUsage/daysInMonth) × daysInMonth
+  // (battery only needs to cover what home actually uses per day)
+  const dailyHomeLoad = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
+  const dailyBattCharge = Math.min(battCap, dailyHomeLoad);
+  const monthlyBattCharge = dailyBattCharge * daysInMonth;
+  const iGoWithSolar = standingCost
+    + monthlyBattCharge * offPeak / 100   // overnight battery charging cost
+    + evUsage * offPeak / 100             // EV charging at off-peak
+    - exported * exportRate / 100;        // export income from solar
+
+  return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar };
+}
+
+/*
+ * Assumptions summary (shown in UI):
+ * Flexible no solar:    No battery. All usage at flat day rate.
+ * Flexible with solar:  Battery present. Solar reduces import; exported at SEG rate.
+ *                       Battery charged from solar (no cheap overnight window).
+ * Int. Go no solar:     No battery. EV + 25% home at off-peak; 75% home + solar-replaced
+ *                       kWh at day rate.
+ * Int. Go with solar+battery: Battery charged fully overnight at off-peak every night
+ *                       (profitable: export rate > off-peak charging cost).
+ *                       All daytime home load covered by battery.
+ *                       Solar generation exported at full SEG rate.
+ *                       No daytime grid import except EV and overnight battery.
+ */
+
+function renderComparisonChart(data, months) {
+  destroyChart('cmp');
+  const ctx = document.getElementById('chartComparison')?.getContext('2d');
+  if (!ctx || !months.length) return;
+  const sys = data?.system || {};
+  const labels = months.map(m => MONTH_NAMES[m.month-1] + (selectedYear==='all'?' '+m.year:''));
+  const scenarios = months.map(m => computeMonthComparison(m, sys));
+
+  charts['cmp'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Flexible — no solar',      data: scenarios.map(s => +s.flexNoSolar.toFixed(2)),   backgroundColor: 'rgba(148,163,184,.55)', borderColor: 'rgba(148,163,184,.8)', borderWidth:1 },
+        { label: 'Flexible — with solar',     data: scenarios.map(s => +s.flexWithSolar.toFixed(2)), backgroundColor: 'rgba(168,204,0,.65)',   borderColor: 'rgba(168,204,0,.9)',   borderWidth:1 },
+        { label: 'Int. Go — no solar',        data: scenarios.map(s => +s.iGoNoSolar.toFixed(2)),    backgroundColor: 'rgba(124,58,237,.45)',  borderColor: 'rgba(124,58,237,.7)',  borderWidth:1 },
+        { label: 'Int. Go — with solar',      data: scenarios.map(s => +s.iGoWithSolar.toFixed(2)),  backgroundColor: 'rgba(232,160,32,.65)',  borderColor: 'rgba(232,160,32,.9)',  borderWidth:1 },
+      ],
+    },
+    options: {
+      ...chartDefaults,
+      plugins: {
+        ...chartDefaults.plugins,
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: £${c.raw?.toFixed(2)}` } },
+      },
+      scales: {
+        x: chartDefaults.scales.x,
+        y: { ...chartDefaults.scales.y, title: { display: true, text: '£', color: 'rgba(240,242,232,.3)', font: { size: 10 } } },
+      },
+    },
+  });
+}
+
+function renderTable(data) {
+  const months = filteredMonths(data);
+  const tbody = document.getElementById('tableBody');
+  if (!months.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="no-data">No data yet. <a href="solar-stats-admin.html">Add your first month →</a></td></tr>`;
+    return;
+  }
+  const maxGen = Math.max(...months.map(m => m.generated||0));
+
+  const sys = loadData()?.system || {};
+
+  let cumSaving = 0;
+  let cumVsFlexNoSolar = 0;
+  let cumVsTariffNoSolar = 0;
+  const rowsWithCum = months.map(m => {
+    const expInc    = (m.exported||0)*(m.exportRate||0)/100;
+    const homeC     = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC       = m.evCharged || 0;
+    const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
+    const impAvoidHome = homeC*(m.importRate||0)/100;
+    const impAvoidEV   = evC*offPeakRate/100;
+    const impAvoid  = impAvoidHome + impAvoidEV;
+    cumSaving += expInc + impAvoid;
+    const cmp = computeMonthComparison(m, sys);
+    const actualWithSolar = cmp.flexNoSolar - impAvoid - expInc;
+    const monthVsFlexNoSolar   = cmp.flexNoSolar - actualWithSolar;
+    const monthVsTariffNoSolar = cmp.iGoNoSolar  - actualWithSolar;
+    cumVsFlexNoSolar   += monthVsFlexNoSolar;
+    cumVsTariffNoSolar += monthVsTariffNoSolar;
+    return { m, expInc, impAvoidHome, impAvoidEV, impAvoid, monthSaving: expInc + impAvoid, cumSaving, cumVsFlexNoSolar, cumVsTariffNoSolar, monthVsFlexNoSolar, monthVsTariffNoSolar, cmp };
+  });
+
+  const fmtCost = v => v < 0
+    ? `<span style="color:var(--green)">−£${Math.abs(v).toFixed(2)}</span>`
+    : `£${v.toFixed(2)}`;
+
+  tbody.innerHTML = [...rowsWithCum].reverse().map(({ m, expInc, impAvoidHome, impAvoidEV, impAvoid, monthSaving, cumSaving, cumVsFlexNoSolar, cumVsTariffNoSolar, monthVsFlexNoSolar, monthVsTariffNoSolar, cmp }) => {
+    const homeC    = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC      = m.evCharged || 0;
+    const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
+    const forecastDiff = m.forecast ? Math.round((m.generated - m.forecast)/m.forecast*100) : null;
+    const barW = maxGen > 0 ? Math.round((m.generated||0)/maxGen*100) : 0;
+    const impAvoidDetail = evC > 0
+      ? `<div style="font-size:10px;color:rgba(232,160,32,.6);font-weight:400">🏠 £${impAvoidHome.toFixed(2)} · 🚗 £${impAvoidEV.toFixed(2)} @${offPeakRate}p</div>`
+      : '';
+    return `<tr>
+      <td><strong>${MONTH_NAMES_FULL[m.month-1]} ${m.year}</strong></td>
+      <td class="val">${(m.generated||0).toFixed(1)} <span style="font-size:11px;color:var(--muted)">kWh</span></td>
+      <td class="val">${homeC.toFixed(1)} <span style="font-size:11px;color:var(--muted)">kWh</span></td>
+      <td class="val">${evC > 0 ? evC.toFixed(1)+' <span style="font-size:11px;color:var(--muted)">kWh</span>' : '<span style="color:var(--muted);font-size:12px;">—</span>'}</td>
+      <td class="val">${(m.exported||0).toFixed(1)} <span style="font-size:11px;color:var(--muted)">kWh</span></td>
+      <td>${m.exportRate||'—'}<span style="font-size:11px;color:var(--muted)">p</span></td>
+      <td class="val pos">£${expInc.toFixed(2)}</td>
+      <td class="val pos">£${impAvoid.toFixed(2)}${impAvoidDetail}</td>
+      <td class="val pos" style="min-width:180px;">
+        <div style="margin-bottom:6px;">
+          <div style="font-size:9px;color:rgba(168,204,0,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px;">vs Flexible no solar</div>
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:var(--green);">£${cumVsFlexNoSolar.toFixed(0)}</span>
+            <span style="font-size:10px;color:rgba(168,204,0,.5);">cumulative</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(168,204,0,.7);">+£${monthVsFlexNoSolar.toFixed(2)}</span>
+            <span style="font-size:10px;color:rgba(168,204,0,.4);">this month</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(232,160,32,.15);padding-top:6px;">
+          <div style="font-size:9px;color:rgba(232,160,32,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px;">vs Int. Go no solar</div>
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:var(--amber);">£${cumVsTariffNoSolar.toFixed(0)}</span>
+            <span style="font-size:10px;color:rgba(232,160,32,.5);">cumulative</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(232,160,32,.7);">+£${monthVsTariffNoSolar.toFixed(2)}</span>
+            <span style="font-size:10px;color:rgba(232,160,32,.4);">this month</span>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Payback panel ──
+function renderPayback(data) {
+  const panel = document.getElementById('paybackPanel');
+  const allMonths = [...(data?.months||[])].sort((a,b) => a.year!==b.year?a.year-b.year:a.month-b.month);
+  const months = filteredMonths(data);
+  const sys = data?.system || {};
+  const installCost = parseFloat(sys.installCost) || 0;
+
+  if (!allMonths.length) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  let cumVsFlex = 0, cumVsIGo = 0;
+  allMonths.forEach(m => {
+    try {
+      const cmp = computeMonthComparison(m, sys);
+      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+      const evC   = m.evCharged || 0;
+      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys.unitRate) || 0;
+      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys.offPeakRate) || flexR;
+      const imp   = (homeC*flexR/100) + (evC*opR/100);
+      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const actual = cmp.flexNoSolar - imp - exp;
+      cumVsFlex += cmp.flexNoSolar - actual;
+      cumVsIGo  += cmp.iGoNoSolar  - actual;
+    } catch(e) {}
+  });
+
+  const monthsCount = allMonths.length;
+  const avgVsFlex = monthsCount ? cumVsFlex / monthsCount : 0;
+  const avgVsIGo  = monthsCount ? cumVsIGo  / monthsCount : 0;
+
+  const paybackFlex     = avgVsFlex > 0 && installCost ? installCost / (avgVsFlex * 12) : null;
+  const paybackIGo      = avgVsIGo  > 0 && installCost ? installCost / (avgVsIGo  * 12) : null;
+
+  const recentMonths = allMonths.slice(-3);
+  let cumRecent = 0;
+  recentMonths.forEach(m => {
+    try {
+      const cmp = computeMonthComparison(m, sys);
+      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+      const evC   = m.evCharged || 0;
+      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys.unitRate) || 0;
+      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys.offPeakRate) || flexR;
+      const imp   = (homeC*flexR/100) + (evC*opR/100);
+      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const actual = cmp.flexNoSolar - imp - exp;
+      cumRecent += cmp.flexNoSolar - actual;
+    } catch(e) {}
+  });
+
+  const blendedMonthly  = (avgVsFlex * 0.6) + (recentMonths.length ? (cumRecent/recentMonths.length) * 0.4 : avgVsFlex * 0.4);
+  const paybackBlended  = blendedMonthly > 0 && installCost ? installCost / (blendedMonthly * 12) : null;
+
+  const fmtY = y => {
+    if (!installCost) return '<span style="font-size:18px;color:var(--muted);">Add install cost in admin</span>';
+    if (y == null) return '—';
+    return (y < 1 ? 'Under 1' : y.toFixed(1));
+  };
+  const pctDone = installCost && cumVsFlex > 0 ? Math.min(100, Math.round(cumVsFlex / installCost * 100)) : null;
+
+  panel.innerHTML = `
+    <div style="margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);">
+      System payback
+      ${pctDone != null
+        ? `<span style="margin-left:16px;color:rgba(122,128,96,.5);">Install cost: £${installCost.toLocaleString()} · ${pctDone}% paid back so far (vs Flexible no solar)</span>`
+        : installCost
+          ? `<span style="margin-left:16px;color:rgba(122,128,96,.5);">Install cost: £${installCost.toLocaleString()}</span>`
+          : `<span style="margin-left:16px;color:rgba(248,113,113,.4);">Add install cost in admin to see payback period</span>`}
+    </div>
+    <div class="payback-grid">
+      <div class="payback-card pb-green">
+        <div class="payback-eyebrow">vs Flexible no solar</div>
+        <div class="payback-num" style="color:var(--green);">${fmtY(paybackFlex)}${paybackFlex?'<span class="payback-unit">yrs</span>':''}</div>
+        <div class="payback-label">Saving <strong>£${Math.round(avgVsFlex*12).toLocaleString()}/yr</strong> vs Flexible with no solar panels at all</div>
+        <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--green)">£${Math.round(cumVsFlex).toLocaleString()}</strong> over ${monthsCount} month${monthsCount!==1?'s':''}</div>
+      </div>
+      <div class="payback-card pb-amber">
+        <div class="payback-eyebrow">vs Int. Octopus Go — no solar</div>
+        <div class="payback-num" style="color:var(--amber);">${fmtY(paybackIGo)}${paybackIGo?'<span class="payback-unit">yrs</span>':''}</div>
+        <div class="payback-label">Saving <strong>£${Math.round(avgVsIGo*12).toLocaleString()}/yr</strong> vs Int. Go with no panels and no battery</div>
+        <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--amber)">£${Math.round(cumVsIGo).toLocaleString()}</strong> over ${monthsCount} month${monthsCount!==1?'s':''}</div>
+      </div>
+      <div class="payback-card pb-pink">
+        <div class="payback-eyebrow">Estimated payback (trend-adjusted)</div>
+        <div class="payback-num" style="color:var(--pink);">${fmtY(paybackBlended)}${paybackBlended?'<span class="payback-unit">yrs</span>':''}</div>
+        <div class="payback-label">60% historical average + 40% last 3 months trend, vs Flexible no solar</div>
+        <div class="payback-sub">All-time avg: £${avgVsFlex.toFixed(2)}/mo · Last 3 months avg: £${recentMonths.length?(cumRecent/recentMonths.length).toFixed(2):'—'}/mo</div>
+      </div>
+    </div>`;
+}
+
+// ── INIT ──
+function init() {
+  const data = loadData();
+  renderSpec(data);
+  renderYearTabs(data);
+  renderKPIs(data);
+  renderCharts(data);
+  renderTable(data);
+  renderPayback(data);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('storage', e => { if(e.key==='danev_solar_stats') init(); });
+</script>
+</body>
+</html>

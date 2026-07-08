@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Stats Admin — DanEVSolar</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f0a;--bg2:#131509;--bg3:#1a1d0e;--bg4:#1f2210;
+  --green:#a8cc00;--amber:#e8a020;--pink:#f426b6;
+  --white:#f0f2e8;--muted:#7a8060;
+  --border:rgba(168,204,0,0.15);--bord2:rgba(168,204,0,0.07);
+  --red:#f87171;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px;position:relative;}
+
+/* NAV */
+nav{background:rgba(13,15,10,.95);border-bottom:1px solid var(--bord2);height:64px;display:flex;align-items:center;position:sticky;top:0;z-index:50;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--white);text-decoration:none;}
+.nav-brand span{color:var(--green);}
+.nav-back{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.nav-back:hover{color:var(--green);}
+
+/* PAGE HEADER */
+.page-header{padding:40px 0 32px;border-bottom:1px solid var(--bord2);margin-bottom:40px;}
+.eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:900;text-transform:uppercase;line-height:.95;margin-bottom:12px;}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.6;}
+
+/* SECTIONS */
+.admin-section{margin-bottom:40px;}
+.section-head{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.section-head::after{content:'';flex:1;height:1px;background:var(--bord2);}
+
+/* CARDS */
+.form-card{background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:28px;}
+
+/* FORM GRID */
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.field-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.full{grid-column:1/-1;}
+label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+label span{font-weight:400;color:rgba(122,128,96,.6);margin-left:4px;}
+input,select{background:var(--bg3);border:1px solid var(--bord2);border-radius:4px;color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus{border-color:var(--border);}
+input::placeholder{color:rgba(122,128,96,.5);}
+select option{background:var(--bg3);}
+.field-hint{font-size:11px;color:rgba(122,128,96,.6);line-height:1.5;}
+
+/* BUTTONS */
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:12px 24px;border-radius:4px;border:none;cursor:pointer;transition:opacity .15s,transform .15s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn-green{background:var(--green);color:#0d0f0a;}
+.btn-amber{background:var(--amber);color:#0d0f0a;}
+.btn-outline{background:transparent;border:1px solid var(--bord2);color:var(--muted);}
+.btn-outline:hover{border-color:var(--border);color:var(--white);}
+.btn-danger{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.25);color:var(--red);}
+.btn-danger:hover{background:rgba(248,113,113,.2);}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;align-items:center;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);z-index:200;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.error{color:var(--red);border-color:rgba(248,113,113,.3);}
+
+/* MONTHS LIST */
+.month-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+.month-row{background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;transition:border-color .2s;}
+.month-row:hover{border-color:var(--border);}
+.month-row-info{display:flex;flex-direction:column;gap:2px;}
+.month-row-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);}
+.month-row-stats{font-size:12px;color:var(--muted);}
+.month-row-stats span{color:var(--white);margin-right:12px;}
+.month-row-actions{display:flex;gap:8px;}
+.btn-sm{padding:6px 14px;font-size:11px;}
+
+/* DATA MANAGEMENT */
+.data-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .field-grid,.field-grid.three{grid-template-columns:1fr;}
+  .field.full{grid-column:1;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a href="index.html" class="nav-brand">Dan<span>EV</span>Solar</a>
+    <a href="solar-stats.html" class="nav-back">← View stats page</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="eyebrow">Admin panel</div>
+    <h1 class="page-title">Solar Stats<br>Data Entry</h1>
+    <p class="page-sub">Add or edit monthly generation data and system details. Data is stored locally in your browser — export a backup regularly.</p>
+  </div>
+
+  <!-- SYSTEM DETAILS -->
+  <div class="admin-section">
+    <div class="section-head">System &amp; tariff details</div>
+    <div class="form-card">
+      <div class="field-grid">
+        <div class="field">
+          <label>Panel capacity <span>(kWp)</span></label>
+          <input type="number" id="s_capacity" placeholder="e.g. 4.62" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Number of panels</label>
+          <input type="number" id="s_panels" placeholder="e.g. 14" min="0">
+        </div>
+        <div class="field">
+          <label>Inverter make / model</label>
+          <input type="text" id="s_inverter" placeholder="e.g. SolarEdge SE4000H">
+        </div>
+        <div class="field">
+          <label>Battery <span>(if any)</span></label>
+          <input type="text" id="s_battery" placeholder="e.g. GivEnergy 9.5kWh">
+        </div>
+        <div class="field">
+          <label>Battery capacity <span>(kWh)</span></label>
+          <input type="number" id="s_batteryKwh" placeholder="e.g. 9.5" step="0.1" min="0">
+          <div class="field-hint">Used in scenario calculations — how many kWh the battery can hold</div>
+        </div>
+        <div class="field">
+          <label>Orientation</label>
+          <input type="text" id="s_orientation" placeholder="e.g. South-facing, 35° pitch">
+        </div>
+        <div class="field">
+          <label>Install date</label>
+          <input type="text" id="s_installDate" placeholder="e.g. March 2024">
+        </div>
+        <div class="field">
+          <label>Install cost <span>(£)</span></label>
+          <input type="number" id="s_installCost" placeholder="e.g. 8500" min="0">
+        </div>
+        <div class="field">
+          <label>Installer name</label>
+          <input type="text" id="s_installer" placeholder="e.g. SunPower UK">
+        </div>
+      </div>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--bord2);">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Tariff &amp; rates</div>
+
+        <div class="field-grid" style="margin-bottom:16px;">
+          <div class="field">
+            <label>Current tariff</label>
+            <select id="s_tariffName">
+              <option value="">— Select tariff —</option>
+              <option value="Flexible Octopus">Flexible Octopus</option>
+              <option value="Octopus Go">Octopus Go</option>
+              <option value="Intelligent Octopus Go">Intelligent Octopus Go</option>
+              <option value="Octopus Flux">Octopus Flux</option>
+              <option value="Intelligent Octopus Flux">Intelligent Octopus Flux</option>
+              <option value="Cosy Octopus">Cosy Octopus</option>
+              <option value="Intelligent Drive Pack">Intelligent Drive Pack</option>
+              <option value="Agile Octopus">Agile Octopus</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Custom tariff name <span>(if Other)</span></label>
+            <input type="text" id="s_tariffCustom" placeholder="e.g. E.ON Next Drive">
+          </div>
+          <div class="field">
+            <label>Tariff start date <span>(optional)</span></label>
+            <input type="text" id="s_tariffStart" placeholder="e.g. July 2025">
+          </div>
+        </div>
+
+        <div style="background:rgba(168,204,0,.05);border:1px solid rgba(168,204,0,.15);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:rgba(240,242,232,.65);line-height:1.6;">
+          ⚡ <strong style="color:rgba(240,242,232,.85)">Historical Flexible &amp; Intelligent Go rates are applied automatically</strong> based on the month you're logging — no need to look them up. The fields below are <strong style="color:rgba(240,242,232,.85)">optional overrides</strong>: only fill them in if your actual rate is different (e.g. a fixed deal, a different region, or a tariff not covered by the built-in history).
+        </div>
+
+        <div class="field-grid three">
+          <div class="field">
+            <label>Standard / day rate override <span>(p/kWh)</span></label>
+            <input type="number" id="s_unitRate" placeholder="Uses historical rate" step="0.01" min="0">
+            <div class="field-hint">Leave blank to use the automatic historical rate for each month</div>
+          </div>
+          <div class="field">
+            <label>Off-peak rate override <span>(p/kWh)</span></label>
+            <input type="number" id="s_offPeakRate" placeholder="Uses historical IOG rate" step="0.01" min="0">
+            <div class="field-hint">Leave blank to use the automatic historical Intelligent Go rate</div>
+          </div>
+          <div class="field">
+            <label>Peak rate <span>(p/kWh)</span></label>
+            <input type="number" id="s_peakRate" placeholder="e.g. 35.72" step="0.01" min="0">
+            <div class="field-hint">For Flux/Cosy — no built-in history, so set manually if relevant</div>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:16px;">
+          <div class="field">
+            <label>Off-peak window</label>
+            <input type="text" id="s_offPeakWindow" placeholder="e.g. 23:30–05:30">
+            <div class="field-hint">The hours your cheap rate applies</div>
+          </div>
+          <div class="field">
+            <label>Standing charge <span>(p/day)</span></label>
+            <input type="number" id="s_standingCharge" placeholder="e.g. 57.19" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label>SEG / export rate <span>(p/kWh)</span></label>
+            <input type="number" id="s_exportRate" placeholder="e.g. 15.0" step="0.01" min="0">
+            <div class="field-hint">Your Smart Export Guarantee rate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="saveSystem()">Save system &amp; tariff details →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD MONTH -->
+  <div class="admin-section">
+    <div class="section-head">Add / edit monthly data</div>
+    <div class="form-card">
+      <div class="field-grid">
+        <div class="field">
+          <label>Year</label>
+          <select id="m_year" onchange="autoFillRates();clearRateNoteIfManual()">
+            <script>
+              const y=new Date().getFullYear();
+              for(let i=y-3;i<=y+1;i++) document.write(`<option value="${i}"${i===y?' selected':''}>${i}</option>`);
+            </script>
+          </select>
+        </div>
+        <div class="field">
+          <label>Month</label>
+          <select id="m_month" onchange="autoFillRates();clearRateNoteIfManual()">
+            <script>
+              const mn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+              const cm=new Date().getMonth();
+              mn.forEach((n,i)=>document.write(`<option value="${i+1}"${i===cm?' selected':''}>${n}</option>`));
+            </script>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-grid three" style="margin-top:16px;">
+        <div class="field">
+          <label>Total generated <span>(kWh)</span></label>
+          <input type="number" id="m_generated" placeholder="e.g. 412.5" step="0.1" min="0">
+        </div>
+        <div class="field">
+          <label>Exported <span>(kWh)</span></label>
+          <input type="number" id="m_exported" placeholder="e.g. 192.5" step="0.1" min="0">
+          <div class="field-hint" id="hint_exported">Should equal generated − total self-consumed</div>
+        </div>
+        <div class="field">
+          <label>Total self-consumed <span>(kWh, calculated)</span></label>
+          <input type="number" id="m_selfConsumed" placeholder="Auto-calculated" step="0.1" min="0" style="opacity:.6;" readonly>
+          <div class="field-hint">= Home consumption + EV charging below</div>
+        </div>
+      </div>
+
+      <!-- Home consumption + EV split -->
+      <div style="margin-top:16px;padding:16px 20px;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Self-consumption breakdown</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>🏠 Home consumption <span>(kWh)</span></label>
+            <input type="number" id="m_homeConsumed" placeholder="e.g. 160.0" step="0.1" min="0" oninput="recalcSelfConsumed()">
+            <div class="field-hint">Solar used directly by home appliances, heating, lighting etc.</div>
+          </div>
+          <div class="field">
+            <label>🚗 EV charging <span>(kWh)</span></label>
+            <input type="number" id="m_evCharged" placeholder="e.g. 60.0" step="0.1" min="0" oninput="recalcSelfConsumed()">
+            <div class="field-hint">Solar used to charge your EV — leave blank if no EV or no solar EV charging this month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-grid three" style="margin-top:16px;">
+        <div class="field">
+          <label>Export rate <span>(p/kWh)</span></label>
+          <input type="number" id="m_exportRate" placeholder="e.g. 15" step="0.01" min="0">
+          <div class="field-hint" id="hint_exportRate">Override SEG rate for this month — leave blank to use system default</div>
+        </div>
+        <div class="field">
+          <label>Import rate <span>(p/kWh, Flexible)</span></label>
+          <input type="number" id="m_importRate" placeholder="e.g. 26.38" step="0.01" min="0">
+          <div class="field-hint" id="hint_importRate">Override unit rate for this month — leave blank to use system default</div>
+        </div>
+        <div class="field">
+          <label>Int. Go off-peak rate <span>(p/kWh)</span></label>
+          <input type="number" id="m_iogRate" placeholder="e.g. 8.0" step="0.01" min="0">
+          <div class="field-hint" id="hint_iogRate">Used for IOG scenario comparison — auto-filled from historical data</div>
+        </div>
+      </div>
+      <div id="rateAutoFillNote" style="font-size:11px;color:var(--green);margin-top:8px;display:none;">⚡ Historical rates auto-filled — check and override if your actual rates differed</div>
+
+      <div class="field-grid" style="margin-top:16px;">
+        <div class="field">
+          <label>Forecast <span>(kWh, optional)</span></label>
+          <input type="number" id="m_forecast" placeholder="e.g. 380" step="0.1" min="0">
+          <div class="field-hint">PVGIS or system forecast for this month</div>
+        </div>
+      </div>
+
+      <div class="field-grid" style="margin-top:16px;">
+        <div class="field full">
+          <label>Notes <span>(optional)</span></label>
+          <input type="text" id="m_notes" placeholder="e.g. Panel cleaned mid-month, shading from new tree">
+        </div>
+      </div>
+
+      <!-- Live validation hint -->
+      <div id="validationHint" style="margin-top:12px;font-size:12px;color:var(--amber);min-height:18px;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="saveMonth()">Save month →</button>
+        <button class="btn btn-outline" onclick="clearMonthForm()">Clear form</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXISTING MONTHS -->
+  <div class="admin-section">
+    <div class="section-head">Saved months <span id="monthCount" style="color:var(--green);font-weight:700;"></span></div>
+    <div class="month-list" id="monthList">
+      <div style="color:var(--muted);font-size:13px;padding:16px 0;">No months saved yet. Add your first month above.</div>
+    </div>
+  </div>
+
+  <!-- DATA MANAGEMENT -->
+  <div class="admin-section">
+    <div class="section-head">Data management</div>
+    <div class="form-card">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Data is stored in your browser's localStorage — it will persist between visits on the same device but won't sync across devices. Export a JSON backup regularly and import it on any other device or after clearing your browser.</p>
+      <div class="data-actions">
+        <button class="btn btn-amber" onclick="exportData()">Export backup (JSON)</button>
+        <label class="btn btn-outline" style="cursor:pointer;">
+          Import backup
+          <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
+        </label>
+        <button class="btn btn-danger" onclick="clearAllData()">Clear all data</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding-bottom:64px;"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── Historical rate lookup ──
+// Flexible = Ofgem price cap unit rate (national avg, Direct Debit, inc 5% VAT)
+// IOG = Intelligent Octopus Go off-peak rate (national, inc VAT)
+// Sources: Ofgem quarterly cap publications, Octopus Energy confirmed rate changes
+// Format: { year, month (1-12), flex, iog } — rates in pence/kWh
+const RATE_HISTORY = [
+  // 2022
+  { year:2022, month:1,  flex:20.8, iog:null },
+  { year:2022, month:2,  flex:20.8, iog:null },
+  { year:2022, month:3,  flex:20.8, iog:null },
+  { year:2022, month:4,  flex:28.3, iog:null },
+  { year:2022, month:5,  flex:28.3, iog:null },
+  { year:2022, month:6,  flex:28.3, iog:null },
+  { year:2022, month:7,  flex:28.3, iog:null },
+  { year:2022, month:8,  flex:28.3, iog:null },
+  { year:2022, month:9,  flex:28.3, iog:null },
+  { year:2022, month:10, flex:34.0, iog:7.5  }, // IOG launched Oct 2022
+  { year:2022, month:11, flex:34.0, iog:7.5  },
+  { year:2022, month:12, flex:34.0, iog:7.5  },
+  // 2023
+  { year:2023, month:1,  flex:33.0, iog:7.5  },
+  { year:2023, month:2,  flex:33.0, iog:7.5  },
+  { year:2023, month:3,  flex:33.0, iog:7.5  },
+  { year:2023, month:4,  flex:24.5, iog:7.5  },
+  { year:2023, month:5,  flex:24.5, iog:7.5  },
+  { year:2023, month:6,  flex:24.5, iog:7.5  },
+  { year:2023, month:7,  flex:30.1, iog:7.0  }, // IOG dropped to 7p
+  { year:2023, month:8,  flex:30.1, iog:7.0  },
+  { year:2023, month:9,  flex:30.1, iog:7.0  },
+  { year:2023, month:10, flex:27.4, iog:7.0  },
+  { year:2023, month:11, flex:27.4, iog:7.0  },
+  { year:2023, month:12, flex:27.4, iog:7.0  },
+  // 2024
+  { year:2024, month:1,  flex:29.0, iog:7.0  },
+  { year:2024, month:2,  flex:29.0, iog:7.0  },
+  { year:2024, month:3,  flex:29.0, iog:7.0  },
+  { year:2024, month:4,  flex:24.5, iog:7.0  },
+  { year:2024, month:5,  flex:24.5, iog:7.0  },
+  { year:2024, month:6,  flex:24.5, iog:7.0  },
+  { year:2024, month:7,  flex:22.4, iog:7.0  },
+  { year:2024, month:8,  flex:22.4, iog:7.0  },
+  { year:2024, month:9,  flex:22.4, iog:7.0  },
+  { year:2024, month:10, flex:24.5, iog:7.0  },
+  { year:2024, month:11, flex:24.5, iog:7.0  },
+  { year:2024, month:12, flex:24.5, iog:7.0  },
+  // 2025
+  { year:2025, month:1,  flex:24.5, iog:7.0  },
+  { year:2025, month:2,  flex:24.5, iog:7.0  },
+  { year:2025, month:3,  flex:24.5, iog:7.0  },
+  { year:2025, month:4,  flex:29.3, iog:7.0  },
+  { year:2025, month:5,  flex:29.3, iog:7.0  },
+  { year:2025, month:6,  flex:29.3, iog:7.0  },
+  { year:2025, month:7,  flex:25.3, iog:7.0  },
+  { year:2025, month:8,  flex:25.3, iog:7.0  },
+  { year:2025, month:9,  flex:25.3, iog:7.0  },
+  { year:2025, month:10, flex:27.0, iog:7.5  }, // rate review Oct 2025
+  { year:2025, month:11, flex:27.0, iog:7.5  },
+  { year:2025, month:12, flex:27.0, iog:7.5  },
+  // 2026
+  { year:2026, month:1,  flex:27.0, iog:9.0  }, // IOG rose Jan 2026
+  { year:2026, month:2,  flex:27.0, iog:9.0  },
+  { year:2026, month:3,  flex:27.0, iog:9.0  },
+  { year:2026, month:4,  flex:24.7, iog:5.49 }, // Apr 2026: gov levy cut passed through
+  { year:2026, month:5,  flex:24.7, iog:7.5  }, // May 2026: raised due to Middle East volatility
+  { year:2026, month:6,  flex:24.7, iog:7.5  },
+  { year:2026, month:7,  flex:26.38,iog:8.0  }, // Jul 2026: new price cap
+  { year:2026, month:8,  flex:26.38,iog:8.0  },
+  { year:2026, month:9,  flex:26.38,iog:8.0  },
+];
+
+function getHistoricalRates(year, month) {
+  const entry = RATE_HISTORY.find(r => r.year === year && r.month === month);
+  return entry || null;
+}
+
+function autoFillRates() {
+  const year  = parseInt(document.getElementById('m_year').value);
+  const month = parseInt(document.getElementById('m_month').value);
+  const rates = getHistoricalRates(year, month);
+  const impEl = document.getElementById('m_importRate');
+  const iogEl = document.getElementById('m_iogRate');
+  const hintEl = document.getElementById('hint_importRate');
+  const hintIog = document.getElementById('hint_iogRate');
+
+  if (rates && impEl) {
+    if (!impEl.value) {
+      impEl.value = rates.flex;
+    }
+    if (hintEl) hintEl.textContent = rates
+      ? `Historical rate: ${rates.flex}p/kWh (Flexible/Ofgem cap, ${MONTH_NAMES[month-1]} ${year}) — override if your actual rate differed`
+      : 'Override unit rate for this month — leave blank to use system default';
+  }
+  if (rates?.iog && iogEl) {
+    if (!iogEl.value) {
+      iogEl.value = rates.iog;
+    }
+    if (hintIog) hintIog.textContent = rates?.iog
+      ? `Historical rate: ${rates.iog}p/kWh (Int. Octopus Go off-peak, ${MONTH_NAMES[month-1]} ${year}) — override if your actual rate differed`
+      : 'Override IOG off-peak rate — leave blank to use system default';
+  }
+}
+
+function loadData() {
+  try { const r = localStorage.getItem('danev_solar_stats'); return r ? JSON.parse(r) : { system: {}, months: [] }; }
+  catch(e) { return { system: {}, months: [] }; }
+}
+function saveData(data) {
+  localStorage.setItem('danev_solar_stats', JSON.stringify(data));
+}
+
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 2800);
+}
+
+// ── System ──
+function loadSystemForm() {
+  const data = loadData();
+  const s = data.system || {};
+  ['capacity','panels','inverter','battery','batteryKwh','orientation','installDate','installCost','installer'].forEach(k => {
+    const el = document.getElementById('s_'+k);
+    if (el) el.value = s[k] || '';
+  });
+  loadTariffForm(data);
+  updateRateHints(data);
+}
+
+function loadTariffForm(data) {
+  const t = (data.system || {});
+  const builtIn = ['Flexible Octopus','Octopus Go','Intelligent Octopus Go','Octopus Flux','Intelligent Octopus Flux','Cosy Octopus','Intelligent Drive Pack','Agile Octopus'];
+  const nameEl = document.getElementById('s_tariffName');
+  const customEl = document.getElementById('s_tariffCustom');
+  if (t.tariffName) {
+    if (builtIn.includes(t.tariffName)) { nameEl.value = t.tariffName; customEl.value = ''; }
+    else { nameEl.value = 'Other'; customEl.value = t.tariffName; }
+  }
+  ['unitRate','offPeakRate','peakRate','offPeakWindow','standingCharge','exportRate','tariffStart'].forEach(k => {
+    const el = document.getElementById('s_'+k);
+    if (el) el.value = t[k] || '';
+  });
+}
+
+function saveSystem() {
+  const data = loadData();
+  const sel = document.getElementById('s_tariffName').value;
+  const custom = document.getElementById('s_tariffCustom').value.trim();
+  const tariffName = sel === 'Other' ? custom : sel;
+  data.system = {
+    capacity:       document.getElementById('s_capacity').value,
+    panels:         document.getElementById('s_panels').value,
+    inverter:       document.getElementById('s_inverter').value,
+    battery:        document.getElementById('s_battery').value,
+    batteryKwh:     document.getElementById('s_batteryKwh').value,
+    orientation:    document.getElementById('s_orientation').value,
+    installDate:    document.getElementById('s_installDate').value,
+    installCost:    document.getElementById('s_installCost').value,
+    installer:      document.getElementById('s_installer').value,
+    tariffName,
+    unitRate:       document.getElementById('s_unitRate').value,
+    offPeakRate:    document.getElementById('s_offPeakRate').value,
+    peakRate:       document.getElementById('s_peakRate').value,
+    offPeakWindow:  document.getElementById('s_offPeakWindow').value,
+    standingCharge: document.getElementById('s_standingCharge').value,
+    exportRate:     document.getElementById('s_exportRate').value,
+    tariffStart:    document.getElementById('s_tariffStart').value,
+  };
+  saveData(data);
+  updateRateHints(data);
+  toast('System & tariff details saved ✓');
+}
+
+function updateRateHints(data) {
+  const s = data.system || {};
+  const hImport = document.getElementById('hint_importRate');
+  const hExport = document.getElementById('hint_exportRate');
+  if (hImport) hImport.textContent = s.unitRate
+    ? `Override for this month — system default: ${s.unitRate}p/kWh`
+    : 'Override unit rate for this month — leave blank to use historical rate';
+  if (hExport) hExport.textContent = s.exportRate
+    ? `Override for this month — system default: ${s.exportRate}p/kWh`
+    : 'Override SEG rate for this month — leave blank to use system default';
+}
+
+// ── Validation hint ──
+function recalcSelfConsumed() {
+  const home = parseFloat(document.getElementById('m_homeConsumed').value) || 0;
+  const ev   = parseFloat(document.getElementById('m_evCharged').value) || 0;
+  const total = home + ev;
+  const selfEl = document.getElementById('m_selfConsumed');
+  selfEl.value = total > 0 ? total.toFixed(1) : '';
+  validateMonth();
+}
+
+function validateMonth() {
+  const gen  = parseFloat(document.getElementById('m_generated').value) || 0;
+  const self = parseFloat(document.getElementById('m_selfConsumed').value) || 0;
+  const exp  = parseFloat(document.getElementById('m_exported').value) || 0;
+  const hint = document.getElementById('validationHint');
+  if (!gen && !self && !exp) { hint.textContent = ''; return; }
+  const calc = gen - self;
+  if (Math.abs(calc - exp) > 1 && exp > 0) {
+    hint.textContent = `⚠ Generated (${gen}) − Self-consumed (${self}) = ${calc.toFixed(1)} kWh, but exported is set to ${exp}. Check figures.`;
+  } else if (gen > 0 && self > gen) {
+    hint.textContent = '⚠ Self-consumed cannot exceed total generated.';
+  } else {
+    hint.textContent = '';
+  }
+}
+['m_generated','m_exported'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', validateMonth);
+});
+
+// ── Month form ──
+function clearMonthForm() {
+  ['m_generated','m_selfConsumed','m_homeConsumed','m_evCharged','m_exported','m_exportRate','m_importRate','m_iogRate','m_forecast','m_notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('validationHint').textContent = '';
+  document.getElementById('rateAutoFillNote').style.display = 'none';
+  // Auto-fill historical rates for current selection
+  setTimeout(autoFillRates, 50);
+}
+
+function clearRateNoteIfManual() {
+  // Show note when rates are auto-filled
+  const year  = parseInt(document.getElementById('m_year').value);
+  const month = parseInt(document.getElementById('m_month').value);
+  const rates = getHistoricalRates(year, month);
+  const note = document.getElementById('rateAutoFillNote');
+  if (rates) {
+    note.style.display = 'block';
+    // Only auto-fill if fields are empty
+    if (!document.getElementById('m_importRate').value) document.getElementById('m_importRate').value = rates.flex;
+    if (!document.getElementById('m_iogRate').value && rates.iog) document.getElementById('m_iogRate').value = rates.iog;
+  } else {
+    note.style.display = 'none';
+  }
+}
+
+function fillMonthForm(entry) {
+  document.getElementById('m_year').value  = entry.year;
+  document.getElementById('m_month').value = entry.month;
+  document.getElementById('m_generated').value    = entry.generated || '';
+  document.getElementById('m_homeConsumed').value = entry.homeConsumed || '';
+  document.getElementById('m_evCharged').value    = entry.evCharged || '';
+  document.getElementById('m_selfConsumed').value = entry.selfConsumed || '';
+  document.getElementById('m_exported').value     = entry.exported || '';
+  document.getElementById('m_exportRate').value   = entry.exportRate || '';
+  document.getElementById('m_importRate').value   = entry.importRate || '';
+  document.getElementById('m_iogRate').value      = entry.iogRate || '';
+  document.getElementById('m_forecast').value     = entry.forecast || '';
+  document.getElementById('m_notes').value        = entry.notes || '';
+  window.scrollTo({ top: document.querySelector('.admin-section').offsetTop - 80, behavior: 'smooth' });
+}
+
+function saveMonth() {
+  const year  = parseInt(document.getElementById('m_year').value);
+  const month = parseInt(document.getElementById('m_month').value);
+  const gen   = parseFloat(document.getElementById('m_generated').value);
+  if (!gen || isNaN(gen)) { toast('Generated kWh is required', true); return; }
+
+  const data = loadData();
+  const sysDefImport = parseFloat(data.system?.unitRate) || 0;
+  const sysDefExport = parseFloat(data.system?.exportRate) || 0;
+  const sysDefIOG    = parseFloat(data.system?.offPeakRate) || 0;
+  const histRates    = getHistoricalRates(year, month);
+  const histFlex     = histRates?.flex || 0;
+  const histIOG      = histRates?.iog  || 0;
+
+  const homeConsumed = parseFloat(document.getElementById('m_homeConsumed').value) || 0;
+  const evCharged    = parseFloat(document.getElementById('m_evCharged').value) || 0;
+  const selfConsumed = homeConsumed + evCharged ||
+                       parseFloat(document.getElementById('m_selfConsumed').value) || 0;
+
+  const entry = {
+    year, month,
+    generated:    gen,
+    homeConsumed,
+    evCharged,
+    selfConsumed,
+    exported:     parseFloat(document.getElementById('m_exported').value) || 0,
+    exportRate:   parseFloat(document.getElementById('m_exportRate').value) || sysDefExport,
+    importRate:   parseFloat(document.getElementById('m_importRate').value) || histFlex || sysDefImport,
+    iogRate:      parseFloat(document.getElementById('m_iogRate').value)    || histIOG  || sysDefIOG,
+    forecast:     parseFloat(document.getElementById('m_forecast').value) || null,
+    notes:        document.getElementById('m_notes').value.trim() || null,
+  };
+
+  const idx = data.months.findIndex(m => m.year === year && m.month === month);
+  if (idx >= 0) { data.months[idx] = entry; toast(`${MONTH_NAMES[month-1]} ${year} updated ✓`); }
+  else { data.months.push(entry); toast(`${MONTH_NAMES[month-1]} ${year} saved ✓`); }
+
+  saveData(data);
+  clearMonthForm();
+  renderMonthList();
+}
+
+function deleteMonth(year, month) {
+  if (!confirm(`Delete ${MONTH_NAMES[month-1]} ${year}? This cannot be undone.`)) return;
+  const data = loadData();
+  data.months = data.months.filter(m => !(m.year === year && m.month === month));
+  saveData(data);
+  renderMonthList();
+  toast(`${MONTH_NAMES[month-1]} ${year} deleted`);
+}
+
+function renderMonthList() {
+  const data = loadData();
+  const months = [...(data.months || [])].sort((a,b) => a.year!==b.year ? b.year-a.year : b.month-a.month);
+  const el = document.getElementById('monthList');
+  const countEl = document.getElementById('monthCount');
+  countEl.textContent = months.length ? `(${months.length})` : '';
+
+  if (!months.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:16px 0;">No months saved yet. Add your first month above.</div>`;
+    return;
+  }
+
+  el.innerHTML = months.map(m => {
+    const saving = ((m.selfConsumed||0)*(m.importRate||0)/100 + (m.exported||0)*(m.exportRate||0)/100).toFixed(2);
+    const selfPct = m.generated > 0 ? Math.round((m.selfConsumed||0)/m.generated*100) : 0;
+    const evLine = m.evCharged > 0 ? ` <span style="color:var(--amber)">🚗 ${m.evCharged.toFixed(1)} kWh EV</span>` : '';
+    return `<div class="month-row">
+      <div class="month-row-info">
+        <div class="month-row-title">${MONTH_NAMES[m.month-1]} ${m.year}</div>
+        <div class="month-row-stats">
+          <span>${m.generated?.toFixed(1)} kWh generated</span>
+          <span>${selfPct}% self-consumed${evLine}</span>
+          <span style="color:var(--green)">£${saving} saved</span>
+          ${m.notes ? `<span style="color:var(--muted);font-style:italic;">${m.notes}</span>` : ''}
+        </div>
+      </div>
+      <div class="month-row-actions">
+        <button class="btn btn-outline btn-sm" onclick='fillMonthForm(${JSON.stringify(m)})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMonth(${m.year},${m.month})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Data management ──
+function exportData() {
+  const data = loadData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `danev-solar-stats-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exported ✓');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.months || !Array.isArray(imported.months)) throw new Error('Invalid format');
+      if (!confirm(`Import ${imported.months.length} months of data? This will replace all current data.`)) return;
+      saveData(imported);
+      loadSystemForm();
+      renderMonthList();
+      toast(`Imported ${imported.months.length} months ✓`);
+    } catch(err) {
+      toast('Import failed — invalid file', true);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('Delete ALL solar stats data? This cannot be undone.')) return;
+  localStorage.removeItem('danev_solar_stats');
+  loadSystemForm();
+  renderMonthList();
+  toast('All data cleared');
+}
+
+// ── INIT ──
+loadSystemForm();
+renderMonthList();
+</script>
+</body>
+</html>

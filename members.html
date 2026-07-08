@@ -44,16 +44,19 @@ nav{position:sticky;top:0;z-index:50;background:rgba(13,15,10,0.92);backdrop-fil
 .tool-card.tariff{--card-accent:#a8cc00;}
 .tool-card.solar{--card-accent:#e8a020;}
 .tool-card.ev{--card-accent:#f426b6;}
+.tool-card.stats{--card-accent:#5ea8a0;}
 
 .tool-icon{width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px;}
 .tariff .tool-icon{background:rgba(168,204,0,0.1);}
 .solar  .tool-icon{background:rgba(232,160,32,0.1);}
 .ev     .tool-icon{background:rgba(244,38,182,0.1);}
+.stats  .tool-icon{background:rgba(94,168,160,0.1);}
 
 .tool-kicker{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
 .tariff .tool-kicker{color:rgba(168,204,0,0.6);}
 .solar  .tool-kicker{color:rgba(232,160,32,0.6);}
 .ev     .tool-kicker{color:rgba(244,38,182,0.6);}
+.stats  .tool-kicker{color:rgba(94,168,160,0.7);}
 
 .tool-name{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin-bottom:12px;}
 .tool-desc{font-size:14px;color:var(--muted);line-height:1.6;flex:1;margin-bottom:28px;}
@@ -84,13 +87,13 @@ nav{position:sticky;top:0;z-index:50;background:rgba(13,15,10,0.92);backdrop-fil
     <h1 class="hero-title">
       Your<br><span class="accent">exclusive</span><br><span class="dim">calculators</span>
     </h1>
-    <p class="hero-sub">Three tools built with real UK data. Run the numbers on your tariff, your solar payback, and the true cost of going electric.</p>
+    <p class="hero-sub">Four tools built with real UK data. Run the numbers on your tariff, your solar payback, the true cost of going electric, and see live generation stats from Dan's own system.</p>
   </div>
 </section>
 
 <section class="tools-section">
   <div class="wrap">
-    <div class="section-label">3 tools available</div>
+    <div class="section-label">4 tools available</div>
     <div class="tools-grid">
 
       <a href="octopus-tariff-comparison.html" class="tool-card tariff">
@@ -114,6 +117,14 @@ nav{position:sticky;top:0;z-index:50;background:rgba(13,15,10,0.92);backdrop-fil
         <div class="tool-kicker">Electric vehicles</div>
         <div class="tool-name">EV vs Petrol<br>Cost Calculator</div>
         <p class="tool-desc">Compare your current petrol car against an EV over 1, 3, and 5 years — home charging, rapid charging, insurance and servicing included.</p>
+        <span class="tool-cta">Open tool <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </a>
+
+      <a href="solar-stats.html" class="tool-card stats">
+        <div class="tool-icon">📊</div>
+        <div class="tool-kicker">Live data</div>
+        <div class="tool-name">My Solar<br>Generation Stats</div>
+        <p class="tool-desc">Real monthly generation data from Dan's own system — kWh generated, self-consumption, export income and payback progress, updated each month.</p>
         <span class="tool-cta">Open tool <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
       </a>
 
