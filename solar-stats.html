@@ -177,7 +177,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
       <li><a href="ev-vs-ice-calculator.html">EV vs Petrol</a></li>
       <li><a href="solar-stats.html" class="active">Solar Stats</a></li>
     </ul>
-    <div class="nav-badge">☀️ Live stats</div>
+    <div class="nav-badge" id="dataSourceBadge">☀️ Loading…</div>
   </div>
 </nav>
 
@@ -304,26 +304,40 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 <script>
 // ── Historical rate lookup ──
 const RATE_HISTORY = [
-  {year:2022,month:1,flex:20.8,iog:null},{year:2022,month:2,flex:20.8,iog:null},{year:2022,month:3,flex:20.8,iog:null},
-  {year:2022,month:4,flex:28.3,iog:null},{year:2022,month:5,flex:28.3,iog:null},{year:2022,month:6,flex:28.3,iog:null},
-  {year:2022,month:7,flex:28.3,iog:null},{year:2022,month:8,flex:28.3,iog:null},{year:2022,month:9,flex:28.3,iog:null},
-  {year:2022,month:10,flex:34.0,iog:7.5},{year:2022,month:11,flex:34.0,iog:7.5},{year:2022,month:12,flex:34.0,iog:7.5},
-  {year:2023,month:1,flex:33.0,iog:7.5},{year:2023,month:2,flex:33.0,iog:7.5},{year:2023,month:3,flex:33.0,iog:7.5},
-  {year:2023,month:4,flex:24.5,iog:7.5},{year:2023,month:5,flex:24.5,iog:7.5},{year:2023,month:6,flex:24.5,iog:7.5},
-  {year:2023,month:7,flex:30.1,iog:7.0},{year:2023,month:8,flex:30.1,iog:7.0},{year:2023,month:9,flex:30.1,iog:7.0},
-  {year:2023,month:10,flex:27.4,iog:7.0},{year:2023,month:11,flex:27.4,iog:7.0},{year:2023,month:12,flex:27.4,iog:7.0},
-  {year:2024,month:1,flex:29.0,iog:7.0},{year:2024,month:2,flex:29.0,iog:7.0},{year:2024,month:3,flex:29.0,iog:7.0},
-  {year:2024,month:4,flex:24.5,iog:7.0},{year:2024,month:5,flex:24.5,iog:7.0},{year:2024,month:6,flex:24.5,iog:7.0},
-  {year:2024,month:7,flex:22.4,iog:7.0},{year:2024,month:8,flex:22.4,iog:7.0},{year:2024,month:9,flex:22.4,iog:7.0},
-  {year:2024,month:10,flex:24.5,iog:7.0},{year:2024,month:11,flex:24.5,iog:7.0},{year:2024,month:12,flex:24.5,iog:7.0},
-  {year:2025,month:1,flex:24.5,iog:7.0},{year:2025,month:2,flex:24.5,iog:7.0},{year:2025,month:3,flex:24.5,iog:7.0},
-  {year:2025,month:4,flex:29.3,iog:7.0},{year:2025,month:5,flex:29.3,iog:7.0},{year:2025,month:6,flex:29.3,iog:7.0},
-  {year:2025,month:7,flex:25.3,iog:7.0},{year:2025,month:8,flex:25.3,iog:7.0},{year:2025,month:9,flex:25.3,iog:7.0},
-  {year:2025,month:10,flex:27.0,iog:7.5},{year:2025,month:11,flex:27.0,iog:7.5},{year:2025,month:12,flex:27.0,iog:7.5},
-  {year:2026,month:1,flex:27.0,iog:9.0},{year:2026,month:2,flex:27.0,iog:9.0},{year:2026,month:3,flex:27.0,iog:9.0},
-  {year:2026,month:4,flex:24.7,iog:5.49},{year:2026,month:5,flex:24.7,iog:7.5},{year:2026,month:6,flex:24.7,iog:7.5},
-  {year:2026,month:7,flex:26.38,iog:8.0},{year:2026,month:8,flex:26.38,iog:8.0},{year:2026,month:9,flex:26.38,iog:8.0},
+  {year:2022,month:1,flex:20.8,iog:null, outgoing:15 },{year:2022,month:2,flex:20.8,iog:null, outgoing:15 },{year:2022,month:3,flex:20.8,iog:null, outgoing:15 },
+  {year:2022,month:4,flex:28.3,iog:null, outgoing:15 },{year:2022,month:5,flex:28.3,iog:null, outgoing:15 },{year:2022,month:6,flex:28.3,iog:null, outgoing:15 },
+  {year:2022,month:7,flex:28.3,iog:null, outgoing:15 },{year:2022,month:8,flex:28.3,iog:null, outgoing:15 },{year:2022,month:9,flex:28.3,iog:null, outgoing:15 },
+  {year:2022,month:10,flex:34.0,iog:7.5, outgoing:15 },{year:2022,month:11,flex:34.0,iog:7.5, outgoing:15 },{year:2022,month:12,flex:34.0,iog:7.5, outgoing:15 },
+  {year:2023,month:1,flex:33.0,iog:7.5, outgoing:15 },{year:2023,month:2,flex:33.0,iog:7.5, outgoing:15 },{year:2023,month:3,flex:33.0,iog:7.5, outgoing:15 },
+  {year:2023,month:4,flex:24.5,iog:7.5, outgoing:15 },{year:2023,month:5,flex:24.5,iog:7.5, outgoing:15 },{year:2023,month:6,flex:24.5,iog:7.5, outgoing:15 },
+  {year:2023,month:7,flex:30.1,iog:7.0, outgoing:15 },{year:2023,month:8,flex:30.1,iog:7.0, outgoing:15 },{year:2023,month:9,flex:30.1,iog:7.0, outgoing:15 },
+  {year:2023,month:10,flex:27.4,iog:7.0, outgoing:15 },{year:2023,month:11,flex:27.4,iog:7.0, outgoing:15 },{year:2023,month:12,flex:27.4,iog:7.0, outgoing:15 },
+  {year:2024,month:1,flex:29.0,iog:7.0, outgoing:15 },{year:2024,month:2,flex:29.0,iog:7.0, outgoing:15 },{year:2024,month:3,flex:29.0,iog:7.0, outgoing:15 },
+  {year:2024,month:4,flex:24.5,iog:7.0, outgoing:15 },{year:2024,month:5,flex:24.5,iog:7.0, outgoing:15 },{year:2024,month:6,flex:24.5,iog:7.0, outgoing:15 },
+  {year:2024,month:7,flex:22.4,iog:7.0, outgoing:15 },{year:2024,month:8,flex:22.4,iog:7.0, outgoing:15 },{year:2024,month:9,flex:22.4,iog:7.0, outgoing:15 },
+  {year:2024,month:10,flex:24.5,iog:7.0, outgoing:15 },{year:2024,month:11,flex:24.5,iog:7.0, outgoing:15 },{year:2024,month:12,flex:24.5,iog:7.0, outgoing:15 },
+  {year:2025,month:1,flex:24.5,iog:7.0, outgoing:15 },{year:2025,month:2,flex:24.5,iog:7.0, outgoing:15 },{year:2025,month:3,flex:24.5,iog:7.0, outgoing:15 },
+  {year:2025,month:4,flex:29.3,iog:7.0, outgoing:15 },{year:2025,month:5,flex:29.3,iog:7.0, outgoing:15 },{year:2025,month:6,flex:29.3,iog:7.0, outgoing:15 },
+  {year:2025,month:7,flex:25.3,iog:7.0, outgoing:15 },{year:2025,month:8,flex:25.3,iog:7.0, outgoing:15 },{year:2025,month:9,flex:25.3,iog:7.0, outgoing:15 },
+  {year:2025,month:10,flex:27.0,iog:7.5, outgoing:15 },{year:2025,month:11,flex:27.0,iog:7.5, outgoing:15 },{year:2025,month:12,flex:27.0,iog:7.5, outgoing:15 },
+  {year:2026,month:1,flex:27.0,iog:9.0, outgoing:15 },{year:2026,month:2,flex:27.0,iog:9.0, outgoing:15 },{year:2026,month:3,flex:27.0,iog:9.0, outgoing:12 },
+  {year:2026,month:4,flex:24.7,iog:5.49, outgoing:12 },{year:2026,month:5,flex:24.7,iog:7.5, outgoing:12 },{year:2026,month:6,flex:24.7,iog:7.5, outgoing:12 },
+  {year:2026,month:7,flex:26.38,iog:8.0, outgoing:12 },{year:2026,month:8,flex:26.38,iog:8.0, outgoing:12 },{year:2026,month:9,flex:26.38,iog:8.0, outgoing:12 },
 ];
+
+// Resolve the correct rate for a given month: per-month stored value → historical lookup → system default → 0
+function getImportRate(m, sys) {
+  const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+  return (m.importRate||0) || (hist?.flex) || parseFloat(sys?.unitRate) || 0;
+}
+function getOffPeakRate(m, sys) {
+  const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+  return (m.iogRate||0) || (hist?.iog) || parseFloat(sys?.offPeakRate) || getImportRate(m, sys);
+}
+function getExportRate(m, sys) {
+  const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
+  return (m.exportRate||0) || (hist?.outgoing) || parseFloat(sys?.exportRate) || 0;
+}
 
 // ── Data layer ──
 // Data is stored in localStorage under 'danev_solar_stats'.
@@ -332,11 +346,53 @@ const RATE_HISTORY = [
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// Data source: tries a published JSON file first (so visitors see live stats
+// without needing your browser/localStorage), falls back to localStorage
+// (useful when previewing locally before publishing, or if the file 404s).
+let REMOTE_DATA = null;
+let DATA_SOURCE = 'local'; // 'remote' | 'local' | 'none'
+
 function loadData() {
+  if (REMOTE_DATA) return REMOTE_DATA;
   try {
     const raw = localStorage.getItem('danev_solar_stats');
     return raw ? JSON.parse(raw) : null;
   } catch(e) { return null; }
+}
+
+async function bootstrap() {
+  try {
+    const res = await fetch('solar-stats-data.json', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.months)) {
+        REMOTE_DATA = json;
+        DATA_SOURCE = 'remote';
+      }
+    }
+  } catch(e) {
+    // Fetch failed — likely opened as a local file, or the published file
+    // doesn't exist yet. Silently fall back to localStorage.
+  }
+  if (DATA_SOURCE !== 'remote') {
+    DATA_SOURCE = localStorage.getItem('danev_solar_stats') ? 'local' : 'none';
+  }
+  showDataSourceBadge();
+  init();
+}
+
+function showDataSourceBadge() {
+  const badge = document.getElementById('dataSourceBadge');
+  if (!badge) return;
+  if (DATA_SOURCE === 'remote') {
+    badge.textContent = '⚡ Live published stats';
+    badge.style.color = 'var(--lime)';
+  } else if (DATA_SOURCE === 'local') {
+    badge.textContent = '👁 Preview — only visible in your browser, not yet published';
+    badge.style.color = 'var(--amber)';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 function getYears(data) {
@@ -430,7 +486,7 @@ function renderKPIs(data) {
   const totalHome    = months.reduce((s,m) => s + (m.homeConsumed||m.selfConsumed||0), 0);
   const totalEV      = months.reduce((s,m) => s + (m.evCharged||0), 0);
   const totalExport  = months.reduce((s,m) => s + (m.exported||0), 0);
-  const totalExpInc  = months.reduce((s,m) => s + ((m.exported||0)*(m.exportRate||0)/100), 0);
+  const totalExpInc  = months.reduce((s,m) => s + ((m.exported||0)*getExportRate(m, data?.system)/100), 0);
   const totalImpAvoid= months.reduce((s,m) => {
     const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
     const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
@@ -455,7 +511,7 @@ function renderKPIs(data) {
       const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys2.unitRate) || 0;
       const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys2.offPeakRate) || flexR;
       const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const exp   = (m.exported||0)*getExportRate(m, sys2)/100;
       const actualWithSolar = c.flexNoSolar - imp - exp;
       acc.vsFlexNoSolar += c.flexNoSolar - actualWithSolar;
       acc.vsIGoNoSolar  += c.iGoNoSolar  - actualWithSolar;
@@ -700,7 +756,8 @@ function renderFinancialChart(months) {
   const ctx = document.getElementById('chartFinancial').getContext('2d');
   if (!months.length) return;
   const labels = months.map(m => MONTH_NAMES[m.month-1] + (selectedYear==='all'?' '+m.year:''));
-  const expInc = months.map(m => +((m.exported||0)*(m.exportRate||0)/100).toFixed(2));
+  const sysF = loadData()?.system || {};
+  const expInc = months.map(m => +((m.exported||0)*getExportRate(m, sysF)/100).toFixed(2));
   const impAv  = months.map(m => {
     const sys = loadData()?.system || {};
     const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
@@ -750,12 +807,13 @@ function renderCumulativeChart(data) {
     let cCum = 0;
     const savingVals = all.map(m => {
       const sys = loadData()?.system || {};
-      const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
       const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
       const evC   = m.evCharged || 0;
-      const s = ((m.exported||0)*(m.exportRate||0)/100)
-              + (homeC*(m.importRate||0)/100)
-              + (evC*offPeakRate/100);
+      const flexR = getImportRate(m, sys);
+      const opR   = getOffPeakRate(m, sys);
+      const s = ((m.exported||0)*getExportRate(m, sys)/100)
+              + (homeC*flexR/100)
+              + (evC*opR/100);
       cCum += s;
       return +cCum.toFixed(2);
     });
@@ -797,7 +855,7 @@ function computeMonthComparison(m, sys) {
   const histRates  = RATE_HISTORY ? RATE_HISTORY.find(r => r.year===m.year && r.month===m.month) : null;
   const dayRate    = (m.importRate||0) || (histRates?.flex) || parseFloat(sys.unitRate) || 0;  // p/kWh
   const offPeak    = (m.iogRate||0)   || (histRates?.iog)  || parseFloat(sys.offPeakRate) || dayRate; // p/kWh IOG off-peak
-  const exportRate = (m.exportRate||0) || parseFloat(sys.exportRate) || 0; // p/kWh SEG rate
+  const exportRate = (m.exportRate||0) || (histRates?.outgoing) || parseFloat(sys.exportRate) || 0; // p/kWh SEG rate
   const standing   = parseFloat(sys.standingCharge) || 57.19;              // p/day
   const battCap    = parseFloat(sys.batteryKwh)   || 0;                    // kWh battery capacity
   const daysInMonth = new Date(m.year, m.month, 0).getDate();
@@ -916,11 +974,11 @@ function renderTable(data) {
   let cumVsFlexNoSolar = 0;
   let cumVsTariffNoSolar = 0;
   const rowsWithCum = months.map(m => {
-    const expInc    = (m.exported||0)*(m.exportRate||0)/100;
+    const expInc    = (m.exported||0)*getExportRate(m, sys)/100;
     const homeC     = m.homeConsumed ?? m.selfConsumed ?? 0;
     const evC       = m.evCharged || 0;
-    const offPeakRate = parseFloat(sys.offPeakRate) || (m.importRate||0);
-    const impAvoidHome = homeC*(m.importRate||0)/100;
+    const offPeakRate = getOffPeakRate(m, sys);
+    const impAvoidHome = homeC*getImportRate(m, sys)/100;
     const impAvoidEV   = evC*offPeakRate/100;
     const impAvoid  = impAvoidHome + impAvoidEV;
     cumSaving += expInc + impAvoid;
@@ -996,11 +1054,10 @@ function renderPayback(data) {
       const cmp = computeMonthComparison(m, sys);
       const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
       const evC   = m.evCharged || 0;
-      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
-      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys.unitRate) || 0;
-      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys.offPeakRate) || flexR;
+      const flexR = getImportRate(m, sys);
+      const opR   = getOffPeakRate(m, sys);
       const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const exp   = (m.exported||0)*getExportRate(m, sys)/100;
       const actual = cmp.flexNoSolar - imp - exp;
       cumVsFlex += cmp.flexNoSolar - actual;
       cumVsIGo  += cmp.iGoNoSolar  - actual;
@@ -1014,25 +1071,29 @@ function renderPayback(data) {
   const paybackFlex     = avgVsFlex > 0 && installCost ? installCost / (avgVsFlex * 12) : null;
   const paybackIGo      = avgVsIGo  > 0 && installCost ? installCost / (avgVsIGo  * 12) : null;
 
-  const recentMonths = allMonths.slice(-3);
-  let cumRecent = 0;
-  recentMonths.forEach(m => {
+  // Estimated payback: realistic baseline — assume Flexible (no solar) up to Sep 2023,
+  // then Intelligent Octopus Go (no solar, no battery) from Sep 2023 onwards.
+  // This reflects an actual likely tariff switch rather than a blended average.
+  const SWITCH_YEAR = 2023, SWITCH_MONTH = 9; // September 2023
+  let cumRealistic = 0;
+  allMonths.forEach(m => {
     try {
       const cmp = computeMonthComparison(m, sys);
       const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
       const evC   = m.evCharged || 0;
-      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
-      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys.unitRate) || 0;
-      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys.offPeakRate) || flexR;
+      const flexR = getImportRate(m, sys);
+      const opR   = getOffPeakRate(m, sys);
       const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*(m.exportRate||0)/100;
+      const exp   = (m.exported||0)*getExportRate(m, sys)/100;
       const actual = cmp.flexNoSolar - imp - exp;
-      cumRecent += cmp.flexNoSolar - actual;
+      const onIOG = (m.year > SWITCH_YEAR) || (m.year === SWITCH_YEAR && m.month >= SWITCH_MONTH);
+      const baseline = onIOG ? cmp.iGoNoSolar : cmp.flexNoSolar;
+      cumRealistic += baseline - actual;
     } catch(e) {}
   });
 
-  const blendedMonthly  = (avgVsFlex * 0.6) + (recentMonths.length ? (cumRecent/recentMonths.length) * 0.4 : avgVsFlex * 0.4);
-  const paybackBlended  = blendedMonthly > 0 && installCost ? installCost / (blendedMonthly * 12) : null;
+  const avgRealistic = monthsCount ? cumRealistic / monthsCount : 0;
+  const paybackRealistic = avgRealistic > 0 && installCost ? installCost / (avgRealistic * 12) : null;
 
   const fmtY = y => {
     if (!installCost) return '<span style="font-size:18px;color:var(--muted);">Add install cost in admin</span>';
@@ -1064,10 +1125,10 @@ function renderPayback(data) {
         <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--amber)">£${Math.round(cumVsIGo).toLocaleString()}</strong> over ${monthsCount} month${monthsCount!==1?'s':''}</div>
       </div>
       <div class="payback-card pb-pink">
-        <div class="payback-eyebrow">Estimated payback (trend-adjusted)</div>
-        <div class="payback-num" style="color:var(--pink);">${fmtY(paybackBlended)}${paybackBlended?'<span class="payback-unit">yrs</span>':''}</div>
-        <div class="payback-label">60% historical average + 40% last 3 months trend, vs Flexible no solar</div>
-        <div class="payback-sub">All-time avg: £${avgVsFlex.toFixed(2)}/mo · Last 3 months avg: £${recentMonths.length?(cumRecent/recentMonths.length).toFixed(2):'—'}/mo</div>
+        <div class="payback-eyebrow">Estimated payback (realistic tariff switch)</div>
+        <div class="payback-num" style="color:var(--pink);">${fmtY(paybackRealistic)}${paybackRealistic?'<span class="payback-unit">yrs</span>':''}</div>
+        <div class="payback-label">Assumes <strong>Flexible</strong> until Sep 2023, then <strong>Intelligent Octopus Go</strong> from Sep 2023 onwards — both without solar</div>
+        <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--pink)">£${Math.round(cumRealistic).toLocaleString()}</strong> · avg £${avgRealistic.toFixed(2)}/mo over ${monthsCount} month${monthsCount!==1?'s':''}</div>
       </div>
     </div>`;
 }
@@ -1083,8 +1144,10 @@ function init() {
   renderPayback(data);
 }
 
-window.addEventListener('DOMContentLoaded', init);
-window.addEventListener('storage', e => { if(e.key==='danev_solar_stats') init(); });
+window.addEventListener('DOMContentLoaded', bootstrap);
+window.addEventListener('storage', e => {
+  if (e.key === 'danev_solar_stats' && DATA_SOURCE !== 'remote') init();
+});
 </script>
 </body>
 </html>

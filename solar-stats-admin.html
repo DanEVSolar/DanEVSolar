@@ -336,11 +336,27 @@ select option{background:var(--bg3);}
     </div>
   </div>
 
+  <!-- PUBLISH -->
+  <div class="admin-section">
+    <div class="section-head">Publish stats for visitors</div>
+    <div class="form-card">
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px;">
+        Your data here is only saved in <strong style="color:var(--off-white);">this browser</strong> — visitors to your stats page can't see it. To make it public, download the publish file below and upload it to your website in the <strong style="color:var(--off-white);">same folder as solar-stats.html</strong>, replacing any existing copy. Do this any time you want to push an update.
+      </p>
+      <div class="data-actions">
+        <button class="btn btn-green" onclick="publishData()">⚡ Download publish file</button>
+      </div>
+      <p style="font-size:11px;color:rgba(122,128,96,.6);margin-top:12px;line-height:1.6;">
+        The file must be named exactly <code style="background:rgba(168,196,30,.08);padding:1px 6px;border-radius:3px;color:var(--lime);">solar-stats-data.json</code> and sit next to <code style="background:rgba(168,196,30,.08);padding:1px 6px;border-radius:3px;color:var(--lime);">solar-stats.html</code> on your web host. Upload via your site's file manager, cPanel, FTP client, or however you normally update your site files.
+      </p>
+    </div>
+  </div>
+
   <!-- DATA MANAGEMENT -->
   <div class="admin-section">
     <div class="section-head">Data management</div>
     <div class="form-card">
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Data is stored in your browser's localStorage — it will persist between visits on the same device but won't sync across devices. Export a JSON backup regularly and import it on any other device or after clearing your browser.</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">This is a personal backup of your data — separate from publishing. Data is stored in your browser's localStorage, so export a backup regularly and import it on any other device or after clearing your browser.</p>
       <div class="data-actions">
         <button class="btn btn-amber" onclick="exportData()">Export backup (JSON)</button>
         <label class="btn btn-outline" style="cursor:pointer;">
@@ -363,71 +379,72 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 // ── Historical rate lookup ──
 // Flexible = Ofgem price cap unit rate (national avg, Direct Debit, inc 5% VAT)
 // IOG = Intelligent Octopus Go off-peak rate (national, inc VAT)
+// Outgoing = Outgoing Octopus flat export rate (15p Sep 2022 – Feb 2026, 12p from Mar 2026)
 // Sources: Ofgem quarterly cap publications, Octopus Energy confirmed rate changes
-// Format: { year, month (1-12), flex, iog } — rates in pence/kWh
+// Format: { year, month (1-12), flex, iog, outgoing } — rates in pence/kWh
 const RATE_HISTORY = [
   // 2022
-  { year:2022, month:1,  flex:20.8, iog:null },
-  { year:2022, month:2,  flex:20.8, iog:null },
-  { year:2022, month:3,  flex:20.8, iog:null },
-  { year:2022, month:4,  flex:28.3, iog:null },
-  { year:2022, month:5,  flex:28.3, iog:null },
-  { year:2022, month:6,  flex:28.3, iog:null },
-  { year:2022, month:7,  flex:28.3, iog:null },
-  { year:2022, month:8,  flex:28.3, iog:null },
-  { year:2022, month:9,  flex:28.3, iog:null },
-  { year:2022, month:10, flex:34.0, iog:7.5  }, // IOG launched Oct 2022
-  { year:2022, month:11, flex:34.0, iog:7.5  },
-  { year:2022, month:12, flex:34.0, iog:7.5  },
+  { year:2022, month:1,  flex:20.8, iog:null, outgoing:15 },
+  { year:2022, month:2,  flex:20.8, iog:null, outgoing:15 },
+  { year:2022, month:3,  flex:20.8, iog:null, outgoing:15 },
+  { year:2022, month:4,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:5,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:6,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:7,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:8,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:9,  flex:28.3, iog:null, outgoing:15 },
+  { year:2022, month:10, flex:34.0, iog:7.5, outgoing:15 }, // IOG launched Oct 2022
+  { year:2022, month:11, flex:34.0, iog:7.5, outgoing:15 },
+  { year:2022, month:12, flex:34.0, iog:7.5, outgoing:15 },
   // 2023
-  { year:2023, month:1,  flex:33.0, iog:7.5  },
-  { year:2023, month:2,  flex:33.0, iog:7.5  },
-  { year:2023, month:3,  flex:33.0, iog:7.5  },
-  { year:2023, month:4,  flex:24.5, iog:7.5  },
-  { year:2023, month:5,  flex:24.5, iog:7.5  },
-  { year:2023, month:6,  flex:24.5, iog:7.5  },
-  { year:2023, month:7,  flex:30.1, iog:7.0  }, // IOG dropped to 7p
-  { year:2023, month:8,  flex:30.1, iog:7.0  },
-  { year:2023, month:9,  flex:30.1, iog:7.0  },
-  { year:2023, month:10, flex:27.4, iog:7.0  },
-  { year:2023, month:11, flex:27.4, iog:7.0  },
-  { year:2023, month:12, flex:27.4, iog:7.0  },
+  { year:2023, month:1,  flex:33.0, iog:7.5, outgoing:15 },
+  { year:2023, month:2,  flex:33.0, iog:7.5, outgoing:15 },
+  { year:2023, month:3,  flex:33.0, iog:7.5, outgoing:15 },
+  { year:2023, month:4,  flex:24.5, iog:7.5, outgoing:15 },
+  { year:2023, month:5,  flex:24.5, iog:7.5, outgoing:15 },
+  { year:2023, month:6,  flex:24.5, iog:7.5, outgoing:15 },
+  { year:2023, month:7,  flex:30.1, iog:7.0, outgoing:15 }, // IOG dropped to 7p
+  { year:2023, month:8,  flex:30.1, iog:7.0, outgoing:15 },
+  { year:2023, month:9,  flex:30.1, iog:7.0, outgoing:15 },
+  { year:2023, month:10, flex:27.4, iog:7.0, outgoing:15 },
+  { year:2023, month:11, flex:27.4, iog:7.0, outgoing:15 },
+  { year:2023, month:12, flex:27.4, iog:7.0, outgoing:15 },
   // 2024
-  { year:2024, month:1,  flex:29.0, iog:7.0  },
-  { year:2024, month:2,  flex:29.0, iog:7.0  },
-  { year:2024, month:3,  flex:29.0, iog:7.0  },
-  { year:2024, month:4,  flex:24.5, iog:7.0  },
-  { year:2024, month:5,  flex:24.5, iog:7.0  },
-  { year:2024, month:6,  flex:24.5, iog:7.0  },
-  { year:2024, month:7,  flex:22.4, iog:7.0  },
-  { year:2024, month:8,  flex:22.4, iog:7.0  },
-  { year:2024, month:9,  flex:22.4, iog:7.0  },
-  { year:2024, month:10, flex:24.5, iog:7.0  },
-  { year:2024, month:11, flex:24.5, iog:7.0  },
-  { year:2024, month:12, flex:24.5, iog:7.0  },
+  { year:2024, month:1,  flex:29.0, iog:7.0, outgoing:15 },
+  { year:2024, month:2,  flex:29.0, iog:7.0, outgoing:15 },
+  { year:2024, month:3,  flex:29.0, iog:7.0, outgoing:15 },
+  { year:2024, month:4,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2024, month:5,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2024, month:6,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2024, month:7,  flex:22.4, iog:7.0, outgoing:15 },
+  { year:2024, month:8,  flex:22.4, iog:7.0, outgoing:15 },
+  { year:2024, month:9,  flex:22.4, iog:7.0, outgoing:15 },
+  { year:2024, month:10, flex:24.5, iog:7.0, outgoing:15 },
+  { year:2024, month:11, flex:24.5, iog:7.0, outgoing:15 },
+  { year:2024, month:12, flex:24.5, iog:7.0, outgoing:15 },
   // 2025
-  { year:2025, month:1,  flex:24.5, iog:7.0  },
-  { year:2025, month:2,  flex:24.5, iog:7.0  },
-  { year:2025, month:3,  flex:24.5, iog:7.0  },
-  { year:2025, month:4,  flex:29.3, iog:7.0  },
-  { year:2025, month:5,  flex:29.3, iog:7.0  },
-  { year:2025, month:6,  flex:29.3, iog:7.0  },
-  { year:2025, month:7,  flex:25.3, iog:7.0  },
-  { year:2025, month:8,  flex:25.3, iog:7.0  },
-  { year:2025, month:9,  flex:25.3, iog:7.0  },
-  { year:2025, month:10, flex:27.0, iog:7.5  }, // rate review Oct 2025
-  { year:2025, month:11, flex:27.0, iog:7.5  },
-  { year:2025, month:12, flex:27.0, iog:7.5  },
+  { year:2025, month:1,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2025, month:2,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2025, month:3,  flex:24.5, iog:7.0, outgoing:15 },
+  { year:2025, month:4,  flex:29.3, iog:7.0, outgoing:15 },
+  { year:2025, month:5,  flex:29.3, iog:7.0, outgoing:15 },
+  { year:2025, month:6,  flex:29.3, iog:7.0, outgoing:15 },
+  { year:2025, month:7,  flex:25.3, iog:7.0, outgoing:15 },
+  { year:2025, month:8,  flex:25.3, iog:7.0, outgoing:15 },
+  { year:2025, month:9,  flex:25.3, iog:7.0, outgoing:15 },
+  { year:2025, month:10, flex:27.0, iog:7.5, outgoing:15 }, // rate review Oct 2025
+  { year:2025, month:11, flex:27.0, iog:7.5, outgoing:15 },
+  { year:2025, month:12, flex:27.0, iog:7.5, outgoing:15 },
   // 2026
-  { year:2026, month:1,  flex:27.0, iog:9.0  }, // IOG rose Jan 2026
-  { year:2026, month:2,  flex:27.0, iog:9.0  },
-  { year:2026, month:3,  flex:27.0, iog:9.0  },
-  { year:2026, month:4,  flex:24.7, iog:5.49 }, // Apr 2026: gov levy cut passed through
-  { year:2026, month:5,  flex:24.7, iog:7.5  }, // May 2026: raised due to Middle East volatility
-  { year:2026, month:6,  flex:24.7, iog:7.5  },
-  { year:2026, month:7,  flex:26.38,iog:8.0  }, // Jul 2026: new price cap
-  { year:2026, month:8,  flex:26.38,iog:8.0  },
-  { year:2026, month:9,  flex:26.38,iog:8.0  },
+  { year:2026, month:1,  flex:27.0, iog:9.0, outgoing:15 }, // IOG rose Jan 2026
+  { year:2026, month:2,  flex:27.0, iog:9.0, outgoing:15 },
+  { year:2026, month:3,  flex:27.0, iog:9.0, outgoing:12 },
+  { year:2026, month:4,  flex:24.7, iog:5.49, outgoing:12 }, // Apr 2026: gov levy cut passed through
+  { year:2026, month:5,  flex:24.7, iog:7.5, outgoing:12 }, // May 2026: raised due to Middle East volatility
+  { year:2026, month:6,  flex:24.7, iog:7.5, outgoing:12 },
+  { year:2026, month:7,  flex:26.38,iog:8.0, outgoing:12 }, // Jul 2026: new price cap
+  { year:2026, month:8,  flex:26.38,iog:8.0, outgoing:12 },
+  { year:2026, month:9,  flex:26.38,iog:8.0, outgoing:12 },
 ];
 
 function getHistoricalRates(year, month) {
@@ -441,8 +458,10 @@ function autoFillRates() {
   const rates = getHistoricalRates(year, month);
   const impEl = document.getElementById('m_importRate');
   const iogEl = document.getElementById('m_iogRate');
+  const expEl = document.getElementById('m_exportRate');
   const hintEl = document.getElementById('hint_importRate');
   const hintIog = document.getElementById('hint_iogRate');
+  const hintExp = document.getElementById('hint_exportRate');
 
   if (rates && impEl) {
     if (!impEl.value) {
@@ -459,6 +478,14 @@ function autoFillRates() {
     if (hintIog) hintIog.textContent = rates?.iog
       ? `Historical rate: ${rates.iog}p/kWh (Int. Octopus Go off-peak, ${MONTH_NAMES[month-1]} ${year}) — override if your actual rate differed`
       : 'Override IOG off-peak rate — leave blank to use system default';
+  }
+  if (rates?.outgoing && expEl) {
+    if (!expEl.value) {
+      expEl.value = rates.outgoing;
+    }
+    if (hintExp) hintExp.textContent = rates?.outgoing
+      ? `Historical rate: ${rates.outgoing}p/kWh (Outgoing Octopus, ${MONTH_NAMES[month-1]} ${year}) — override if you were on a different export tariff`
+      : 'Override SEG/export rate for this month — leave blank to use system default';
   }
 }
 
@@ -598,6 +625,7 @@ function clearRateNoteIfManual() {
     // Only auto-fill if fields are empty
     if (!document.getElementById('m_importRate').value) document.getElementById('m_importRate').value = rates.flex;
     if (!document.getElementById('m_iogRate').value && rates.iog) document.getElementById('m_iogRate').value = rates.iog;
+    if (!document.getElementById('m_exportRate').value && rates.outgoing) document.getElementById('m_exportRate').value = rates.outgoing;
   } else {
     note.style.display = 'none';
   }
@@ -632,6 +660,7 @@ function saveMonth() {
   const histRates    = getHistoricalRates(year, month);
   const histFlex     = histRates?.flex || 0;
   const histIOG      = histRates?.iog  || 0;
+  const histOutgoing = histRates?.outgoing || 0;
 
   const homeConsumed = parseFloat(document.getElementById('m_homeConsumed').value) || 0;
   const evCharged    = parseFloat(document.getElementById('m_evCharged').value) || 0;
@@ -645,7 +674,7 @@ function saveMonth() {
     evCharged,
     selfConsumed,
     exported:     parseFloat(document.getElementById('m_exported').value) || 0,
-    exportRate:   parseFloat(document.getElementById('m_exportRate').value) || sysDefExport,
+    exportRate:   parseFloat(document.getElementById('m_exportRate').value) || histOutgoing || sysDefExport,
     importRate:   parseFloat(document.getElementById('m_importRate').value) || histFlex || sysDefImport,
     iogRate:      parseFloat(document.getElementById('m_iogRate').value)    || histIOG  || sysDefIOG,
     forecast:     parseFloat(document.getElementById('m_forecast').value) || null,
@@ -705,6 +734,18 @@ function renderMonthList() {
 }
 
 // ── Data management ──
+function publishData() {
+  const data = loadData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'solar-stats-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Publish file downloaded — upload it to your site now ✓');
+}
+
 function exportData() {
   const data = loadData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
