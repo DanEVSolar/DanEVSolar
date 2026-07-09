@@ -260,7 +260,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 
     <div class="chart-card full">
       <div class="chart-title">Cumulative generation</div>
-      <div class="chart-sub">Running total since system install</div>
+      <div class="chart-sub">Running total since system install, plus cumulative saving vs Flexible and vs Intelligent Octopus Go</div>
       <div class="chart-wrap"><canvas id="chartCumulative"></canvas></div>
     </div>
 
@@ -825,7 +825,7 @@ function renderCumulativeChart(data) {
     fill: true,
     yAxisID: 'y',
   }];
-  // Payback line
+  // Payback line(s)
   if (totalCost) {
     let cCum = 0;
     const savingVals = all.map(m => {
@@ -841,12 +841,32 @@ function renderCumulativeChart(data) {
       return +cCum.toFixed(2);
     });
     datasets.push({
-      label: 'Cumulative saving (£)',
+      label: 'Cumulative saving vs Flexible (£)',
       data: savingVals,
       borderColor: '#e8a020',
       backgroundColor: 'transparent',
       borderWidth: 2,
       borderDash: [4,3],
+      pointRadius: 2,
+      tension: 0.2,
+      yAxisID: 'y2',
+    });
+
+    let cCumIOG = 0;
+    const savingValsIOG = all.map(m => {
+      const sys = loadData()?.system || {};
+      const cmp = computeMonthComparison(m, sys);
+      const s = cmp.iGoNoSolar - cmp.iGoWithSolar;
+      cCumIOG += s;
+      return +cCumIOG.toFixed(2);
+    });
+    datasets.push({
+      label: 'Cumulative saving vs IOG (£)',
+      data: savingValsIOG,
+      borderColor: '#f426b6',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [2,2],
       pointRadius: 2,
       tension: 0.2,
       yAxisID: 'y2',
