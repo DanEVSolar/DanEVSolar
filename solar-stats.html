@@ -97,13 +97,14 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 @media(max-width:700px){.payback-grid{grid-template-columns:1fr;}}
 
 /* SYSTEM SPEC */
-.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:48px;}
+.spec-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-bottom:48px;}
 .spec-item{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);padding:16px 20px;display:flex;gap:12px;align-items:flex-start;}
 .spec-icon{font-size:18px;line-height:1;margin-top:2px;}
 .spec-label{font-size:11px;color:var(--on-dark-muted);margin-bottom:3px;}
 .spec-val{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--off-white);}
 .spec-highlight{border-left:3px solid var(--lime) !important;background:rgba(168,196,30,.08);}
 .spec-val-highlight{color:var(--lime);}
+@media(max-width:900px){.spec-grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:700px){.spec-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:420px){.spec-grid{grid-template-columns:1fr 1fr;}}
 
@@ -409,11 +410,6 @@ function renderSpec(data) {
   }
   const s = data.system;
   const tariffDisplay = s.tariffName || '—';
-  const rateDisplay = s.unitRate
-    ? s.offPeakRate
-      ? `${s.offPeakRate}p off-peak / ${s.unitRate}p day${s.peakRate ? ' / ' + s.peakRate + 'p peak' : ''}`
-      : `${s.unitRate}p/kWh flat`
-    : '—';
   const items = [
     { icon:'☀️', label:'Panel capacity', val: s.capacity ? s.capacity+'kWp' : '—' },
     { icon:'🔢', label:'No. of panels', val: s.panels ? s.panels+' panels' : '—' },
@@ -425,9 +421,6 @@ function renderSpec(data) {
     { icon:'💷', label:'Install cost', val: s.installCost ? '£'+Number(s.installCost).toLocaleString() : '—' },
     { icon:'🏠', label:'Installer', val: s.installer || '—' },
     { icon:'⚡', label:'Current tariff', val: tariffDisplay, highlight: true },
-    { icon:'📈', label:'Import rates', val: rateDisplay },
-    { icon:'📤', label:'Export (SEG) rate', val: s.exportRate ? s.exportRate+'p/kWh' : '—' },
-    { icon:'🕐', label:'Off-peak window', val: s.offPeakWindow || (s.offPeakRate ? '—' : 'N/A') },
   ];
   el.innerHTML = items.map(i => `
     <div class="spec-item${i.highlight ? ' spec-highlight' : ''}">
