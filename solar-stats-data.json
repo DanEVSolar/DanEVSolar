@@ -81,19 +81,6 @@
     },
     {
       "year": 2026,
-      "month": 2,
-      "generated": 180,
-      "homeConsumed": 739.2,
-      "evCharged": 391.3,
-      "selfConsumed": 1130.5,
-      "exported": 39.8,
-      "exportRate": 15,
-      "importRate": 26.38,
-      "forecast": null,
-      "notes": "Some of February's generation figures missing"
-    },
-    {
-      "year": 2026,
       "month": 1,
       "generated": 110,
       "homeConsumed": 950,
@@ -644,6 +631,21 @@
       "exportRate": 15,
       "importRate": 27,
       "iogRate": 7.5,
+      "forecast": null,
+      "notes": null
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "generated": 122.6,
+      "homeConsumed": 739.2,
+      "evCharged": 381.3,
+      "selfConsumed": 1120.5,
+      "exported": 39.8,
+      "gridImport": 1134.64,
+      "exportRate": 12,
+      "importRate": 26.38,
+      "iogRate": 9,
       "forecast": null,
       "notes": null
     }
