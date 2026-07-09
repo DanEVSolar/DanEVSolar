@@ -449,7 +449,7 @@ function renderYearTabs(data) {
   const years = getYears(data);
   const el = document.getElementById('yearTabs');
   if (!years.length) { el.innerHTML = ''; return; }
-  if (!selectedYear || !years.includes(selectedYear)) selectedYear = years[years.length-1];
+  if (!selectedYear || (selectedYear !== 'all' && !years.includes(selectedYear))) selectedYear = years[years.length-1];
   el.innerHTML = [
     ...years.map(y => `<button class="year-tab${y===selectedYear?' active':''}" onclick="selectYear(${y})">${y}</button>`),
     `<button class="year-tab${selectedYear==='all'?' active':''}" onclick="selectYear('all')">All time</button>`
