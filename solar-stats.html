@@ -198,7 +198,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
   <!-- SYSTEM SPEC -->
   <div class="section-lbl">System specification</div>
   <div class="spec-grid" id="specGrid">
-    <div class="no-data">No data yet — <a href="solar-stats-admin.html">add your system details</a> to get started.</div>
+    <div class="no-data">No data published yet.</div>
   </div>
 
   <!-- YEAR TABS -->
@@ -282,7 +282,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="9" class="no-data">No data yet. <a href="solar-stats-admin.html">Add your first month →</a></td></tr>
+        <tr><td colspan="9" class="no-data">No data published yet.</td></tr>
       </tbody>
     </table>
   </div>
@@ -295,7 +295,6 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
     <ul class="footer-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="octopus-tariff-comparison.html">Tariff Compare</a></li>
-      <li><a href="solar-stats-admin.html">Update Stats</a></li>
       <li><a href="https://youtube.com/@DanEVSolar" target="_blank">YouTube</a></li>
     </ul>
     <div class="footer-copy">© 2026 DanEVSolar. Figures are estimates based on member-submitted data.</div>
@@ -405,7 +404,7 @@ function getYears(data) {
 function renderSpec(data) {
   const el = document.getElementById('specGrid');
   if (!data?.system) {
-    el.innerHTML = `<div class="no-data" style="grid-column:1/-1">No system data yet — <a href="solar-stats-admin.html">add your system details</a> to get started.</div>`;
+    el.innerHTML = `<div class="no-data" style="grid-column:1/-1">No data published yet.</div>`;
     return;
   }
   const s = data.system;
@@ -956,7 +955,7 @@ function renderTable(data) {
   const months = filteredMonths(data);
   const tbody = document.getElementById('tableBody');
   if (!months.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="no-data">No data yet. <a href="solar-stats-admin.html">Add your first month →</a></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="no-data">No data published yet.</td></tr>`;
     return;
   }
   const maxGen = Math.max(...months.map(m => m.generated||0));
