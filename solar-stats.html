@@ -131,17 +131,18 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 
 /* CHART CARDS */
 .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
-.chart-card{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);border-radius:14px;padding:28px;}
+.chart-card{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);border-radius:14px;padding:28px;min-width:0;}
 .chart-card.full{grid-column:1/-1;}
 .chart-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--off-white);margin-bottom:4px;}
 .chart-sub{font-size:12px;color:var(--on-dark-muted);margin-bottom:20px;}
-.chart-wrap{position:relative;height:240px;overflow-x:auto;overflow-y:hidden;}
+.chart-wrap{position:relative;height:240px;}
 .chart-wrap.tall{height:300px;}
+.chart-wrap.scrollable{overflow-x:auto;overflow-y:hidden;min-width:0;}
 .chart-scroll-inner{position:relative;height:100%;}
-.chart-wrap::-webkit-scrollbar{height:6px;}
-.chart-wrap::-webkit-scrollbar-track{background:rgba(168,196,30,.05);border-radius:3px;}
-.chart-wrap::-webkit-scrollbar-thumb{background:rgba(168,196,30,.25);border-radius:3px;}
-.chart-wrap::-webkit-scrollbar-thumb:hover{background:rgba(168,196,30,.4);}
+.chart-wrap.scrollable::-webkit-scrollbar{height:6px;}
+.chart-wrap.scrollable::-webkit-scrollbar-track{background:rgba(168,196,30,.05);border-radius:3px;}
+.chart-wrap.scrollable::-webkit-scrollbar-thumb{background:rgba(168,196,30,.25);border-radius:3px;}
+.chart-wrap.scrollable::-webkit-scrollbar-thumb:hover{background:rgba(168,196,30,.4);}
 @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}.chart-card.full{grid-column:1;}}
 
 /* MONTH TABLE */
@@ -248,13 +249,13 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
     <div class="chart-card">
       <div class="chart-title">Self-consumption vs export</div>
       <div class="chart-sub">Where the generated energy goes each month</div>
-      <div class="chart-wrap"><div class="chart-scroll-inner" id="scrollSelfExport"><canvas id="chartSelfExport"></canvas></div></div>
+      <div class="chart-wrap scrollable"><div class="chart-scroll-inner" id="scrollSelfExport"><canvas id="chartSelfExport"></canvas></div></div>
     </div>
 
     <div class="chart-card">
       <div class="chart-title">Financial performance</div>
       <div class="chart-sub">Monthly saving: import avoided + export income</div>
-      <div class="chart-wrap"><div class="chart-scroll-inner" id="scrollFinancial"><canvas id="chartFinancial"></canvas></div></div>
+      <div class="chart-wrap scrollable"><div class="chart-scroll-inner" id="scrollFinancial"><canvas id="chartFinancial"></canvas></div></div>
     </div>
 
     <div class="chart-card full">
@@ -273,7 +274,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
         <strong style="color:rgba(124,58,237,.8);">Int. Go, no solar, no battery:</strong> EV + 25% of home at off-peak; 75% of home + solar-replaced kWh at day rate.<br>
         <strong style="color:rgba(232,160,32,.8);">Int. Go, with solar+battery:</strong> Battery charged fully overnight at off-peak every night (profitable: export rate > off-peak cost). All daytime home load covered by battery. Solar exported at full SEG rate rather than self-consumed.
       </div>
-      <div class="chart-wrap tall"><div class="chart-scroll-inner" id="scrollComparison"><canvas id="chartComparison"></canvas></div></div>
+      <div class="chart-wrap tall scrollable"><div class="chart-scroll-inner" id="scrollComparison"><canvas id="chartComparison"></canvas></div></div>
     </div>
 
   </div>
