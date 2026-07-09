@@ -269,10 +269,11 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
       <div class="chart-sub">Monthly electricity cost across four scenarios based on your actual usage</div>
       <div style="background:rgba(168,204,0,.06);border:1px solid rgba(168,204,0,.15);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:12px;line-height:1.7;color:rgba(240,242,232,.6);">
         <strong style="color:rgba(240,242,232,.85);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;">Scenario assumptions</strong><br>
-        <strong style="color:rgba(148,163,184,.8);">Flexible, no solar:</strong> No battery. All consumption imported at the flat day rate.<br>
-        <strong style="color:rgba(168,204,0,.8);">Flexible, with solar+battery:</strong> Battery charged from solar (no cheap overnight window on Flexible). Solar export earns SEG rate. Self-consumed solar offsets day-rate import.<br>
-        <strong style="color:rgba(124,58,237,.8);">Int. Go, no solar, no battery:</strong> EV + 25% of home at off-peak; 75% of home + solar-replaced kWh at day rate.<br>
-        <strong style="color:rgba(232,160,32,.8);">Int. Go, with solar+battery:</strong> Battery charged fully overnight at off-peak every night (profitable: export rate > off-peak cost). All daytime home load covered by battery. Solar exported at full SEG rate rather than self-consumed.
+        <span style="color:rgba(232,160,32,.85)">Where a month has an actual grid import figure entered, that's used directly instead of any estimate below — always more accurate.</span><br>
+        <strong style="color:rgba(148,163,184,.8);">Flexible, no solar:</strong> No battery. Home + EV consumption imported at the flat day rate.<br>
+        <strong style="color:rgba(168,204,0,.8);">Flexible, with solar+battery:</strong> Uses actual grid import if entered; otherwise estimated as the shortfall between self-consumption and an assumed typical daily demand (≈ battery capacity, or panel capacity × 3). Imported at the flat day rate — no cheap window on Flexible.<br>
+        <strong style="color:rgba(124,58,237,.8);">Int. Go, no solar, no battery:</strong> EV + 25% of home at off-peak; 75% of home at day rate.<br>
+        <strong style="color:rgba(232,160,32,.8);">Int. Go, with solar+battery:</strong> Uses actual grid import if entered, assumed off-peak. Otherwise modelled as battery charged fully overnight at off-peak, covering all daytime home load, plus EV at off-peak. Solar exported at full SEG rate.
       </div>
       <div class="chart-wrap tall scrollable"><div class="chart-scroll-inner" id="scrollComparison"><canvas id="chartComparison"></canvas></div></div>
     </div>
@@ -868,10 +869,10 @@ function renderCumulativeChart(data) {
 // ── Monthly table ──
 // ── Scenario comparison helper ──
 // Returns monthly cost for 4 scenarios:
-// 1. Flexible, no solar — total usage at flat day rate
-// 2. Flexible, with solar — (usage - selfConsumed) at day rate, minus export income
+// 1. Flexible, no solar — home + EV usage at flat day rate (no export in a no-solar world)
+// 2. Flexible, with solar — standing charge minus export income (self-consumption covers all tracked usage)
 // 3. Intelligent Go, no solar — 25% of home + all EV at offPeak, rest at day rate
-// 4. Intelligent Go, with solar — same but offset by self-consumption and export income
+// 4. Intelligent Go, with solar — battery charged overnight, solar exported, minus export income
 function computeMonthComparison(m, sys) {
   // Rate priority: 1) per-month stored rate, 2) historical lookup, 3) system setting, 4) fallback
   const histRates  = RATE_HISTORY ? RATE_HISTORY.find(r => r.year===m.year && r.month===m.month) : null;
@@ -886,52 +887,65 @@ function computeMonthComparison(m, sys) {
   const homeUsage = m.homeConsumed ?? m.selfConsumed ?? 0;
   const evUsage   = m.evCharged || 0;
   const exported  = m.exported || 0;
-  const selfCon   = m.selfConsumed || 0;
+  const capacity  = parseFloat(sys.capacity) || 0; // kWp panel capacity
+  const hasRealGridImport = m.gridImport != null && !isNaN(m.gridImport);
 
-  // totalUsage = everything you actually consumed + what solar exported
-  // (without solar you'd have imported the exported amount too)
-  const totalUsage = homeUsage + evUsage + exported;
+  // Estimated typical daily household demand — only used as a FALLBACK when actual
+  // grid import hasn't been entered for a month. Real grid import (from your
+  // inverter/GivEnergy portal) is always used directly when present, since it's
+  // measured rather than guessed.
+  // Rule of thumb: battery capacity ≈ a full day's typical usage (common sizing
+  // convention). Falls back to panel capacity × 3, then a flat 8kWh/day UK-typical
+  // floor if neither is set.
+  const assumedDailyDemand = battCap > 0 ? battCap : (capacity > 0 ? capacity * 3 : 8);
+  const assumedMonthlyDemand = assumedDailyDemand * daysInMonth;
 
   // ── 1. FLEXIBLE — no solar, no battery ──
-  // All usage at flat day rate
-  const flexNoSolar = standingCost + totalUsage * dayRate / 100;
+  // All actual consumption (home + EV) at flat day rate.
+  // Exported kWh is NOT included — with no solar there's no generation to export in the
+  // first place, so it isn't part of what the household would need to import.
+  const flexNoSolar = standingCost + (homeUsage + evUsage) * dayRate / 100;
 
   // ── 2. FLEXIBLE — with solar + battery ──
-  // Battery has no cheap charging window on Flexible (flat rate all day).
-  // Solar reduces import; exported kWh earns SEG rate.
-  // Self-consumed solar offsets day-rate import.
-  // Battery is charged from solar during the day (not from grid overnight since no cheap rate).
-  const flexImport = Math.max(0, totalUsage - selfCon);
-  const flexWithSolar = standingCost + flexImport * dayRate / 100 - exported * exportRate / 100;
+  // If actual grid import is recorded for the month, use it directly — it's measured,
+  // not guessed. Otherwise fall back to the estimated shortfall vs typical demand.
+  // There's no cheap window on Flexible, so import (whether topping up usage or
+  // filling the battery) costs the same flat day rate whenever it happens.
+  const flexImportKwh = hasRealGridImport ? m.gridImport : Math.max(0, assumedMonthlyDemand - (homeUsage + evUsage));
+  const flexWithSolar = standingCost + flexImportKwh * dayRate / 100 - exported * exportRate / 100;
 
   // ── 3. INTELLIGENT GO — no solar, no battery ──
   // Standard household, no scheduling ability beyond EV.
   // EV charges at off-peak. Home: 25% shifts to off-peak (natural overnight loads),
-  // 75% at day rate. No battery so no further shifting.
+  // 75% at day rate. Exported kWh is NOT included — same reasoning as scenario 1,
+  // there's no generation (and therefore no export) in a no-solar world.
   const iGoNoSolar = standingCost
     + (evUsage + homeUsage * 0.25) * offPeak / 100
-    + (homeUsage * 0.75 + exported) * dayRate / 100;
-    // Note: without solar the exported kWh would have been imported at day rate
+    + (homeUsage * 0.75) * dayRate / 100;
 
   // ── 4. INTELLIGENT GO — with solar + battery ──
-  // Assumption: battery is charged FULLY overnight at off-peak every night
-  // (this is profitable because export rate > off-peak charging cost).
-  // During the day: solar generates, you EXPORT it to earn SEG rate rather than
-  // self-consuming, because export rate > off-peak rate paid to charge battery.
-  // Battery (charged overnight) covers all daytime home load.
-  // Result: home import = overnight battery charge + EV charge, both at off-peak.
-  // Solar export earns full SEG rate.
-  // Monthly overnight battery charge = min(battCap, homeUsage/daysInMonth) × daysInMonth
-  // (battery only needs to cover what home actually uses per day)
-  const dailyHomeLoad = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
-  const dailyBattCharge = Math.min(battCap, dailyHomeLoad);
-  const monthlyBattCharge = dailyBattCharge * daysInMonth;
-  const iGoWithSolar = standingCost
-    + monthlyBattCharge * offPeak / 100   // overnight battery charging cost
-    + evUsage * offPeak / 100             // EV charging at off-peak
-    - exported * exportRate / 100;        // export income from solar
+  // If actual grid import is recorded, use it directly, assumed entirely at the
+  // off-peak rate — a battery-optimised household on Intelligent Go would always
+  // schedule charging into the cheap window rather than import at the day rate.
+  // Otherwise fall back to the modelled assumption: battery charged FULLY overnight
+  // at off-peak every night (profitable since export rate > off-peak cost), covering
+  // all daytime home load, with EV charging also assumed off-peak.
+  let iGoWithSolar;
+  if (hasRealGridImport) {
+    iGoWithSolar = standingCost
+      + m.gridImport * offPeak / 100      // actual grid import, assumed off-peak
+      - exported * exportRate / 100;      // export income from solar
+  } else {
+    const dailyHomeLoad = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
+    const dailyBattCharge = Math.min(battCap, dailyHomeLoad);
+    const monthlyBattCharge = dailyBattCharge * daysInMonth;
+    iGoWithSolar = standingCost
+      + monthlyBattCharge * offPeak / 100  // overnight battery charging cost
+      + evUsage * offPeak / 100            // EV charging at off-peak
+      - exported * exportRate / 100;       // export income from solar
+  }
 
-  return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar };
+  return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar, usedRealGridImport: hasRealGridImport };
 }
 
 /*

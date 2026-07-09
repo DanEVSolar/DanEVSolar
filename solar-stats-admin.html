@@ -284,6 +284,16 @@ select option{background:var(--bg3);}
         </div>
       </div>
 
+      <!-- Grid import -->
+      <div style="margin-top:16px;padding:16px 20px;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Grid import</div>
+        <div class="field">
+          <label>⚡ Total grid import <span>(kWh, optional)</span></label>
+          <input type="number" id="m_gridImport" placeholder="e.g. 240.0" step="0.1" min="0">
+          <div class="field-hint">Total electricity imported from the grid this month, for <strong>everything</strong> — home use and any EV charging that came from the grid rather than solar. From your GivEnergy/inverter portal or smart meter. If left blank, the tariff comparison chart estimates this instead, which is far less accurate — enter it whenever you can.</div>
+        </div>
+      </div>
+
       <div class="field-grid three" style="margin-top:16px;">
         <div class="field">
           <label>Export rate <span>(p/kWh)</span></label>
@@ -604,7 +614,7 @@ function validateMonth() {
 
 // ── Month form ──
 function clearMonthForm() {
-  ['m_generated','m_selfConsumed','m_homeConsumed','m_evCharged','m_exported','m_exportRate','m_importRate','m_iogRate','m_forecast','m_notes'].forEach(id => {
+  ['m_generated','m_selfConsumed','m_homeConsumed','m_evCharged','m_gridImport','m_exported','m_exportRate','m_importRate','m_iogRate','m_forecast','m_notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -639,6 +649,7 @@ function fillMonthForm(entry) {
   document.getElementById('m_evCharged').value    = entry.evCharged || '';
   document.getElementById('m_selfConsumed').value = entry.selfConsumed || '';
   document.getElementById('m_exported').value     = entry.exported || '';
+  document.getElementById('m_gridImport').value   = entry.gridImport ?? '';
   document.getElementById('m_exportRate').value   = entry.exportRate || '';
   document.getElementById('m_importRate').value   = entry.importRate || '';
   document.getElementById('m_iogRate').value      = entry.iogRate || '';
@@ -674,6 +685,7 @@ function saveMonth() {
     evCharged,
     selfConsumed,
     exported:     parseFloat(document.getElementById('m_exported').value) || 0,
+    gridImport:   document.getElementById('m_gridImport').value !== '' ? parseFloat(document.getElementById('m_gridImport').value) : null,
     exportRate:   parseFloat(document.getElementById('m_exportRate').value) || histOutgoing || sysDefExport,
     importRate:   parseFloat(document.getElementById('m_importRate').value) || histFlex || sysDefImport,
     iogRate:      parseFloat(document.getElementById('m_iogRate').value)    || histIOG  || sysDefIOG,
