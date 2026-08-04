@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DanEVSolar — The Complete UK Solar Install Course</title>
+<meta name="description" content="Everything you need before installing solar in the UK — system sizing, real costs, grants, choosing an installer, and honest payback numbers. No sales pitch.">
+<link rel="canonical" href="https://danevsolar.com/DanEVSolar-SolarCourse.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DanEVSolar">
+<meta property="og:title" content="The Complete UK Solar Install Course — DanEVSolar">
+<meta property="og:description" content="Everything you need before installing solar in the UK — system sizing, real costs, grants, choosing an installer, and honest payback numbers. No sales pitch.">
+<meta property="og:url" content="https://danevsolar.com/DanEVSolar-SolarCourse.html">
+<meta property="og:image" content="https://danevsolar.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Complete UK Solar Install Course — DanEVSolar">
+<meta name="twitter:description" content="Everything you need before installing solar in the UK — system sizing, real costs, grants, choosing an installer, and honest payback numbers. No sales pitch.">
+<meta name="twitter:image" content="https://danevsolar.com/og-image.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -48,6 +60,14 @@ body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;dis
 .top-prog-bar{width:120px;height:3px;background:rgba(168,204,0,0.1);border-radius:2px;overflow:hidden;}
 .top-prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber));border-radius:2px;transition:width .4s ease;width:0%;}
 .top-prog-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+
+.course-nav{height:40px;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--bord2);display:flex;align-items:center;gap:10px;padding:0 20px;overflow-x:auto;}
+.course-nav .home-link{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--green);text-decoration:none;white-space:nowrap;}
+.course-nav .home-link:hover{text-decoration:underline;}
+.course-nav .nav-sep{color:var(--bord2);font-size:12px;}
+.course-nav .nav-pill{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);text-decoration:none;white-space:nowrap;padding:5px 12px;border-radius:14px;border:1px solid var(--bord2);transition:all .2s;}
+.course-nav .nav-pill:hover{color:var(--white);border-color:var(--border);}
+.course-nav .nav-pill.current{background:var(--green);color:var(--bg);border-color:var(--green);pointer-events:none;}
 
 /* ── LAYOUT ── */
 .layout{display:flex;flex:1;overflow:hidden;}
@@ -403,6 +423,10 @@ body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;dis
 }
 .gate-footer{margin-top:24px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
 .gate-footer a{color:var(--green);text-decoration:none;}
+.gate-nav{margin-top:14px;padding-top:14px;border-top:1px solid var(--bord2);font-size:11.5px;color:var(--muted);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.gate-nav a{color:var(--muted);text-decoration:none;}
+.gate-nav a:hover{color:var(--green);}
+.gate-nav span{color:var(--bord2);}
 </style>
 </head>
 <body>
@@ -424,6 +448,13 @@ body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;dis
     <div class="gate-footer">
       Purchased but lost your code? <a href="mailto:hello@danevsolar.com">hello@danevsolar.com</a>
     </div>
+    <div class="gate-nav">
+      <a href="https://danevsolar.com/">← DanEVSolar.com</a>
+      <span>·</span>
+      <a href="DanEVSolar-EVCourse.html">EV Course</a>
+      <span>·</span>
+      <a href="DanEVSolar-HeatPumpCourse.html">Heat Pump Course</a>
+    </div>
   </div>
 </div>
 
@@ -437,6 +468,14 @@ body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;dis
     <div class="top-prog-bar"><div class="top-prog-fill" id="topFill"></div></div>
     <div class="top-prog-label" id="topLabel">0%</div>
   </div>
+</div>
+
+<div class="course-nav">
+  <a href="https://danevsolar.com/" class="home-link">← DanEVSolar.com</a>
+  <span class="nav-sep">|</span>
+  <a href="DanEVSolar-SolarCourse.html" class="nav-pill current">Solar Course</a>
+  <a href="DanEVSolar-EVCourse.html" class="nav-pill">EV Course</a>
+  <a href="DanEVSolar-HeatPumpCourse.html" class="nav-pill">Heat Pump Course</a>
 </div>
 
 <div class="layout">
