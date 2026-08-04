@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /members.html
+Disallow: /solar-stats.html
+Disallow: /solar-stats-admin.html
+Disallow: /solar-roi-calculator.html
+Disallow: /ev-vs-ice-calculator.html
+Disallow: /octopus-tariff-comparison.html
+Allow: /
+
+Sitemap: https://danevsolar.com/sitemap.xml
