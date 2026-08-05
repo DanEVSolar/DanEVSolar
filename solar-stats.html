@@ -522,14 +522,7 @@ function renderKPIs(data) {
   try {
     kpiTotals = months.reduce((acc, m) => {
       const c = computeMonthComparison(m, sys2);
-      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
-      const evC   = m.evCharged || 0;
-      const hist  = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
-      const flexR = (m.importRate||0) || (hist?.flex) || parseFloat(sys2.unitRate) || 0;
-      const opR   = (m.iogRate||0)   || (hist?.iog)  || parseFloat(sys2.offPeakRate) || flexR;
-      const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*getExportRate(m, sys2)/100;
-      const actualWithSolar = c.flexNoSolar - imp - exp;
+      const actualWithSolar = getActualWithSolar(m, sys2);
       acc.vsFlexNoSolar += c.flexNoSolar - actualWithSolar;
       acc.vsIGoNoSolar  += c.iGoNoSolar  - actualWithSolar;
       return acc;
@@ -938,9 +931,13 @@ function computeMonthComparison(m, sys) {
   // ── 2. FLEXIBLE — with solar + battery ──
   // If actual grid import is recorded for the month, use it directly — it's measured,
   // not guessed. Otherwise fall back to the estimated shortfall vs typical demand.
-  // There's no cheap window on Flexible, so import (whether topping up usage or
-  // filling the battery) costs the same flat day rate whenever it happens.
-  const flexImportKwh = hasRealGridImport ? m.gridImport : Math.max(0, assumedMonthlyDemand - (homeUsage + evUsage));
+  // assumedMonthlyDemand is a HOME-only baseline (from battery/panel sizing), so it's
+  // only netted against homeUsage — EV usage is added back in full, uncapped, since
+  // there's no reason to assume solar/battery happened to cover the car too. There's
+  // no cheap window on Flexible, so all of it (home shortfall + EV) costs the same
+  // flat day rate whenever it happens.
+  const flexHomeImportKwh = Math.max(0, assumedMonthlyDemand - homeUsage);
+  const flexImportKwh = hasRealGridImport ? m.gridImport : (flexHomeImportKwh + evUsage);
   const flexWithSolar = standingCost + flexImportKwh * dayRate / 100 - exported * exportRate / 100;
 
   // ── 3. INTELLIGENT GO — no solar, no battery ──
@@ -975,6 +972,23 @@ function computeMonthComparison(m, sys) {
   }
 
   return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar, usedRealGridImport: hasRealGridImport };
+}
+
+// Tariff switch date: on Flexible up to Sep 2023, Intelligent Octopus Go from Sep 2023
+// onwards. Used to pick which "with solar" scenario reflects what was actually billed
+// in a given month — see getActualWithSolar below.
+const SWITCH_YEAR = 2023, SWITCH_MONTH = 9; // September 2023
+
+// The real-world "actual" cost for a month, with solar: whichever with-solar scenario
+// matches the tariff actually in force that month. This deliberately reuses
+// flexWithSolar/iGoWithSolar from computeMonthComparison rather than re-deriving cost
+// from homeConsumed/evCharged independently, so it correctly uses real measured grid
+// import when available (via hasRealGridImport) instead of silently assuming 100%
+// home self-sufficiency every month.
+function getActualWithSolar(m, sys) {
+  const cmp = computeMonthComparison(m, sys);
+  const onIOG = (m.year > SWITCH_YEAR) || (m.year === SWITCH_YEAR && m.month >= SWITCH_MONTH);
+  return onIOG ? cmp.iGoWithSolar : cmp.flexWithSolar;
 }
 
 /*
@@ -1050,7 +1064,7 @@ function renderTable(data) {
     const impAvoid  = impAvoidHome + impAvoidEV;
     cumSaving += expInc + impAvoid;
     const cmp = computeMonthComparison(m, sys);
-    const actualWithSolar = cmp.flexNoSolar - impAvoid - expInc;
+    const actualWithSolar = getActualWithSolar(m, sys);
     const monthVsFlexNoSolar   = cmp.flexNoSolar - actualWithSolar;
     const monthVsTariffNoSolar = cmp.iGoNoSolar  - actualWithSolar;
     cumVsFlexNoSolar   += monthVsFlexNoSolar;
@@ -1119,13 +1133,7 @@ function renderPayback(data) {
   allMonths.forEach(m => {
     try {
       const cmp = computeMonthComparison(m, sys);
-      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
-      const evC   = m.evCharged || 0;
-      const flexR = getImportRate(m, sys);
-      const opR   = getOffPeakRate(m, sys);
-      const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*getExportRate(m, sys)/100;
-      const actual = cmp.flexNoSolar - imp - exp;
+      const actual = getActualWithSolar(m, sys);
       cumVsFlex += cmp.flexNoSolar - actual;
       cumVsIGo  += cmp.iGoNoSolar  - actual;
     } catch(e) {}
@@ -1141,18 +1149,14 @@ function renderPayback(data) {
   // Estimated payback: realistic baseline — assume Flexible (no solar) up to Sep 2023,
   // then Intelligent Octopus Go (no solar, no battery) from Sep 2023 onwards.
   // This reflects an actual likely tariff switch rather than a blended average.
-  const SWITCH_YEAR = 2023, SWITCH_MONTH = 9; // September 2023
+  // (Switch date lives in the shared SWITCH_YEAR/SWITCH_MONTH constants near
+  // getActualWithSolar, so both the baseline and the actual-cost side of this stay
+  // in sync with each other.)
   let cumRealistic = 0;
   allMonths.forEach(m => {
     try {
       const cmp = computeMonthComparison(m, sys);
-      const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
-      const evC   = m.evCharged || 0;
-      const flexR = getImportRate(m, sys);
-      const opR   = getOffPeakRate(m, sys);
-      const imp   = (homeC*flexR/100) + (evC*opR/100);
-      const exp   = (m.exported||0)*getExportRate(m, sys)/100;
-      const actual = cmp.flexNoSolar - imp - exp;
+      const actual = getActualWithSolar(m, sys);
       const onIOG = (m.year > SWITCH_YEAR) || (m.year === SWITCH_YEAR && m.month >= SWITCH_MONTH);
       const baseline = onIOG ? cmp.iGoNoSolar : cmp.flexNoSolar;
       cumRealistic += baseline - actual;
