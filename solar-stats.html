@@ -242,17 +242,34 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 <!-- CHARTS -->
   <div class="chart-grid">
 
+    <div class="chart-card">
+      <div class="chart-title">Generation</div>
+      <div class="chart-sub">kWh generated per month — all years overlaid</div>
+      <div class="chart-wrap"><canvas id="chartGenSeries"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Export</div>
+      <div class="chart-sub">kWh exported to the grid per month — all years overlaid</div>
+      <div class="chart-wrap"><canvas id="chartExportSeries"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Home consumption</div>
+      <div class="chart-sub">kWh consumed by the home per month — all years overlaid</div>
+      <div class="chart-wrap"><canvas id="chartHomeSeries"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">EV charging</div>
+      <div class="chart-sub">kWh charged into the car per month — all years overlaid</div>
+      <div class="chart-wrap"><canvas id="chartEvSeries"></canvas></div>
+    </div>
+
     <div class="chart-card full">
-      <div class="chart-title">Monthly generation</div>
-      <div class="chart-sub">kWh per month — all years overlaid. Hover a line to highlight it.</div>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;padding:12px 14px;background:rgba(168,204,0,.04);border:1px solid rgba(168,204,0,.1);border-radius:6px;align-items:center;">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">Show series:</span>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_generated" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#a8cc00;display:inline-block;"></span>Generation</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_exported" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#5ea8a0;display:inline-block;"></span>Export</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_home" checked onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#e8a020;display:inline-block;"></span>Home consumption</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="genShow_ev" onchange="renderGenerationChart(latestData)"><span style="width:10px;height:10px;border-radius:50%;background:#f426b6;display:inline-block;"></span>EV charging</label>
-      </div>
-      <div class="chart-wrap tall"><canvas id="chartGeneration"></canvas></div>
+      <div class="chart-title">Grid import</div>
+      <div class="chart-sub">kWh imported from the grid per month — all years overlaid. Only shown for months where a real import figure has been recorded.</div>
+      <div class="chart-wrap"><canvas id="chartGridImportSeries"></canvas></div>
     </div>
 
     <div class="chart-card">
@@ -625,7 +642,11 @@ function sizeChartScroll(wrapperId, itemCount, minPxPerItem) {
 function renderCharts(data) {
   latestData = data; // keep reference fresh for checkbox re-renders
   const months = filteredMonths(data);
-  renderGenerationChart(data);
+  renderMetricChart(data, 'chartGenSeries', 'gen', 'Generation', '#a8cc00', m => m.generated || null);
+  renderMetricChart(data, 'chartExportSeries', 'exp', 'Export', '#5ea8a0', m => m.exported || null);
+  renderMetricChart(data, 'chartHomeSeries', 'home', 'Home', '#e8a020', m => (m.homeConsumed ?? m.selfConsumed ?? null));
+  renderMetricChart(data, 'chartEvSeries', 'ev', 'EV charging', '#f426b6', m => m.evCharged || null);
+  renderMetricChart(data, 'chartGridImportSeries', 'gridimp', 'Grid import', '#7c9cf0', m => (m.gridImport != null && !isNaN(m.gridImport)) ? m.gridImport : null);
   renderSelfExportChart(months);
   renderFinancialChart(months);
   renderCumulativeChart(data);
@@ -635,57 +656,37 @@ function renderCharts(data) {
 // Store latest data reference so checkboxes can re-render without re-fetching
 let latestData = null;
 
-function renderGenerationChart(data) {
-  if (data) latestData = data;
-  else data = latestData;
-  destroyChart('gen');
-  const ctx = document.getElementById('chartGeneration').getContext('2d');
+function renderMetricChart(data, canvasId, chartKey, label, color, getter) {
+  destroyChart(chartKey);
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
   if (!data?.months?.length) { ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); return; }
-
-  const showGenerated = document.getElementById('genShow_generated')?.checked ?? true;
-  const showExported  = document.getElementById('genShow_exported')?.checked ?? true;
-  const showHome      = document.getElementById('genShow_home')?.checked ?? true;
-  const showEV        = document.getElementById('genShow_ev')?.checked ?? false;
 
   const years = getYears(data);
 
-  // Series definitions — one set per year, per enabled type
-  const seriesDefs = [
-    { key: 'generated',   label: 'Generated', color: '#a8cc00', show: showGenerated, getter: m => m.generated || null, dash: [] },
-    { key: 'exported',    label: 'Export',    color: '#5ea8a0', show: showExported,  getter: m => m.exported  || null, dash: [4,3] },
-    { key: 'home',        label: 'Home',      color: '#e8a020', show: showHome,      getter: m => m.homeConsumed ?? m.selfConsumed ?? null, dash: [2,2] },
-    { key: 'ev',          label: 'EV',        color: '#f426b6', show: showEV,        getter: m => m.evCharged || null, dash: [6,2,2,2] },
-  ].filter(s => s.show);
-
-  const datasets = [];
-  years.forEach((year, yi) => {
+  const datasets = years.map((year, yi) => {
     const opacity = yi === years.length - 1 ? 1 : 0.55; // current year is brighter
-    seriesDefs.forEach(s => {
-      const yData = new Array(12).fill(null);
-      data.months.filter(m => m.year === year).forEach(m => yData[m.month-1] = s.getter(m));
-      const col = s.color;
-      datasets.push({
-        label: `${s.label} ${year}`,
-        data: yData,
-        borderColor: col + (opacity < 1 ? '99' : 'ff'),
-        backgroundColor: col + '12',
-        borderWidth: 2,
-        borderDash: s.dash,
-        pointRadius: 3,
-        pointHoverRadius: 7,
-        pointHoverBorderWidth: 2,
-        tension: 0.35,
-        fill: false,
-        spanGaps: false,
-        _seriesKey: s.key,
-        _year: year,
-      });
-    });
+    const yData = new Array(12).fill(null);
+    data.months.filter(m => m.year === year).forEach(m => yData[m.month-1] = getter(m));
+    return {
+      label: String(year),
+      data: yData,
+      borderColor: color + (opacity < 1 ? '99' : 'ff'),
+      backgroundColor: color + '12',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 7,
+      pointHoverBorderWidth: 2,
+      tension: 0.35,
+      fill: false,
+      spanGaps: false,
+    };
   });
 
-  // Hover-glow plugin — dims all other lines when one is hovered
+  // Hover-glow plugin — dims all other year-lines when one is hovered
   const hoverGlowPlugin = {
-    id: 'hoverGlow',
+    id: 'hoverGlow' + chartKey,
     afterDatasetsDraw(chart) {
       const active = chart._hoveredDatasetIndex;
       if (active == null) return;
@@ -717,7 +718,7 @@ function renderGenerationChart(data) {
     },
   };
 
-  charts['gen'] = new Chart(ctx, {
+  charts[chartKey] = new Chart(ctx, {
     type: 'line',
     data: { labels: MONTH_NAMES, datasets },
     options: {
@@ -728,7 +729,6 @@ function renderGenerationChart(data) {
         legend: {
           ...chartDefaults.plugins.legend,
           onClick: (e, item, legend) => {
-            // Toggle dataset visibility on legend click
             const meta = legend.chart.getDatasetMeta(item.datasetIndex);
             meta.hidden = !meta.hidden;
             legend.chart.update();
@@ -736,7 +736,7 @@ function renderGenerationChart(data) {
         },
         tooltip: {
           callbacks: {
-            label: c => ` ${c.dataset.label}: ${c.raw != null ? c.raw.toFixed(0)+' kWh' : '—'}`,
+            label: c => ` ${label} ${c.dataset.label}: ${c.raw != null ? c.raw.toFixed(0)+' kWh' : '—'}`,
           },
         },
       },
@@ -901,10 +901,25 @@ function computeMonthComparison(m, sys) {
   const dayRate    = (m.importRate||0) || (histRates?.flex) || parseFloat(sys.unitRate) || 0;  // p/kWh
   const offPeak    = (m.iogRate||0)   || (histRates?.iog)  || parseFloat(sys.offPeakRate) || dayRate; // p/kWh IOG off-peak
   const exportRate = (m.exportRate||0) || (histRates?.outgoing) || parseFloat(sys.exportRate) || 0; // p/kWh SEG rate
-  const standing   = parseFloat(sys.standingCharge) || 57.19;              // p/day
+
+  // Standing charge — now per-tariff rather than one flat figure across all scenarios,
+  // since Flexible/Intelligent Go/Flux don't necessarily share the same standing charge.
+  // Priority for each: 1) per-month override in RATE_HISTORY (add standingFlex/
+  // standingIOG/standingFlux fields there if you have real historical figures),
+  // 2) a tariff-specific admin setting, 3) a sensible default.
+  // FLUX_STANDING_DEFAULT (42.01p/day) is a real documented Octopus Flux standing
+  // charge from around its March 2023 launch — same caveat as the Flux unit rates
+  // above: your actual figure may differ, replace via RATE_HISTORY if you have it.
+  const FLUX_STANDING_DEFAULT = 42.01; // p/day, ESTIMATED — from public reporting, ~Apr 2023
+  const standingFlex = (histRates?.standingFlex) || parseFloat(sys.standingCharge) || 57.19;
+  const standingIOG  = (histRates?.standingIOG)  || parseFloat(sys.standingChargeIOG) || parseFloat(sys.standingCharge) || 57.19;
+  const standingFlux = (histRates?.standingFlux) || parseFloat(sys.standingChargeFlux) || FLUX_STANDING_DEFAULT;
+
   const battCap    = parseFloat(sys.batteryKwh)   || 0;                    // kWh battery capacity
   const daysInMonth = new Date(m.year, m.month, 0).getDate();
-  const standingCost = standing * daysInMonth / 100;
+  const standingCostFlex = standingFlex * daysInMonth / 100;
+  const standingCostIOG  = standingIOG  * daysInMonth / 100;
+  const standingCostFlux = standingFlux * daysInMonth / 100;
 
   const homeUsage = m.homeConsumed ?? m.selfConsumed ?? 0;
   const evUsage   = m.evCharged || 0;
@@ -926,7 +941,7 @@ function computeMonthComparison(m, sys) {
   // All actual consumption (home + EV) at flat day rate.
   // Exported kWh is NOT included — with no solar there's no generation to export in the
   // first place, so it isn't part of what the household would need to import.
-  const flexNoSolar = standingCost + (homeUsage + evUsage) * dayRate / 100;
+  const flexNoSolar = standingCostFlex + (homeUsage + evUsage) * dayRate / 100;
 
   // ── 2. FLEXIBLE — with solar + battery ──
   // If actual grid import is recorded for the month, use it directly — it's measured,
@@ -938,14 +953,14 @@ function computeMonthComparison(m, sys) {
   // flat day rate whenever it happens.
   const flexHomeImportKwh = Math.max(0, assumedMonthlyDemand - homeUsage);
   const flexImportKwh = hasRealGridImport ? m.gridImport : (flexHomeImportKwh + evUsage);
-  const flexWithSolar = standingCost + flexImportKwh * dayRate / 100 - exported * exportRate / 100;
+  const flexWithSolar = standingCostFlex + flexImportKwh * dayRate / 100 - exported * exportRate / 100;
 
   // ── 3. INTELLIGENT GO — no solar, no battery ──
   // Standard household, no scheduling ability beyond EV.
   // EV charges at off-peak. Home: 25% shifts to off-peak (natural overnight loads),
   // 75% at day rate. Exported kWh is NOT included — same reasoning as scenario 1,
   // there's no generation (and therefore no export) in a no-solar world.
-  const iGoNoSolar = standingCost
+  const iGoNoSolar = standingCostIOG
     + (evUsage + homeUsage * 0.25) * offPeak / 100
     + (homeUsage * 0.75) * dayRate / 100;
 
@@ -958,14 +973,14 @@ function computeMonthComparison(m, sys) {
   // all daytime home load, with EV charging also assumed off-peak.
   let iGoWithSolar;
   if (hasRealGridImport) {
-    iGoWithSolar = standingCost
+    iGoWithSolar = standingCostIOG
       + m.gridImport * offPeak / 100      // actual grid import, assumed off-peak
       - exported * exportRate / 100;      // export income from solar
   } else {
     const dailyHomeLoad = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
     const dailyBattCharge = Math.min(battCap, dailyHomeLoad);
     const monthlyBattCharge = dailyBattCharge * daysInMonth;
-    iGoWithSolar = standingCost
+    iGoWithSolar = standingCostIOG
       + monthlyBattCharge * offPeak / 100  // overnight battery charging cost
       + evUsage * offPeak / 100            // EV charging at off-peak
       - exported * exportRate / 100;       // export income from solar
@@ -998,14 +1013,14 @@ function computeMonthComparison(m, sys) {
   // assumed off-peak too, for the same reason.
   let fluxWithSolar;
   if (hasRealGridImport) {
-    fluxWithSolar = standingCost
+    fluxWithSolar = standingCostFlux
       + m.gridImport * fluxImportOffPeak / 100
       - fluxExportIncome;
   } else {
     const dailyHomeLoadFlux = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
     const dailyBattChargeFlux = Math.min(battCap, dailyHomeLoadFlux);
     const monthlyBattChargeFlux = dailyBattChargeFlux * daysInMonth;
-    fluxWithSolar = standingCost
+    fluxWithSolar = standingCostFlux
       + monthlyBattChargeFlux * fluxImportOffPeak / 100
       + evUsage * fluxImportOffPeak / 100
       - fluxExportIncome;
@@ -1190,12 +1205,15 @@ function renderPayback(data) {
   const paybackFlex     = avgVsFlex > 0 && installCost ? installCost / (avgVsFlex * 12) : null;
   const paybackIGo      = avgVsIGo  > 0 && installCost ? installCost / (avgVsIGo  * 12) : null;
 
-  // Estimated payback: realistic baseline — assume Flexible (no solar) up to Sep 2023,
-  // then Intelligent Octopus Go (no solar, no battery) from Sep 2023 onwards.
-  // This reflects an actual likely tariff switch rather than a blended average.
-  // (Switch date lives in the shared SWITCH_YEAR/SWITCH_MONTH constants near
-  // getActualWithSolar, so both the baseline and the actual-cost side of this stay
-  // in sync with each other.)
+  // Estimated payback: realistic baseline vs realistic actual.
+  // Baseline (no-solar hypothetical): Flexible up to Sep 2023, then Intelligent
+  // Octopus Go from Sep 2023 onwards — Flux is skipped here since it requires solar,
+  // so a no-solar household couldn't have been on it.
+  // Actual (with-solar, via getActualWithSolar): Flexible up to Mar 2023, Octopus
+  // Flux Mar–Aug 2023, Intelligent Octopus Go from Sep 2023 — the real 3-tariff
+  // history, not a blended average.
+  // (Switch dates live in the shared FLUX_START_YEAR/MONTH and SWITCH_YEAR/MONTH
+  // constants near getActualWithSolar, so this stays in sync automatically.)
   let cumRealistic = 0;
   allMonths.forEach(m => {
     try {
@@ -1242,7 +1260,7 @@ function renderPayback(data) {
       <div class="payback-card pb-pink">
         <div class="payback-eyebrow">Estimated payback (realistic tariff switch)</div>
         <div class="payback-num" style="color:var(--pink);">${fmtY(paybackRealistic)}${paybackRealistic?'<span class="payback-unit">yrs</span>':''}</div>
-        <div class="payback-label">Assumes <strong>Flexible</strong> until Sep 2023, then <strong>Intelligent Octopus Go</strong> from Sep 2023 onwards — both without solar</div>
+        <div class="payback-label">Actual costs reflect <strong>Flexible</strong> until Mar 2023, <strong>Octopus Flux</strong> Mar–Aug 2023, then <strong>Intelligent Octopus Go</strong> from Sep 2023 — with solar, as you were really billed. Compared against a no-solar baseline of Flexible until Sep 2023 then Int. Go after (Flux isn't available without solar, so it's skipped on this side)</div>
         <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--pink)">£${Math.round(cumRealistic).toLocaleString()}</strong> · avg £${avgRealistic.toFixed(2)}/mo over ${monthsCount} month${monthsCount!==1?'s':''}</div>
       </div>
     </div>`;
