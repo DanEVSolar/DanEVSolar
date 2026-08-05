@@ -971,24 +971,68 @@ function computeMonthComparison(m, sys) {
       - exported * exportRate / 100;       // export income from solar
   }
 
-  return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar, usedRealGridImport: hasRealGridImport };
+  // ── 5. OCTOPUS FLUX — with solar + battery (Mar 2023 – Aug 2023) ──
+  // Flux is a time-of-use import AND export tariff for solar+battery households:
+  // a 3hr off-peak import window (02:00-05:00, cheap — for charging the battery),
+  // a 3hr peak window (16:00-19:00, expensive to import, high-value to export), and
+  // a "day rate" for everything else (both import and export).
+  //
+  // ESTIMATED RATES — these are NOT your actual billed figures. Exact Flux rates vary
+  // by region and changed with each Ofgem price cap update during 2023 (Apr/Jul).
+  // These are representative figures from public reporting around the tariff's
+  // March 2023 launch. Replace with your real Octopus billing history for precision.
+  const fluxImportOffPeak = 20.39; // p/kWh, 02:00-05:00
+  const fluxImportDay     = 33.98; // p/kWh, standard/day rate
+  const fluxExportPeak    = 32.0;  // p/kWh, 16:00-19:00 — ESTIMATED, verify against your bills
+  const fluxExportDay     = 22.98; // p/kWh, standard/day rate
+
+  // Export: per your instruction, modelled as a simple 50/50 split — half of exported
+  // kWh at the peak export rate, half at the day rate. (Off-peak export isn't used in
+  // this split, matching "50% peak / 50% rest of day rate" as specified.)
+  const fluxExportIncome = exported * 0.5 * fluxExportPeak / 100 + exported * 0.5 * fluxExportDay / 100;
+
+  // Import: same optimisation pattern as Intelligent Go — battery charged overnight
+  // at the cheap off-peak rate covers home load, EV also charged off-peak, on the
+  // assumption a solar+battery household on Flux avoids the expensive peak window
+  // (the whole point of the tariff). Real recorded grid import (when present) is
+  // assumed off-peak too, for the same reason.
+  let fluxWithSolar;
+  if (hasRealGridImport) {
+    fluxWithSolar = standingCost
+      + m.gridImport * fluxImportOffPeak / 100
+      - fluxExportIncome;
+  } else {
+    const dailyHomeLoadFlux = daysInMonth > 0 ? homeUsage / daysInMonth : 0;
+    const dailyBattChargeFlux = Math.min(battCap, dailyHomeLoadFlux);
+    const monthlyBattChargeFlux = dailyBattChargeFlux * daysInMonth;
+    fluxWithSolar = standingCost
+      + monthlyBattChargeFlux * fluxImportOffPeak / 100
+      + evUsage * fluxImportOffPeak / 100
+      - fluxExportIncome;
+  }
+
+  return { flexNoSolar, flexWithSolar, iGoNoSolar, iGoWithSolar, fluxWithSolar, usedRealGridImport: hasRealGridImport };
 }
 
-// Tariff switch date: on Flexible up to Sep 2023, Intelligent Octopus Go from Sep 2023
-// onwards. Used to pick which "with solar" scenario reflects what was actually billed
-// in a given month — see getActualWithSolar below.
-const SWITCH_YEAR = 2023, SWITCH_MONTH = 9; // September 2023
+// Tariff timeline: Flexible up to Mar 2023, Octopus Flux Mar–Aug 2023, Intelligent
+// Octopus Go from Sep 2023 onwards. Used to pick which "with solar" scenario reflects
+// what was actually billed in a given month — see getActualWithSolar below.
+const FLUX_START_YEAR = 2023, FLUX_START_MONTH = 3;  // March 2023
+const SWITCH_YEAR = 2023, SWITCH_MONTH = 9;           // September 2023
 
 // The real-world "actual" cost for a month, with solar: whichever with-solar scenario
 // matches the tariff actually in force that month. This deliberately reuses
-// flexWithSolar/iGoWithSolar from computeMonthComparison rather than re-deriving cost
-// from homeConsumed/evCharged independently, so it correctly uses real measured grid
-// import when available (via hasRealGridImport) instead of silently assuming 100%
-// home self-sufficiency every month.
+// flexWithSolar/iGoWithSolar/fluxWithSolar from computeMonthComparison rather than
+// re-deriving cost from homeConsumed/evCharged independently, so it correctly uses
+// real measured grid import when available (via hasRealGridImport) instead of
+// silently assuming 100% home self-sufficiency every month.
 function getActualWithSolar(m, sys) {
   const cmp = computeMonthComparison(m, sys);
+  const afterFluxStart = (m.year > FLUX_START_YEAR) || (m.year === FLUX_START_YEAR && m.month >= FLUX_START_MONTH);
   const onIOG = (m.year > SWITCH_YEAR) || (m.year === SWITCH_YEAR && m.month >= SWITCH_MONTH);
-  return onIOG ? cmp.iGoWithSolar : cmp.flexWithSolar;
+  if (onIOG) return cmp.iGoWithSolar;
+  if (afterFluxStart) return cmp.fluxWithSolar;
+  return cmp.flexWithSolar;
 }
 
 /*
