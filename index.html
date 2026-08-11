@@ -1477,7 +1477,9 @@ footer {
           <div class="yt-latest-title" id="ytTitle0"></div>
         </div>
         <div class="yt-latest-card">
-          <div class="yt-latest-embed" id="ytSlot1"><div class="yt-latest-skel"><div class="skel-icon"></div><div class="skel-label">Loading video…</div></div></div>
+          <div class="yt-latest-embed" id="ytSlot1">
+            <iframe src="https://www.youtube.com/embed/rNCRP-f_m4U" title="DanEVSolar video" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
           <div class="yt-latest-title" id="ytTitle1"></div>
         </div>
       </div>
@@ -1667,63 +1669,53 @@ function toggleFaq(el) {
   }
 }
 
-// ── LATEST YOUTUBE VIDEOS (auto-updating, no manual edits needed) ──
-// Uses the official YouTube Data API (not a third-party proxy — this is
-// Google's own endpoint, so it's reliable and doesn't need CORS workarounds).
-// Genuinely free: no credit card, no billing account, just a quota of
-// 10,000 units/day. Uses playlistItems.list (1 unit/call, ~10,000 page
-// loads/day) rather than search.list (100 units/call, ~100/day) — same
-// result, 100x cheaper on quota.
-// Requires a free API key — see the comment above YT_API_KEY below.
-// Falls back to a single embedded playlist widget if no key is set or
-// the request fails, so the section never looks broken either way.
+// ── LATEST YOUTUBE VIDEO (slot 0 only — slot 1 is a fixed static embed) ──
+// Fetches just the single most recent upload via the official YouTube Data
+// API and drops it into slot 0. Slot 1 is untouched by this script.
 (function () {
   const UPLOADS_PLAYLIST_ID = 'UUlzQ3whRqu-ph-SCWGUwYuQ'; // DanEVSolar uploads
-
-  // Get a free key at console.cloud.google.com → enable "YouTube Data API v3"
-  // → Credentials → Create API Key. Then restrict it (Application restrictions
-  // → Websites) to your own domain so it can't be used anywhere else.
   const YT_API_KEY = 'AIzaSyCa9cMStTpOstg4rmqlUGVxnVwiwlvZP3Q';
 
-  function showFallbackWidget() {
-    const grid = document.getElementById('ytLatestGrid');
-    if (!grid) return;
-    grid.style.gridTemplateColumns = '1fr';
-    grid.innerHTML = `<div class="yt-latest-card">
-      <div class="yt-latest-embed">
-        <iframe src="https://www.youtube.com/embed/videoseries?list=${UPLOADS_PLAYLIST_ID}" title="Latest uploads" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-      </div>
-    </div>`;
+  function renderSlot0(videoId, title) {
+    const embed = document.getElementById('ytSlot0');
+    const titleEl = document.getElementById('ytTitle0');
+    if (!embed) return;
+    embed.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" title="${(title || 'Latest video').replace(/"/g, '&quot;')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    if (titleEl) titleEl.textContent = title || '';
   }
 
-  function renderVideo(slotIndex, videoId, title) {
-    const embed = document.getElementById(`ytSlot${slotIndex}`);
-    const titleEl = document.getElementById(`ytTitle${slotIndex}`);
-    if (!embed || !titleEl) return;
-    embed.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" title="${title.replace(/"/g, '&quot;')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    titleEl.textContent = title;
+  function fallbackSlot0() {
+    // If the API call fails for any reason, fall back to an embed of the
+    // whole uploads playlist just for this one slot — still shows the
+    // latest video, just without a pulled title, and never breaks the layout.
+    renderSlot0Iframe(`https://www.youtube.com/embed/videoseries?list=${UPLOADS_PLAYLIST_ID}`);
   }
 
-  async function loadLatestVideos() {
+  function renderSlot0Iframe(src) {
+    const embed = document.getElementById('ytSlot0');
+    if (!embed) return;
+    embed.innerHTML = `<iframe src="${src}" title="Latest upload" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  }
+
+  async function loadLatestVideo() {
     if (!YT_API_KEY || YT_API_KEY === 'YOUR_YOUTUBE_DATA_API_KEY') {
-      showFallbackWidget();
+      fallbackSlot0();
       return;
     }
     try {
-      const url = `https://www.googleapis.com/youtube/v3/playlistItems?key=${YT_API_KEY}&playlistId=${UPLOADS_PLAYLIST_ID}&part=snippet&maxResults=2`;
+      const url = `https://www.googleapis.com/youtube/v3/playlistItems?key=${YT_API_KEY}&playlistId=${UPLOADS_PLAYLIST_ID}&part=snippet&maxResults=1`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('API request failed');
       const data = await res.json();
       if (!data.items || !data.items.length) throw new Error('No videos returned');
-      data.items.forEach((item, i) => {
-        renderVideo(i, item.snippet.resourceId.videoId, item.snippet.title);
-      });
+      const item = data.items[0];
+      renderSlot0(item.snippet.resourceId.videoId, item.snippet.title);
     } catch (e) {
-      showFallbackWidget();
+      fallbackSlot0();
     }
   }
 
-  loadLatestVideos();
+  loadLatestVideo();
 })();
 
 const revealObserver = new IntersectionObserver((entries) => {
