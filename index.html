@@ -558,13 +558,27 @@ nav {
 }
 .yt-latest-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .yt-latest-skel {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   background: var(--bg3);
 }
-.yt-latest-skel::after {
-  content: ''; width: 40px; height: 40px; border-radius: 50%;
-  border: 3px solid var(--bord2); border-top-color: var(--green);
-  animation: yt-spin 0.8s linear infinite;
+.yt-latest-skel .skel-icon {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid var(--bord2); display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.yt-latest-skel .skel-icon::before {
+  content: ''; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--green);
+  animation: yt-spin 0.9s linear infinite;
+}
+.yt-latest-skel .skel-icon::after {
+  content: ''; width: 0; height: 0;
+  border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+  border-left: 11px solid var(--muted); margin-left: 3px;
+}
+.yt-latest-skel .skel-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
 @keyframes yt-spin { to { transform: rotate(360deg); } }
 .yt-latest-title {
@@ -1459,11 +1473,11 @@ footer {
       <div class="yt-latest-label">Latest Uploads</div>
       <div class="yt-latest-grid" id="ytLatestGrid">
         <div class="yt-latest-card">
-          <div class="yt-latest-embed" id="ytSlot0"><div class="yt-latest-skel"></div></div>
+          <div class="yt-latest-embed" id="ytSlot0"><div class="yt-latest-skel"><div class="skel-icon"></div><div class="skel-label">Loading video…</div></div></div>
           <div class="yt-latest-title" id="ytTitle0"></div>
         </div>
         <div class="yt-latest-card">
-          <div class="yt-latest-embed" id="ytSlot1"><div class="yt-latest-skel"></div></div>
+          <div class="yt-latest-embed" id="ytSlot1"><div class="yt-latest-skel"><div class="skel-icon"></div><div class="skel-label">Loading video…</div></div></div>
           <div class="yt-latest-title" id="ytTitle1"></div>
         </div>
       </div>
@@ -1691,7 +1705,7 @@ function toggleFaq(el) {
   }
 
   async function loadLatestVideos() {
-    if (!YT_API_KEY || YT_API_KEY === 'AIzaSyCa9cMStTpOstg4rmqlUGVxnVwiwlvZP3Q') {
+    if (!YT_API_KEY || YT_API_KEY === 'YOUR_YOUTUBE_DATA_API_KEY') {
       showFallbackWidget();
       return;
     }
