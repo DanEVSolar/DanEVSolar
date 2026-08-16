@@ -14,6 +14,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solar Stats Admin — DanEVSolar</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 :root {
   --bg:#0d0f0a;--bg2:#131509;--bg3:#1a1d0e;--bg4:#1f2210;
@@ -383,6 +384,12 @@ select option{background:var(--bg3);}
           <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
         </label>
         <button class="btn btn-danger" onclick="clearAllData()">Clear all data</button>
+      </div>
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--bord2);">
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Download a nicely formatted spreadsheet of your data — a summary, the full monthly breakdown with income/savings, and your system spec, each on their own sheet.</p>
+        <div class="data-actions">
+          <button class="btn btn-green" onclick="exportToExcel()">📊 Export to Excel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -806,6 +813,194 @@ function clearAllData() {
   loadSystemForm();
   renderMonthList();
   toast('All data cleared');
+}
+
+// ── Export to Excel (nicely formatted .xlsx — mirrors the visitor page's version) ──
+function getImportRate(m, sys) {
+  const hist = getHistoricalRates(m.year, m.month);
+  return (m.importRate||0) || (hist?.flex) || parseFloat(sys?.unitRate) || 0;
+}
+function getOffPeakRate(m, sys) {
+  const hist = getHistoricalRates(m.year, m.month);
+  return (m.iogRate||0) || (hist?.iog) || parseFloat(sys?.offPeakRate) || getImportRate(m, sys);
+}
+function getExportRate(m, sys) {
+  const hist = getHistoricalRates(m.year, m.month);
+  return (m.exportRate||0) || (hist?.outgoing) || parseFloat(sys?.exportRate) || 0;
+}
+
+const XLSX_LIME  = 'A8C41E';
+const XLSX_DARK  = '2A2A1A';
+const XLSX_LIGHT = 'F4F4E8';
+const XLSX_GREY  = '7A7A68';
+const xlCell = (v, style, numFmt, type) => {
+  const cell = { v: v ?? '', t: type || (typeof v === 'number' ? 'n' : 's'), s: style ? { ...style } : {} };
+  if (numFmt) cell.s.numFmt = numFmt;
+  return cell;
+};
+const XL_STYLE = {
+  title:    { font:{ bold:true, sz:15, color:{rgb:'FFFFFF'} }, fill:{fgColor:{rgb:XLSX_DARK}}, alignment:{vertical:'center'} },
+  subtitle: { font:{ italic:true, sz:10, color:{rgb:XLSX_GREY} } },
+  header:   { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'} }, fill:{fgColor:{rgb:XLSX_DARK}}, alignment:{horizontal:'center', vertical:'center', wrapText:true},
+              border:{ bottom:{style:'thin',color:{rgb:XLSX_LIME}} } },
+  label:    { font:{ bold:true, sz:10, color:{rgb:XLSX_DARK} }, fill:{fgColor:{rgb:XLSX_LIGHT}} },
+  value:    { font:{ sz:10 } },
+  data:     { font:{ sz:10 }, alignment:{horizontal:'right'} },
+  dataText: { font:{ sz:10 } },
+  total:    { font:{ bold:true, sz:10 }, fill:{fgColor:{rgb:XLSX_LIGHT}}, border:{ top:{style:'thin',color:{rgb:XLSX_GREY}} }, alignment:{horizontal:'right'} },
+  totalText:{ font:{ bold:true, sz:10 }, fill:{fgColor:{rgb:XLSX_LIGHT}}, border:{ top:{style:'thin',color:{rgb:XLSX_GREY}} } },
+};
+
+function buildSystemSheet(sys, label) {
+  const rows = [
+    [xlCell(label + ' — System spec', XL_STYLE.title)],
+    [xlCell(`Exported ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}`, XL_STYLE.subtitle)],
+    [],
+    [xlCell('Field', XL_STYLE.header), xlCell('Value', XL_STYLE.header)],
+  ];
+  const fields = [
+    ['Panel capacity (kWp)', sys.capacity], ['No. of panels', sys.panels],
+    ['Inverter', sys.inverter], ['Battery', sys.battery], ['Battery capacity (kWh)', sys.batteryKwh],
+    ['Orientation', sys.orientation], ['Install date', sys.installDate],
+    ['Install cost (£)', sys.installCost ? '£' + Number(sys.installCost).toLocaleString() : ''],
+    ['Installer', sys.installer], ['Tariff', sys.tariffName], ['Tariff start', sys.tariffStart],
+    ['Default export rate (p/kWh)', sys.exportRate], ['Default import rate (p/kWh)', sys.unitRate],
+  ];
+  fields.forEach(([k,v]) => rows.push([xlCell(k, XL_STYLE.label), xlCell(v || '—', XL_STYLE.value)]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 28 }, { wch: 30 }];
+  ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:1} }, { s:{r:1,c:0}, e:{r:1,c:1} }];
+  return ws;
+}
+
+function buildMonthlySheet(data, label) {
+  const sys = data.system || {};
+  const months = [...(data.months || [])].sort((a,b) => a.year!==b.year ? a.year-b.year : a.month-b.month);
+
+  const headers = ['Year','Month','Generated (kWh)','Home use (kWh)','EV charging (kWh)','Self-consumed (kWh)',
+    'Exported (kWh)','Grid import (kWh)','Export rate (p/kWh)','Flexible rate (p/kWh)','Int. Go rate (p/kWh)',
+    'Export income (£)','Import avoided (£)','Monthly saving (£)','Cumulative saving (£)','Notes'];
+
+  const rows = [
+    [xlCell(label + ' — Monthly data', XL_STYLE.title)],
+    [xlCell(`Exported ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} · ${months.length} month${months.length!==1?'s':''}`, XL_STYLE.subtitle)],
+    [],
+    headers.map(h => xlCell(h, XL_STYLE.header)),
+  ];
+
+  let cumSaving = 0;
+  const totals = { generated:0, homeConsumed:0, evCharged:0, selfConsumed:0, exported:0, gridImport:0, expInc:0, impAvoid:0, monthSaving:0 };
+  let gridImportCount = 0;
+
+  months.forEach(m => {
+    const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC = m.evCharged || 0;
+    const selfC = m.selfConsumed ?? (homeC + evC);
+    const expRate = getExportRate(m, sys);
+    const impRate = getImportRate(m, sys);
+    const iogRate = getOffPeakRate(m, sys);
+    const expInc = (m.exported||0) * expRate / 100;
+    const impAvoid = homeC * impRate / 100 + evC * iogRate / 100;
+    const monthSaving = expInc + impAvoid;
+    cumSaving += monthSaving;
+
+    totals.generated += m.generated||0; totals.homeConsumed += homeC; totals.evCharged += evC;
+    totals.selfConsumed += selfC; totals.exported += m.exported||0;
+    if (m.gridImport != null) { totals.gridImport += m.gridImport; gridImportCount++; }
+    totals.expInc += expInc; totals.impAvoid += impAvoid; totals.monthSaving += monthSaving;
+
+    rows.push([
+      xlCell(m.year, XL_STYLE.data),
+      xlCell(MONTH_NAMES[m.month-1], XL_STYLE.dataText),
+      xlCell(m.generated||0, XL_STYLE.data, '0.0'),
+      xlCell(homeC, XL_STYLE.data, '0.0'),
+      xlCell(evC, XL_STYLE.data, '0.0'),
+      xlCell(selfC, XL_STYLE.data, '0.0'),
+      xlCell(m.exported||0, XL_STYLE.data, '0.0'),
+      xlCell(m.gridImport ?? '', XL_STYLE.data, m.gridImport != null ? '0.0' : undefined),
+      xlCell(expRate, XL_STYLE.data, '0.00'),
+      xlCell(impRate, XL_STYLE.data, '0.00'),
+      xlCell(iogRate, XL_STYLE.data, '0.00'),
+      xlCell(expInc, XL_STYLE.data, '"£"0.00'),
+      xlCell(impAvoid, XL_STYLE.data, '"£"0.00'),
+      xlCell(monthSaving, XL_STYLE.data, '"£"0.00'),
+      xlCell(cumSaving, XL_STYLE.data, '"£"0.00'),
+      xlCell(m.notes || '', XL_STYLE.dataText),
+    ]);
+  });
+
+  rows.push([
+    xlCell('Total', XL_STYLE.totalText), xlCell('', XL_STYLE.totalText),
+    xlCell(totals.generated, XL_STYLE.total, '0.0'), xlCell(totals.homeConsumed, XL_STYLE.total, '0.0'),
+    xlCell(totals.evCharged, XL_STYLE.total, '0.0'), xlCell(totals.selfConsumed, XL_STYLE.total, '0.0'),
+    xlCell(totals.exported, XL_STYLE.total, '0.0'),
+    xlCell(gridImportCount ? totals.gridImport : '', XL_STYLE.total, gridImportCount ? '0.0' : undefined),
+    xlCell('', XL_STYLE.totalText), xlCell('', XL_STYLE.totalText), xlCell('', XL_STYLE.totalText),
+    xlCell(totals.expInc, XL_STYLE.total, '"£"0.00'), xlCell(totals.impAvoid, XL_STYLE.total, '"£"0.00'),
+    xlCell(totals.monthSaving, XL_STYLE.total, '"£"0.00'), xlCell('', XL_STYLE.totalText), xlCell('', XL_STYLE.totalText),
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    {wch:6},{wch:11},{wch:14},{wch:13},{wch:14},{wch:15},{wch:12},{wch:13},
+    {wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:14},{wch:16},{wch:28}
+  ];
+  ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:headers.length-1} }, { s:{r:1,c:0}, e:{r:1,c:headers.length-1} }];
+  ws['!freeze'] = { xSplit:0, ySplit:4 };
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s:{r:3,c:0}, e:{r:3+months.length,c:headers.length-1} }) };
+  return ws;
+}
+
+function buildSummarySheet(data, label) {
+  const sys = data.system || {};
+  const months = data.months || [];
+  const totalGen = months.reduce((s,m) => s + (m.generated||0), 0);
+  const totalSelf = months.reduce((s,m) => s + (m.selfConsumed ?? ((m.homeConsumed||0)+(m.evCharged||0))), 0);
+  const totalExp = months.reduce((s,m) => s + (m.exported||0), 0);
+  const totalExpInc = months.reduce((s,m) => s + (m.exported||0)*getExportRate(m, sys)/100, 0);
+  const totalImpAvoid = months.reduce((s,m) => {
+    const homeC = m.homeConsumed ?? m.selfConsumed ?? 0;
+    const evC = m.evCharged || 0;
+    return s + homeC*getImportRate(m, sys)/100 + evC*getOffPeakRate(m, sys)/100;
+  }, 0);
+  const netSaving = totalExpInc + totalImpAvoid;
+  const years = [...new Set(months.map(m => m.year))].sort();
+
+  const rows = [
+    [xlCell(label + ' — Summary', XL_STYLE.title)],
+    [xlCell(`Exported ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}`, XL_STYLE.subtitle)],
+    [],
+    [xlCell('Metric', XL_STYLE.header), xlCell('Value', XL_STYLE.header)],
+    [xlCell('Months of data', XL_STYLE.label), xlCell(months.length, XL_STYLE.value)],
+    [xlCell('Years covered', XL_STYLE.label), xlCell(years.join(', ') || '—', XL_STYLE.value)],
+    [xlCell('Total generated', XL_STYLE.label), xlCell(totalGen, XL_STYLE.value, '0.0"kWh"')],
+    [xlCell('Total self-consumed', XL_STYLE.label), xlCell(totalSelf, XL_STYLE.value, '0.0"kWh"')],
+    [xlCell('Total exported', XL_STYLE.label), xlCell(totalExp, XL_STYLE.value, '0.0"kWh"')],
+    [xlCell('Total export income', XL_STYLE.label), xlCell(totalExpInc, XL_STYLE.value, '"£"0.00')],
+    [xlCell('Total import avoided', XL_STYLE.label), xlCell(totalImpAvoid, XL_STYLE.value, '"£"0.00')],
+    [xlCell('Total net saving', XL_STYLE.label), xlCell(netSaving, XL_STYLE.value, '"£"0.00')],
+    [xlCell('Install cost', XL_STYLE.label), xlCell(sys.installCost ? Number(sys.installCost) : '—', XL_STYLE.value, sys.installCost ? '"£"#,##0' : undefined)],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 26 }, { wch: 22 }];
+  ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:1} }, { s:{r:1,c:0}, e:{r:1,c:1} }];
+  return ws;
+}
+
+function exportToExcel() {
+  if (typeof XLSX === 'undefined') { toast("Excel export couldn't load — check your connection and try again.", true); return; }
+  const data = loadData();
+  if (!data || !data.months || !data.months.length) { toast('No data to export yet — add at least one month first.', true); return; }
+
+  const label = "Dan's Solar Stats";
+  const filename = `danevsolar-stats-${new Date().toISOString().slice(0,10)}.xlsx`;
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildSummarySheet(data, label), 'Summary');
+  XLSX.utils.book_append_sheet(wb, buildMonthlySheet(data, label), 'Monthly data');
+  XLSX.utils.book_append_sheet(wb, buildSystemSheet(data.system || {}, label), 'System spec');
+  XLSX.writeFile(wb, filename);
+  toast('Excel spreadsheet downloaded ✓');
 }
 
 // ── INIT ──

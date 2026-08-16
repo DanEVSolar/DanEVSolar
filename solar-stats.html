@@ -258,7 +258,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
 <section class="hero">
   <div class="wrap hero-inner">
     <div class="eyebrow">Member data</div>
-    <h1 class="hero-title">My Solar<br><span>Generation Stats</span></h1>
+    <h1 class="hero-title">Solar<br><span>Generation Stats</span></h1>
     <p class="hero-sub">Real data from <strong>Dan's actual system</strong> — monthly generation, self-consumption, export income and financial performance. Updated each month.</p>
     <p class="hero-sub" style="margin-top:8px;">Got your own solar system? You can add your own stats too and see your own charts, right below.</p>
   </div>
@@ -286,7 +286,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
         <li><span><strong>It's saved only in your browser</strong> (via localStorage), not sent to any server. Close the tab, come back later, and it'll still be there — but it won't follow you to a different browser or device.</span></li>
         <li><span><strong>Switch back any time</strong> by clicking "Dan's stats" — your own entries stay saved in the background and reappear exactly as you left them when you click "My stats" again.</span></li>
         <li><span><strong>Export / Import JSON</strong> lets you download your entries as a backup file, or move them to another browser or device — import it there and click Save to apply.</span></li>
-        <li><span><strong>📊 Export to Excel</strong> downloads a nicely formatted spreadsheet (summary, monthly figures and system spec) of whichever stats you're currently viewing — yours or Dan's.</span></li>
+        <li><span><strong>📊 Export to Excel</strong> downloads a nicely formatted spreadsheet (summary, monthly figures and system spec) of your own entered data.</span></li>
         <li><span><strong>"Clear my data"</strong> permanently deletes your entries from this browser (after a confirmation) and switches you back to Dan's stats.</span></li>
       </ol>
       <div class="hiw-note"><strong>Note:</strong> clearing your browser's site data/cookies, or using private/incognito mode, will also remove anything you've entered here — export a backup first if you want to keep it.</div>
@@ -612,20 +612,17 @@ function renderModeBar() {
 
   const mine = loadMyData();
   const hasMine = !!(mine && mine.months && mine.months.length);
-  const currentData = loadData();
-  const hasCurrentData = !!(currentData && currentData.months && currentData.months.length);
-  const excelBtn = hasCurrentData
-    ? `<button class="btn-mini" onclick="exportToExcel()">📊 Export to Excel</button>`
-    : '';
+  // Excel export is only offered for the visitor's own "My stats" data —
+  // Dan's published stats can be exported from the admin page instead.
+  const excelBtn = `<button class="btn-mini" onclick="exportToExcel()">📊 Export to Excel</button>`;
 
   if (VIEW_MODE === 'published') {
     info.innerHTML = hasMine
       ? `You've entered your own system data too — switch to <strong>My stats</strong> to see it.`
       : `Have your own solar system? Enter your own figures to see your own charts, saved privately in this browser.`;
-    actions.innerHTML = (hasMine
+    actions.innerHTML = hasMine
       ? `<button class="btn-mini" onclick="openEditor()">Edit my data</button>`
-      : `<button class="btn-mini primary" onclick="openEditor()">+ Add my system</button>`)
-      + excelBtn;
+      : `<button class="btn-mini primary" onclick="openEditor()">+ Add my system</button>`;
   } else {
     info.innerHTML = hasMine
       ? `Showing <strong>your own</strong> entered data — only stored in this browser. Dan's stats are untouched.`
