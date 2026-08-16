@@ -217,7 +217,7 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .field input,.field select{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border-dark);border-radius:6px;padding:8px 10px;color:var(--off-white);font-family:'Exo 2',sans-serif;font-size:13px;}
 .field input:focus,.field select:focus{outline:none;border-color:var(--lime);}
 .rows-table-wrap{overflow-x:auto;}
-.rows-table{width:100%;border-collapse:collapse;min-width:820px;}
+.rows-table{width:100%;border-collapse:collapse;min-width:920px;}
 .rows-table th{text-align:left;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--on-dark-muted);padding:6px 6px;border-bottom:1px solid var(--border-dark);white-space:nowrap;}
 .rows-table td{padding:4px 6px;}
 .rows-table input,.rows-table select{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border-dark);border-radius:5px;padding:6px 7px;color:var(--off-white);font-size:12px;font-family:'Exo 2',sans-serif;}
@@ -426,19 +426,26 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
     <div class="editor-section-lbl">System spec</div>
     <div class="editor-grid" id="editorSpecGrid"></div>
 
-    <div class="editor-section-lbl">Monthly figures (kWh, £ pence rates)</div>
+    <div class="editor-section-lbl">Tariff</div>
+    <div class="editor-grid" id="editorTariffGrid"></div>
+    <div class="editor-note">Historical Flexible, Intelligent Octopus Go and export (Outgoing) rates are looked up automatically for each month below and filled in when you set the year/month — only for months from Jan 2022 onwards, and only into fields you haven't already filled in yourself.</div>
+
+    <div class="editor-section-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>Monthly figures (kWh, £ pence rates)</span>
+      <button class="btn-mini" style="text-transform:none;letter-spacing:normal;" onclick="fillAllHistoricalRates()">⚡ Fill historical rates for all months</button>
+    </div>
     <div class="rows-table-wrap">
       <table class="rows-table">
         <thead>
           <tr>
-            <th>Year</th><th>Month</th><th>Generated</th><th>Home used</th><th>EV charged</th><th>Exported</th><th>Grid import</th><th>Export p/kWh</th><th>Import p/kWh</th><th></th>
+            <th>Year</th><th>Month</th><th>Generated</th><th>Home used</th><th>EV charged</th><th>Exported</th><th>Grid import</th><th>Export p/kWh</th><th>Flexible p/kWh</th><th>Int. Go p/kWh</th><th></th>
           </tr>
         </thead>
         <tbody id="editorRows"></tbody>
       </table>
     </div>
     <button class="btn-mini" style="margin-top:10px;" onclick="addEditorRow()">+ Add month</button>
-    <div class="editor-note">"Home used" + "EV charged" together make up self-consumption. Leave "Grid import" blank unless you have an actual meter reading for that month.</div>
+    <div class="editor-note">"Home used" + "EV charged" together make up self-consumption. Leave "Grid import" blank unless you have an actual meter reading for that month. Rate columns: leave blank to use the auto-filled historical rate — override only if your actual rate differed.</div>
 
     <div class="editor-footer">
       <div class="left">
@@ -504,6 +511,9 @@ function getOffPeakRate(m, sys) {
 function getExportRate(m, sys) {
   const hist = RATE_HISTORY.find(r => r.year===m.year && r.month===m.month);
   return (m.exportRate||0) || (hist?.outgoing) || parseFloat(sys?.exportRate) || 0;
+}
+function getHistoricalRates(year, month) {
+  return RATE_HISTORY.find(r => r.year === year && r.month === month) || null;
 }
 
 // ── Data layer ──
@@ -1491,10 +1501,9 @@ const EDITOR_SPEC_FIELDS = [
   { key:'installDate', label:'Install date' },
   { key:'installCost', label:'Install cost (£)' },
   { key:'installer',   label:'Installer' },
-  { key:'tariffName',  label:'Tariff name' },
-  { key:'exportRate',  label:'Default export rate (p/kWh)' },
-  { key:'unitRate',    label:'Default import rate (p/kWh)' },
 ];
+
+const TARIFF_OPTIONS = ['Flexible Octopus','Octopus Go','Intelligent Octopus Go','Octopus Flux','Intelligent Octopus Flux','Cosy Octopus','Intelligent Drive Pack','Agile Octopus'];
 
 let editorRows = [];   // working copy of months while modal is open
 let editorRowSeq = 0;
@@ -1503,7 +1512,26 @@ function blankEditorRow() {
   const now = new Date();
   editorRowSeq++;
   return { _id: 'r'+editorRowSeq, year: now.getFullYear(), month: now.getMonth()+1,
-    generated:'', homeConsumed:'', evCharged:'', exported:'', gridImport:'', exportRate:'', importRate:'' };
+    generated:'', homeConsumed:'', evCharged:'', exported:'', gridImport:'', exportRate:'', importRate:'', iogRate:'' };
+}
+
+// Fill blank (or all, if force) rate fields on a row from RATE_HISTORY for its year/month.
+// Never touches a field the visitor has already typed a value into, unless force is set.
+function autoFillRowRates(row, force) {
+  const hist = getHistoricalRates(row.year, row.month);
+  if (!hist) return false;
+  const blank = v => v === '' || v === null || v === undefined;
+  if ((force || blank(row.importRate)) && hist.flex != null) row.importRate = hist.flex;
+  if ((force || blank(row.iogRate)) && hist.iog != null) row.iogRate = hist.iog;
+  if ((force || blank(row.exportRate)) && hist.outgoing != null) row.exportRate = hist.outgoing;
+  return true;
+}
+
+function fillAllHistoricalRates() {
+  editorRows.forEach(r => autoFillRowRates(r, false));
+  renderEditorRows();
+  const status = document.getElementById('importStatus');
+  if (status) { status.textContent = 'Historical rates filled in for all months with a match — review below.'; status.style.color = 'var(--lime)'; }
 }
 
 function openEditor() {
@@ -1512,19 +1540,47 @@ function openEditor() {
     ? existing.months.map(m => { editorRowSeq++; return {
         _id:'r'+editorRowSeq, year:m.year, month:m.month,
         generated:m.generated ?? '', homeConsumed:m.homeConsumed ?? '', evCharged:m.evCharged ?? '',
-        exported:m.exported ?? '', gridImport:m.gridImport ?? '', exportRate:m.exportRate ?? '', importRate:m.importRate ?? ''
+        exported:m.exported ?? '', gridImport:m.gridImport ?? '', exportRate:m.exportRate ?? '', importRate:m.importRate ?? '', iogRate:m.iogRate ?? ''
       };})
     : [blankEditorRow()];
 
+  const sys = existing.system || {};
+
   // Spec fields
   const grid = document.getElementById('editorSpecGrid');
-  const sys = existing.system || {};
   grid.innerHTML = EDITOR_SPEC_FIELDS.map(f => `
     <div class="field">
       <label>${f.label}</label>
       <input type="text" id="spec_${f.key}" value="${(sys[f.key] ?? '').toString().replace(/"/g,'&quot;')}">
     </div>
   `).join('');
+
+  // Tariff fields — a dropdown of built-in tariffs (with historical rate lookup) plus
+  // a custom name option, and default rate overrides used when a month has no rate set.
+  const tariffGrid = document.getElementById('editorTariffGrid');
+  const isBuiltIn = TARIFF_OPTIONS.includes(sys.tariffName);
+  const tariffOptsHtml = ['<option value="">— Select tariff —</option>']
+    .concat(TARIFF_OPTIONS.map(t => `<option value="${t}"${sys.tariffName===t?' selected':''}>${t}</option>`))
+    .concat([`<option value="Other"${sys.tariffName && !isBuiltIn?' selected':''}>Other</option>`])
+    .join('');
+  tariffGrid.innerHTML = `
+    <div class="field">
+      <label>Current tariff</label>
+      <select id="spec_tariffSelect">${tariffOptsHtml}</select>
+    </div>
+    <div class="field">
+      <label>Custom tariff name <span style="opacity:.6;">(if Other)</span></label>
+      <input type="text" id="spec_tariffCustom" value="${(sys.tariffName && !isBuiltIn ? sys.tariffName : '').toString().replace(/"/g,'&quot;')}">
+    </div>
+    <div class="field">
+      <label>Default export rate <span style="opacity:.6;">(p/kWh, used when a month has none set)</span></label>
+      <input type="text" id="spec_exportRate" value="${(sys.exportRate ?? '').toString().replace(/"/g,'&quot;')}">
+    </div>
+    <div class="field">
+      <label>Default import rate <span style="opacity:.6;">(p/kWh, used when a month has none set)</span></label>
+      <input type="text" id="spec_unitRate" value="${(sys.unitRate ?? '').toString().replace(/"/g,'&quot;')}">
+    </div>
+  `;
 
   renderEditorRows();
   document.getElementById('editorOverlay').classList.add('open');
@@ -1541,27 +1597,37 @@ function renderEditorRows() {
   const monthOpts = MONTH_NAMES_FULL.map((n,i) => `<option value="${i+1}">${n}</option>`).join('');
   tbody.innerHTML = editorRows.map(r => `
     <tr data-id="${r._id}">
-      <td><input type="number" value="${r.year}" onchange="updateEditorRow('${r._id}','year',this.value)" style="width:70px;"></td>
-      <td><select onchange="updateEditorRow('${r._id}','month',this.value)">${monthOpts.replace(`value="${r.month}"`, `value="${r.month}" selected`)}</select></td>
+      <td><input type="number" value="${r.year}" onchange="updateEditorRow('${r._id}','year',this.value,true)" style="width:70px;"></td>
+      <td><select onchange="updateEditorRow('${r._id}','month',this.value,true)">${monthOpts.replace(`value="${r.month}"`, `value="${r.month}" selected`)}</select></td>
       <td><input type="number" step="any" value="${r.generated}" onchange="updateEditorRow('${r._id}','generated',this.value)" placeholder="kWh"></td>
       <td><input type="number" step="any" value="${r.homeConsumed}" onchange="updateEditorRow('${r._id}','homeConsumed',this.value)" placeholder="kWh"></td>
       <td><input type="number" step="any" value="${r.evCharged}" onchange="updateEditorRow('${r._id}','evCharged',this.value)" placeholder="kWh"></td>
       <td><input type="number" step="any" value="${r.exported}" onchange="updateEditorRow('${r._id}','exported',this.value)" placeholder="kWh"></td>
       <td><input type="number" step="any" value="${r.gridImport}" onchange="updateEditorRow('${r._id}','gridImport',this.value)" placeholder="optional"></td>
-      <td><input type="number" step="any" value="${r.exportRate}" onchange="updateEditorRow('${r._id}','exportRate',this.value)" placeholder="p/kWh"></td>
-      <td><input type="number" step="any" value="${r.importRate}" onchange="updateEditorRow('${r._id}','importRate',this.value)" placeholder="p/kWh"></td>
+      <td><input type="number" step="any" value="${r.exportRate}" onchange="updateEditorRow('${r._id}','exportRate',this.value)" placeholder="auto"></td>
+      <td><input type="number" step="any" value="${r.importRate}" onchange="updateEditorRow('${r._id}','importRate',this.value)" placeholder="auto"></td>
+      <td><input type="number" step="any" value="${r.iogRate}" onchange="updateEditorRow('${r._id}','iogRate',this.value)" placeholder="auto"></td>
       <td><button class="row-del" onclick="removeEditorRow('${r._id}')" title="Remove month">✕</button></td>
     </tr>
   `).join('');
 }
 
-function updateEditorRow(id, key, val) {
+function updateEditorRow(id, key, val, refillRates) {
   const row = editorRows.find(r => r._id === id);
-  if (row) row[key] = (key === 'year' || key === 'month') ? parseInt(val,10) : val;
+  if (!row) return;
+  row[key] = (key === 'year' || key === 'month') ? parseInt(val,10) : val;
+  if (refillRates) {
+    // Year/month just changed — auto-fill any still-blank rate fields for the new date,
+    // then re-render so the visitor sees the looked-up values immediately.
+    autoFillRowRates(row, false);
+    renderEditorRows();
+  }
 }
 
 function addEditorRow() {
-  editorRows.push(blankEditorRow());
+  const row = blankEditorRow();
+  autoFillRowRates(row, false);
+  editorRows.push(row);
   renderEditorRows();
 }
 
@@ -1584,6 +1650,7 @@ function buildMonthRecord(r) {
     exported,
     exportRate: num(r.exportRate) || 0,
     importRate: num(r.importRate) || 0,
+    iogRate: num(r.iogRate) || 0,
     forecast: null, notes: null
   };
   const gi = num(r.gridImport);
@@ -1597,6 +1664,14 @@ function currentEditorData() {
     const el = document.getElementById('spec_'+f.key);
     system[f.key] = el ? el.value.trim() : '';
   });
+  const tariffSel = document.getElementById('spec_tariffSelect');
+  const tariffCustom = document.getElementById('spec_tariffCustom');
+  system.tariffName = tariffSel ? (tariffSel.value === 'Other' ? (tariffCustom?.value.trim() || '') : tariffSel.value) : '';
+  const expEl = document.getElementById('spec_exportRate');
+  const impEl = document.getElementById('spec_unitRate');
+  system.exportRate = expEl ? expEl.value.trim() : '';
+  system.unitRate = impEl ? impEl.value.trim() : '';
+
   const months = editorRows
     .filter(r => r.year && r.month && [r.generated, r.homeConsumed, r.evCharged, r.exported, r.gridImport]
       .some(v => v !== '' && v !== null && v !== undefined))
@@ -1647,13 +1722,22 @@ function importMyData(file) {
         const el = document.getElementById('spec_'+f.key);
         if (el) el.value = sys[f.key] ?? '';
       });
+      const isBuiltIn = TARIFF_OPTIONS.includes(sys.tariffName);
+      const tariffSel = document.getElementById('spec_tariffSelect');
+      const tariffCustom = document.getElementById('spec_tariffCustom');
+      if (tariffSel) tariffSel.value = sys.tariffName ? (isBuiltIn ? sys.tariffName : 'Other') : '';
+      if (tariffCustom) tariffCustom.value = (sys.tariffName && !isBuiltIn) ? sys.tariffName : '';
+      const expDefEl = document.getElementById('spec_exportRate');
+      const impDefEl = document.getElementById('spec_unitRate');
+      if (expDefEl) expDefEl.value = sys.exportRate ?? '';
+      if (impDefEl) impDefEl.value = sys.unitRate ?? '';
 
       editorRows = json.months
         .filter(m => m && m.year && m.month)
         .map(m => { editorRowSeq++; return {
           _id: 'r'+editorRowSeq, year: m.year, month: m.month,
           generated: m.generated ?? '', homeConsumed: m.homeConsumed ?? '', evCharged: m.evCharged ?? '',
-          exported: m.exported ?? '', gridImport: m.gridImport ?? '', exportRate: m.exportRate ?? '', importRate: m.importRate ?? ''
+          exported: m.exported ?? '', gridImport: m.gridImport ?? '', exportRate: m.exportRate ?? '', importRate: m.importRate ?? '', iogRate: m.iogRate ?? ''
         };});
       if (!editorRows.length) editorRows = [blankEditorRow()];
       renderEditorRows();
