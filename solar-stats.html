@@ -1729,6 +1729,12 @@ const xlCell = (v, style, numFmt, type) => {
   if (numFmt) cell.s.numFmt = numFmt;
   return cell;
 };
+// A clickable hyperlink cell, styled like a typical Excel link (blue, underlined).
+const xlLinkCell = (url, text) => ({
+  v: text || url, t: 's',
+  s: { font:{ sz:10, color:{rgb:'0563C1'}, underline:true } },
+  l: { Target: url },
+});
 const XL_STYLE = {
   title:    { font:{ bold:true, sz:15, color:{rgb:'FFFFFF'} }, fill:{fgColor:{rgb:XLSX_DARK}}, alignment:{vertical:'center'} },
   subtitle: { font:{ italic:true, sz:10, color:{rgb:XLSX_GREY} } },
@@ -1871,9 +1877,14 @@ function buildSummarySheet(data, label) {
     [xlCell('Total import avoided', XL_STYLE.label), xlCell(totalImpAvoid, XL_STYLE.value, '"£"0.00')],
     [xlCell('Total net saving', XL_STYLE.label), xlCell(netSaving, XL_STYLE.value, '"£"0.00')],
     [xlCell('Install cost', XL_STYLE.label), xlCell(sys.installCost ? Number(sys.installCost) : '—', XL_STYLE.value, sys.installCost ? '"£"#,##0' : undefined)],
+    [],
+    [xlCell('Support the channel', XL_STYLE.header), xlCell('Link', XL_STYLE.header)],
+    [xlCell('⚡ Octopus Energy — £50 credit', XL_STYLE.label), xlLinkCell('https://share.octopus.energy/dawn-snail-241')],
+    [xlCell('🚗 Tesla referral', XL_STYLE.label), xlLinkCell('https://ts.la/daniel96415')],
+    [xlCell('☕ Buy Me a Coffee', XL_STYLE.label), xlLinkCell('https://buymeacoffee.com/danevsolar')],
   ];
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 26 }, { wch: 22 }];
+  ws['!cols'] = [{ wch: 26 }, { wch: 40 }];
   ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:1} }, { s:{r:1,c:0}, e:{r:1,c:1} }];
   return ws;
 }
