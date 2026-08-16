@@ -92,7 +92,7 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .section-lbl::after{content:'';flex:1;height:1px;background:var(--border-dark);}
 
 /* PAYBACK PANEL */
-.payback-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.payback-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;}
 .payback-card{background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);border-radius:14px;padding:28px 24px;position:relative;overflow:hidden;}
 .payback-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pb-c,var(--lime));}
 .payback-card.pb-green{--pb-c:var(--lime);}
@@ -1471,12 +1471,13 @@ function renderPayback(data) {
         <div class="payback-label">Saving <strong>£${Math.round(avgVsIGo*12).toLocaleString()}/yr</strong> vs Int. Go with no panels and no battery</div>
         <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--amber)">£${Math.round(cumVsIGo).toLocaleString()}</strong> over ${monthsCount} month${monthsCount!==1?'s':''}</div>
       </div>
+      ${VIEW_MODE === 'published' ? `
       <div class="payback-card pb-pink">
         <div class="payback-eyebrow">Estimated payback (realistic tariff switch)</div>
         <div class="payback-num" style="color:var(--pink);">${fmtY(paybackRealistic)}${paybackRealistic?'<span class="payback-unit">yrs</span>':''}</div>
         <div class="payback-label">Actual costs reflect <strong>Flexible</strong> until Mar 2023, <strong>Octopus Flux</strong> Mar–Aug 2023, then <strong>Intelligent Octopus Go</strong> from Sep 2023 — with solar, as you were really billed. Compared against a no-solar baseline of Flexible until Sep 2023 then Int. Go after (Flux isn't available without solar, so it's skipped on this side)</div>
         <div class="payback-sub">Cumulative saving to date: <strong style="color:var(--pink)">£${Math.round(cumRealistic).toLocaleString()}</strong> · avg £${avgRealistic.toFixed(2)}/mo over ${monthsCount} month${monthsCount!==1?'s':''}</div>
-      </div>
+      </div>` : ''}
     </div>`;
 }
 
