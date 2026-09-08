@@ -597,6 +597,25 @@ nav {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2px;
 }
+.ref-featured {
+  margin-top: 2px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  padding: 36px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.ref-featured-icon { font-size: 52px; flex: none; line-height: 1; }
+.ref-featured-body { flex: 1; min-width: 0; }
+.ref-featured-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.ref-featured .ref-desc { max-width: 640px; margin-bottom: 0; }
+.ref-featured .btn { flex: none; }
+@media (max-width: 800px) {
+  .ref-featured { flex-direction: column; align-items: flex-start; text-align: left; gap: 20px; }
+  .ref-featured .btn { width: 100%; justify-content: center; }
+}
 .ref-card {
   background: var(--bg); border: 1px solid var(--border);
   padding: 28px; transition: border-color 0.2s;
@@ -1532,18 +1551,6 @@ footer {
       </div>
       <div class="ref-card reveal reveal-delay-3">
         <div class="ref-card-top">
-          <div class="ref-logo">🛠️</div>
-          <div>
-            <div class="ref-brand">UCS Renewables</div>
-            <div class="ref-reward">Free, no-obligation quote</div>
-          </div>
-        </div>
-        <span class="tag tag-amber" style="margin-bottom:12px;">Paid Partnership</span>
-        <p class="ref-desc">The MCS &amp; RECC-approved installer who fitted my own solar panels and battery. They cover residential and commercial solar, battery storage, and EV charging UK-wide. <a href="ucs-renewables.html" style="color:var(--green);">Read more →</a></p>
-        <a href="https://www.ucs-renewables.co.uk/?utm_source=danevsolar&utm_medium=referral&utm_campaign=partner&utm_content=homepage_card" target="_blank" class="btn btn-outline" style="font-size:14px;padding:10px 18px;" onclick="trackReferral('ucs_renewables', {content:'homepage_card'})">Get a Quote →</a>
-      </div>
-      <div class="ref-card reveal reveal-delay-4">
-        <div class="ref-card-top">
           <div class="ref-logo">🔋</div>
           <div>
             <div class="ref-brand">Axle Energy</div>
@@ -1553,6 +1560,21 @@ footer {
         <p class="ref-desc">A Virtual Power Plant that pays you when your home battery briefly exports to the grid during demand events — compatible with GivEnergy and other major battery brands. No cost, no long-term commitment.</p>
         <a href="https://vpp.axle.energy/landing?ref=R-EQXQPAWJ" target="_blank" class="btn btn-outline" style="font-size:14px;padding:10px 18px;" onclick="trackReferral('axle_energy', {content:'homepage_card'})">Join Axle →</a>
       </div>
+    </div>
+
+    <div class="ref-featured reveal reveal-delay-4">
+      <div class="ref-featured-icon">🛠️</div>
+      <div class="ref-featured-body">
+        <div class="ref-featured-top">
+          <div>
+            <div class="ref-brand" style="font-size:22px;">UCS Renewables</div>
+            <div class="ref-reward">Free, no-obligation quote</div>
+          </div>
+          <span class="tag tag-amber">Paid Partnership</span>
+        </div>
+        <p class="ref-desc">The MCS &amp; RECC-approved installer who fitted my own solar panels and battery. They cover residential and commercial solar, battery storage, and EV charging UK-wide. <a href="ucs-renewables.html" style="color:var(--green);">Read more →</a></p>
+      </div>
+      <a href="https://www.ucs-renewables.co.uk/?utm_source=danevsolar&utm_medium=referral&utm_campaign=partner&utm_content=homepage_card" target="_blank" class="btn btn-primary btn-lg" onclick="trackReferral('ucs_renewables', {content:'homepage_card'})">Get a Quote →</a>
     </div>
   </div>
 </section>
