@@ -348,18 +348,41 @@ function updateAge() {
 }
 
 // ---------- day range ----------
-const RANGES = [{ days: 7, label: '7 days' }, { days: 30, label: '30 days' }, { days: 0, label: 'All' }];
-let RANGE = 30;
-try { const saved = parseInt(localStorage.getItem('hp_range'), 10); if (RANGES.some(r => r.days === saved)) RANGE = saved; } catch (e) {}
+const RANGES = [
+  { key: 'day',   label: 'Day',   hours: 24,  days: 7,  title: 'Last 24 hours' },
+  { key: 'week',  label: 'Week',  hours: 168, days: 7,  title: 'Last 7 days' },
+  { key: 'month', label: 'Month', hours: 720, days: 30, title: 'Last 30 days' },
+  { key: 'all',   label: 'All',   hours: 744, days: 0,  title: 'Last 31 days' },
+];
+let RANGE = 'day';
+try { const saved = localStorage.getItem('hp_range2'); if (RANGES.some(r => r.key === saved)) RANGE = saved; } catch (e) {}
+function rangeDef() { return RANGES.find(r => r.key === RANGE) || RANGES[0]; }
 function dayRows() {
   const all = (DATA && DATA.daily) || [];
-  if (!RANGE) return all;
-  const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (RANGE - 1));
+  const days = rangeDef().days;
+  if (!days) return all;
+  const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (days - 1));
   return all.filter(r => parseLocal(r.date) >= from);
 }
-function setRange(days) {
-  RANGE = days;
-  try { localStorage.setItem('hp_range', String(days)); } catch (e) {}
+// readings for the detailed charts: every 5 minutes for a day, hourly averages beyond that
+function chartPoints() {
+  const R = rangeDef();
+  if (R.key === 'day') return (DATA.last24 || []).map(p => ({ ...p }));
+  const cutoff = Date.now() - R.hours * 3600 * 1000;
+  return (DATA.hourly || []).filter(h => parseLocal(h.t).getTime() >= cutoff).map(h => ({
+    t: h.t, heat: h.heat, elec: h.elec, flow: h.flow, ret: h.ret, out: h.out, room: h.room,
+    lpm: h.lpm, run: h.run, hourly: true,
+    mode: h.dhw > 0.5 ? 'dhw' : (h.run > 0 ? 'heat' : 'idle') }));
+}
+function pointLabel(p) {
+  const d = parseLocal(p.t);
+  if (!p.hourly) return hhmm(p.t);
+  if (RANGE === 'week') return DAYS[d.getDay()] + ' ' + two(d.getHours()) + ':00';
+  return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + two(d.getHours()) + ':00';
+}
+function setRange(key) {
+  RANGE = key;
+  try { localStorage.setItem('hp_range2', key); } catch (e) {}
   const y = window.scrollY; render(); window.scrollTo(0, y);
 }
 function avgStrip(rows) {
@@ -412,17 +435,18 @@ function render() {
   </div>`);
 
   // CHARTS
-  out.push(`<div class="section-lbl">Last 24 hours</div>
+  const R = rangeDef();
+  out.push(`<div class="range-head"><div class="section-lbl">${R.title}${R.key === 'day' ? '' : ' · hourly averages'}</div>
+    <div class="range-tabs">${RANGES.map(r => `<button class="range-tab${r.key === RANGE ? ' active' : ''}" onclick="setRange('${r.key}')">${r.label}</button>`).join('')}</div></div>
   <div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Heat out vs electricity in</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>Charging hot water</span></div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>${R.key === 'day' ? 'Charging hot water' : 'Mostly hot water that hour'}</span></div>
       <div class="chart-wrap tall"><canvas id="cPower"></canvas></div></div>
     <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span><span class="key"><i style="background:#8FB8E8"></i>Flow rate (L/min, right)</span></div>
       <div class="chart-wrap"><canvas id="cTemps"></canvas></div></div>
   </div>
-  <div class="range-head"><div class="section-lbl">Day by day</div>
-    <div class="range-tabs">${RANGES.map(r => `<button class="range-tab${r.days === RANGE ? ' active' : ''}" onclick="setRange(${r.days})">${r.label}</button>`).join('')}</div></div>
+  <div class="section-lbl" style="margin-top:40px;">Day by day · ${R.days ? 'last ' + R.days + ' days' : 'all days'}</div>
   <div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Daily COP</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Overall</span><span class="key"><i style="background:${C.pink}"></i>Heating</span><span class="key"><i style="background:${C.amber}"></i>Hot water</span><span class="key"><i style="background:rgba(94,168,160,.35)"></i>Average outside (°C)</span></div>
@@ -482,10 +506,11 @@ const dhwShade = {
 };
 
 function drawCharts() {
-  const L = DATA.last24 || [];
-  const labels = L.map(p => hhmm(p.t));
+  const L = chartPoints();
+  const labels = L.map(pointLabel);
   const modes = L.map(p => p.mode);
-  const xTicks = { autoSkip: true, maxTicksLimit: 9 };
+  const xTicks = { autoSkip: true, maxTicksLimit: RANGE === 'day' ? 9 : 8,
+    callback: function (v) { const l = this.getLabelForValue(v); return RANGE === 'month' || RANGE === 'all' ? l.split(' ').slice(0, 2).join(' ') : l; } };
 
   destroy('power');
   charts.power = new Chart(document.getElementById('cPower'), {
@@ -498,7 +523,7 @@ function drawCharts() {
       plugins: { ...chartDefaults.plugins, dhwShade: { modes },
         tooltip: { ...chartDefaults.plugins.tooltip, callbacks: {
           label: c => ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, 2) + ' kW'}`,
-          afterBody: items => { const p = L[items[0].dataIndex]; const lines = [' ' + (MODES[p.mode] || MODES.idle).label + (p.hz ? ' · ' + f(p.hz, 0) + ' Hz' : '')]; if (p.heat && p.elec && p.elec > .15) lines.push(' COP ' + f(p.heat / p.elec, 1)); return lines; } } } },
+          afterBody: items => { const p = L[items[0].dataIndex]; const lines = [p.hourly ? ' Running ' + Math.round((p.run || 0) * 100) + '% of the hour' : ' ' + (MODES[p.mode] || MODES.idle).label + (p.hz ? ' · ' + f(p.hz, 0) + ' Hz' : '')]; if (p.heat && p.elec && p.elec > .15) lines.push(' COP ' + f(p.heat / p.elec, 1)); return lines; } } } },
       scales: { x: axis({ ticks: { ...axis().ticks, ...xTicks } }), y: axis({ beginAtZero: true, title: { display: true, text: 'kW', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
   });
 
