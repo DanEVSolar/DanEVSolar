@@ -228,7 +228,7 @@ footer{background:var(--charcoal2);border-top:2px solid var(--lime);padding:36px
     <div class="spec-item spec-highlight"><div class="spec-icon">🔥</div><div><div class="spec-label">Heat pump</div><div class="spec-val spec-val-highlight">Samsung R290 8 kW</div></div></div>
     <div class="spec-item"><div class="spec-icon">🚿</div><div><div class="spec-label">Hot water</div><div class="spec-val">Sunamp Thermino 300</div></div></div>
     <div class="spec-item"><div class="spec-icon">♨️</div><div><div class="spec-label">Emitters</div><div class="spec-val">Radiators</div></div></div>
-    <div class="spec-item"><div class="spec-icon">🌡️</div><div><div class="spec-label">Flow temperature</div><div class="spec-val">36–38°C</div></div></div>
+    <div class="spec-item"><div class="spec-icon">🌡️</div><div><div class="spec-label" id="specFlowLabel">Heating flow temperature</div><div class="spec-val" id="specFlow">–</div></div></div>
     <div class="spec-item"><div class="spec-icon">⚡</div><div><div class="spec-label">Tariff</div><div class="spec-val">Intelligent Octopus Go</div></div></div>
   </div>
 
@@ -417,8 +417,8 @@ function render() {
     <div class="chart-card full"><div class="chart-title">Heat out vs electricity in</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>Charging hot water</span></div>
       <div class="chart-wrap tall"><canvas id="cPower"></canvas></div></div>
-    <div class="chart-card full"><div class="chart-title">Water, room and outdoor temperatures</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span></div>
+    <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span><span class="key"><i style="background:#8FB8E8"></i>Flow rate (L/min, right)</span></div>
       <div class="chart-wrap"><canvas id="cTemps"></canvas></div></div>
   </div>
   <div class="range-head"><div class="section-lbl">Day by day</div>
@@ -459,6 +459,9 @@ function render() {
     </tr>`).join('')}
     </tbody></table></div></div>`);
 
+  const fr = c && c.heating_flow_24h;
+  document.getElementById('specFlow').textContent = fr ? (fr[0] === fr[1] ? fr[0] + '°C' : fr[0] + '–' + fr[1] + '°C') : '–';
+  document.getElementById('specFlowLabel').textContent = fr ? 'Heating flow · last 24 h' : 'Heating flow temperature';
   document.getElementById('content').innerHTML = out.join('');
   drawCharts();
 }
@@ -507,11 +510,13 @@ function drawCharts() {
       { label: 'Return', data: L.map(p => p.mode === 'idle' ? null : p.ret), borderColor: C.amber, borderWidth: 2, pointRadius: 0, spanGaps: false },
       { label: 'Outside', data: L.map(p => p.out), borderColor: C.teal, borderWidth: 2, pointRadius: 0, borderDash: [4, 3] },
       { label: 'Room', data: L.map(p => p.room === undefined ? null : p.room), borderColor: '#F4F4E8', borderWidth: 2, pointRadius: 0, spanGaps: true, tension: .3 },
+      { label: 'Flow rate', data: L.map(p => p.mode === 'idle' || !p.lpm || p.lpm > 20 ? null : p.lpm), borderColor: '#8FB8E8', borderWidth: 1.5, pointRadius: 0, stepped: 'middle', spanGaps: false, yAxisID: 'y2' },
     ] },
     options: { ...chartDefaults,
       plugins: { ...chartDefaults.plugins, dhwShade: { modes },
-        tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, c.dataset.label === 'Room' ? 1 : 0) + '°C'}` } } },
-      scales: { x: axis({ ticks: { ...axis().ticks, ...xTicks } }), y: axis({ title: { display: true, text: '°C', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
+        tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => c.dataset.label === 'Flow rate' ? ` Flow rate: ${c.raw === null ? '–' : f(c.raw, 1) + ' L/min'}` : ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, c.dataset.label === 'Room' ? 1 : 0) + '°C'}` } } },
+      scales: { x: axis({ ticks: { ...axis().ticks, ...xTicks } }), y: axis({ title: { display: true, text: '°C', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
+        y2: axis({ position: 'right', min: 0, suggestedMax: 16, grid: { display: false }, title: { display: true, text: 'L/min', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
   });
 
   const D = dayRows();
