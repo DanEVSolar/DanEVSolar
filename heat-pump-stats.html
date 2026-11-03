@@ -150,6 +150,7 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .month-table tr:hover td{background:rgba(168,196,30,.03);}
 .month-table td.val{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;}
 .month-table td.pos{color:var(--lime);}
+.month-table td.neg{color:#f472b6;}
 .month-table td.dim{color:rgba(244,244,232,.35);}
 .month-table .bar-cell{width:120px;}
 .mini-bar{height:6px;background:rgba(168,204,0,.15);border-radius:3px;margin-top:4px;}
@@ -426,6 +427,29 @@ function render() {
     </div>`);
   }
 
+  // HOME BATTERY AND GRID
+  const hs = d.house;
+  if (hs && hs.current) {
+    const hc = hs.current, ht = hs.today || {};
+    const kw = w => w === null || w === undefined ? '–' : f(Math.abs(w) / 1000, 2);
+    const battState = hc.batt > 50 ? 'Discharging ' + kw(hc.batt) + ' kW' : hc.batt < -50 ? 'Charging ' + kw(hc.batt) + ' kW' : 'Idle';
+    const gridVal = hc.grid > 50 ? kw(hc.grid) : hc.grid < -50 ? kw(hc.grid) : '0.00';
+    const gridState = hc.grid > 50 ? 'Importing · ' + (hc.cheap ? 'cheap rate' : 'full rate') : hc.grid < -50 ? 'Exporting' : 'Not using the grid';
+    const hpNow = c && c.elec_kw && hc.load ? Math.round(Math.min(1, c.elec_kw * 1000 / hc.load) * 100) : null;
+    const peak = ht.imp_peak;
+    out.push(`<div class="section-lbl">Home battery and grid · ${hhmm(hc.t)}</div>
+    <div class="kpi-strip">
+      <div class="kpi green"><div class="kpi-label">Battery</div><div class="kpi-val">${f(hc.soc, 0)}<span class="kpi-unit">%</span></div><div class="kpi-delta">${battState}</div></div>
+      <div class="kpi ${hc.grid > 50 && !hc.cheap ? 'pink' : 'blue'}"><div class="kpi-label">Grid</div><div class="kpi-val">${gridVal}<span class="kpi-unit">kW</span></div><div class="kpi-delta">${gridState}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Solar</div><div class="kpi-val">${kw(hc.solar)}<span class="kpi-unit">kW</span></div><div class="kpi-delta">${ht.solar !== undefined ? f(ht.solar, 1) + ' kWh today' : ''}</div></div>
+      <div class="kpi plain"><div class="kpi-label">House using</div><div class="kpi-val">${kw(hc.load)}<span class="kpi-unit">kW</span></div><div class="kpi-delta">${hpNow !== null ? 'Heat pump about ' + hpNow + '% of it' : 'Whole house, heat pump included'}</div></div>
+      <div class="kpi ${peak > 0.3 ? 'pink' : 'green'}"><div class="kpi-label">Full-rate import today</div><div class="kpi-val">${f(peak, 1)}<span class="kpi-unit">kWh</span></div><div class="kpi-delta">${peak > 0.3 ? 'Bought outside 23:30–05:30' : 'The goal is zero'}</div></div>
+      <div class="kpi blue"><div class="kpi-label">Cheap-rate import today</div><div class="kpi-val">${f(ht.imp_cheap, 1)}<span class="kpi-unit">kWh</span></div><div class="kpi-delta">23:30–05:30, battery and house</div></div>
+      <div class="kpi ${ht.empty_at ? 'pink' : 'green'}"><div class="kpi-label">Battery ran out</div><div class="kpi-val">${ht.empty_at ? ht.empty_at : 'No'}</div><div class="kpi-delta">${ht.soc_min !== undefined && ht.soc_min !== null ? 'Lowest today ' + f(ht.soc_min, 0) + '%' : ''}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Heat pump share today</div><div class="kpi-val">${ht.hp_share ? Math.round(ht.hp_share * 100) : '–'}<span class="kpi-unit">%</span></div><div class="kpi-delta">${ht.hp ? f(ht.hp, 1) + ' of ' + f(ht.load, 1) + ' kWh used' : 'Of the house\'s electricity'}</div></div>
+    </div>`);
+  }
+
   // PERFORMANCE
   const t = d.today || {}, w = d.totals.week || {}, a = d.totals.all || {};
   function card(cls, eyebrow, cop, elec, heat, split, foot) {
@@ -453,6 +477,9 @@ function render() {
     <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span><span class="key"><i style="background:#8FB8E8"></i>Flow rate (L/min, right)</span></div>
       <div class="chart-wrap"><canvas id="cTemps"></canvas></div></div>
+    ${d.house ? `<div class="chart-card full"><div class="chart-title">Battery, grid and heat pump</div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Battery (%, right)</span><span class="key"><i style="background:#F4F4E8"></i>House using (kW)</span><span class="key"><i style="background:${C.amber}"></i>Heat pump (kW)</span><span class="key"><i style="background:rgba(244,38,182,.55)"></i>Full-rate import (kW)</span><span class="key"><i style="background:rgba(94,168,160,.55)"></i>Cheap-rate import (kW)</span></div>
+      <div class="chart-wrap tall"><canvas id="cHouse"></canvas></div></div>` : ''}
   </div>
   <div class="section-lbl" style="margin-top:40px;">Day by day · ${R.days ? 'last ' + R.days + ' days' : 'all days'}</div>
   <div class="chart-grid">
@@ -460,6 +487,9 @@ function render() {
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Overall</span><span class="key"><i style="background:${C.pink}"></i>Heating</span><span class="key"><i style="background:${C.amber}"></i>Hot water</span><span class="key"><i style="background:rgba(94,168,160,.35)"></i>Average outside (°C)</span></div>
       <div class="avg-strip">${avgStrip(dayRows())}</div>
       <div class="chart-wrap tall"><canvas id="cCop"></canvas></div></div>
+    ${d.house ? `<div class="chart-card full"><div class="chart-title">Where the house's electricity came from</div>
+      <div class="chart-sub"><span class="key"><i style="background:rgba(94,168,160,.8)"></i>Cheap-rate grid (kWh)</span><span class="key"><i style="background:rgba(244,38,182,.8)"></i>Full-rate grid (kWh)</span><span class="key"><i style="background:rgba(232,184,75,.8)"></i>Solar (kWh)</span><span class="key"><i style="background:#F4F4E8"></i>House used (kWh)</span><span class="key"><i style="background:${C.lime}"></i>Heat pump used (kWh)</span></div>
+      <div class="chart-wrap"><canvas id="cSources"></canvas></div></div>` : ''}
     <div class="chart-card"><div class="chart-title">Daily energy</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kWh)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kWh)</span></div>
       <div class="chart-wrap"><canvas id="cDaily"></canvas></div></div>
@@ -474,7 +504,7 @@ function render() {
   out.push(`<div class="table-card"><div class="chart-title">Daily figures</div>
     <div class="chart-sub" style="margin-bottom:8px;">Electricity and heat are only counted for the hours the logger was running, so a part day still gives a fair COP.</div>
     <div class="table-scroll"><table class="month-table"><thead><tr>
-      <th>Day</th><th class="num">Logged</th><th class="num">Outside</th><th class="num">Room</th><th class="num">Running</th><th class="num">Electricity</th><th class="num">Heat</th><th class="num">COP</th><th class="num">Heating</th><th class="num">Hot water</th><th class="bar-cell"></th>
+      <th>Day</th><th class="num">Logged</th><th class="num">Outside</th><th class="num">Room</th><th class="num">Running</th><th class="num">Electricity</th><th class="num">Heat</th><th class="num">COP</th><th class="num">Heating</th><th class="num">Hot water</th>${d.house ? '<th class="num">Full-rate kWh</th><th class="num">Heat pump share</th>' : ''}<th class="bar-cell"></th>
     </tr></thead><tbody>
     ${rows.map(r => `<tr>
       <td>${dayLabel(r.date, true)}${r.today ? '<span class="tag">Today</span>' : ''}</td>
@@ -487,6 +517,7 @@ function render() {
       <td class="num val pos">${f(r.cop, 2)}</td>
       <td class="num">${f(r.cop_heat, 2)}</td>
       <td class="num">${f(r.cop_dhw, 2)}</td>
+      ${d.house ? (hd => `<td class="num ${hd && hd.imp_peak > 0.3 ? 'neg' : ''}">${hd ? f(hd.imp_peak, 1) : '–'}</td><td class="num">${hd && hd.hp_share ? Math.round(hd.hp_share * 100) + '%' : '–'}</td>`)((d.house.daily || []).find(x => x.date === r.date)) : ''}
       <td class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.max(0, Math.min(100, (r.cop || 0) / maxCop * 100))}%"></div></div></td>
     </tr>`).join('')}
     </tbody></table></div></div>`);
@@ -665,6 +696,8 @@ function drawCharts() {
       scales: { x: axis({ grid: { display: false }, ticks: { ...axis().ticks, autoSkip: true, maxTicksLimit: 8 } }), y: axis({ beginAtZero: true, title: { display: true, text: 'kWh', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
   });
 
+  drawHouseCharts();
+
   const S = dayRows().filter(r => r.cop_heat !== null && r.outdoor !== null && r.elec_heat >= 1);
   destroy('scatter');
   charts.scatter = new Chart(document.getElementById('cScatter'), {
@@ -681,6 +714,84 @@ function drawCharts() {
       scales: {
         x: axis({ title: { display: true, text: 'Average outdoor °C', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
         y: axis({ beginAtZero: true, title: { display: true, text: 'COP', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
+  });
+}
+
+// ---------- battery and grid charts ----------
+const cheapShade = {
+  id: 'cheapShade',
+  beforeDatasetsDraw(chart, args, opts) {
+    const flags = opts.flags; if (!flags) return;
+    const { ctx, chartArea: a, scales: { x } } = chart;
+    ctx.save(); ctx.beginPath(); ctx.rect(a.left, a.top, a.right - a.left, a.bottom - a.top); ctx.clip();
+    ctx.fillStyle = 'rgba(94,168,160,.07)';
+    const half = flags.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) / 2 : 4;
+    flags.forEach((on, i) => { if (!on) return; const px = x.getPixelForValue(i); const l = Math.max(a.left, px - half), r = Math.min(a.right, px + half + 0.5); if (r > l) ctx.fillRect(l, a.top, r - l, a.bottom - a.top); });
+    ctx.restore();
+  }
+};
+function housePoints() {
+  const H = DATA.house; if (!H) return [];
+  const R = rangeDef();
+  if (R.key === 'day') {
+    // heat pump electricity from the nearest heat pump reading (within 4 minutes)
+    const hp = (DATA.last24 || []).map(p => [parseLocal(p.t).getTime(), p.elec]);
+    let j = 0;
+    return (H.last24 || []).map(p => {
+      const t = parseLocal(p.t).getTime();
+      while (j + 1 < hp.length && Math.abs(hp[j + 1][0] - t) <= Math.abs(hp[j][0] - t)) j++;
+      const near = hp.length && Math.abs(hp[j][0] - t) <= 240000 ? hp[j][1] : null;
+      return { ...p, hp: near };
+    });
+  }
+  const cutoff = Date.now() - R.hours * 3600 * 1000;
+  return (H.hourly || []).filter(h => parseLocal(h.t).getTime() >= cutoff).map(h => ({ ...h, hourly: true }));
+}
+function drawHouseCharts() {
+  if (!DATA.house) return;
+  const P = housePoints();
+  const labels = P.map(pointLabel);
+  destroy('house');
+  if (document.getElementById('cHouse')) charts.house = new Chart(document.getElementById('cHouse'), {
+    type: 'line', plugins: [cheapShade],
+    data: { labels, datasets: [
+      { label: 'Battery', data: P.map(p => p.soc), borderColor: C.lime, borderWidth: 2, pointRadius: 0, yAxisID: 'y2', tension: .2 },
+      { label: 'House using', data: P.map(p => p.load), borderColor: '#F4F4E8', borderWidth: 1.5, pointRadius: 0, tension: .2 },
+      { label: 'Heat pump', data: P.map(p => p.hp), borderColor: C.amber, borderWidth: 1.5, pointRadius: 0, stepped: 'middle', spanGaps: true },
+      { label: 'Full-rate import', data: P.map(p => !p.cheap && p.grid > 0 ? p.grid : 0), borderColor: 'rgba(244,38,182,.8)', backgroundColor: 'rgba(244,38,182,.35)', fill: true, borderWidth: 1, pointRadius: 0, stepped: 'middle' },
+      { label: 'Cheap-rate import', data: P.map(p => p.cheap && p.grid > 0 ? p.grid : 0), borderColor: 'rgba(94,168,160,.8)', backgroundColor: 'rgba(94,168,160,.25)', fill: true, borderWidth: 1, pointRadius: 0, stepped: 'middle' },
+    ] },
+    options: { ...chartDefaults,
+      plugins: { ...chartDefaults.plugins, cheapShade: { flags: P.map(p => p.cheap) },
+        tooltip: { ...chartDefaults.plugins.tooltip, callbacks: {
+          label: c => c.dataset.label === 'Battery' ? ` Battery: ${f(c.raw, 0)}%` : ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, 2) + ' kW'}`,
+          afterBody: items => { const p = P[items[0].dataIndex]; return [' ' + (p.cheap ? 'Cheap rate' : 'Full rate') + (p.solar ? ' · solar ' + f(p.solar, 2) + ' kW' : '')]; } } } },
+      scales: { x: axis({ ticks: { ...axis().ticks, autoSkip: true, maxTicksLimit: RANGE === 'day' ? 9 : 8,
+          callback: function (v) { const l = this.getLabelForValue(v); return RANGE === 'month' || RANGE === 'all' ? l.split(' ').slice(0, 2).join(' ') : l; } } }),
+        y: axis({ beginAtZero: true, title: { display: true, text: 'kW', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
+        y2: axis({ position: 'right', min: 0, max: 100, grid: { display: false }, title: { display: true, text: 'Battery %', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
+  });
+
+  // daily: where the electricity came from
+  const days = rangeDef().days;
+  const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - ((days || 9999) - 1));
+  const HD = (DATA.house.daily || []).filter(r => !days || parseLocal(r.date) >= from);
+  destroy('sources');
+  if (document.getElementById('cSources')) charts.sources = new Chart(document.getElementById('cSources'), {
+    data: { labels: HD.map(r => dayLabel(r.date)), datasets: [
+      { type: 'bar', label: 'Cheap-rate grid', data: HD.map(r => r.imp_cheap), backgroundColor: 'rgba(94,168,160,.75)', stack: 's', borderRadius: 2, order: 2 },
+      { type: 'bar', label: 'Full-rate grid', data: HD.map(r => r.imp_peak), backgroundColor: 'rgba(244,38,182,.75)', stack: 's', borderRadius: 2, order: 2 },
+      { type: 'bar', label: 'Solar', data: HD.map(r => r.solar), backgroundColor: 'rgba(232,184,75,.75)', stack: 's', borderRadius: 2, order: 2 },
+      { type: 'line', label: 'House used', data: HD.map(r => r.load), borderColor: '#F4F4E8', backgroundColor: '#F4F4E8', borderWidth: 2, pointRadius: HD.length > 45 ? 0 : 3, order: 1 },
+      { type: 'line', label: 'Heat pump used', data: HD.map(r => r.hp), borderColor: C.lime, backgroundColor: C.lime, borderWidth: 2, pointRadius: HD.length > 45 ? 0 : 3, spanGaps: true, order: 1 },
+    ] },
+    options: { ...chartDefaults,
+      plugins: { ...chartDefaults.plugins, tooltip: { ...chartDefaults.plugins.tooltip, callbacks: {
+        title: items => dayLabel(HD[items[0].dataIndex].date, true),
+        label: c => ` ${c.dataset.label}: ${f(c.raw, 1)} kWh`,
+        afterBody: items => { const r = HD[items[0].dataIndex]; const out = []; if (r.hp_share) out.push(' Heat pump ' + Math.round(r.hp_share * 100) + '% of the house'); out.push(r.empty_at ? ' Battery ran out at ' + r.empty_at : ' Battery lowest ' + f(r.soc_min, 0) + '%'); if (r.export > 0.05) out.push(' Exported ' + f(r.export, 1) + ' kWh'); return out; } } } },
+      scales: { x: axis({ stacked: true, grid: { display: false }, ticks: { ...axis().ticks, autoSkip: true, maxTicksLimit: 10 } }),
+        y: axis({ stacked: true, beginAtZero: true, title: { display: true, text: 'kWh', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
   });
 }
 
