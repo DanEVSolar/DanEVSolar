@@ -576,7 +576,7 @@ function render() {
   }
   out.push(`<div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Heat out vs electricity in</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>${fine ? 'Charging hot water' : 'Mostly hot water that hour'}</span></div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>${fine ? 'Charging hot water' : 'Mostly hot water that hour'}</span>${fine ? `<span class="key"><i style="background:rgba(143,184,232,.45)"></i>Defrost (heat borrowed back, counted in every total)</span>` : ''}</div>
       <div class="zoom-bar" id="zoomBar"></div>
       <div class="chart-wrap tall"><canvas id="cPower"></canvas></div></div>
     <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
@@ -636,16 +636,25 @@ function render() {
 
 function destroy(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
-// shade the stretches where the heat pump was charging the hot water
+// a defrost: the heat pump briefly runs in reverse, taking heat from the
+// radiator water to melt ice on the outdoor coil, so heat out goes negative.
+// The heat it borrows is real and stays in every total; only the COP of that
+// single reading means nothing, so it isn't shown.
+function isDefrost(p) { return !p.hourly && p.heat !== null && p.heat < -0.3 && p.mode !== 'dhw'; }
+function readingNote(p) {
+  if (isDefrost(p)) return ' Defrost: borrowing heat from the radiators to melt ice on the outdoor unit';
+  if (!p.hourly && p.heat < 0 && p.mode === 'dhw') return ' Valve switching over to hot water';
+  return null;
+}
+// shade the stretches where the heat pump was charging the hot water, and defrosts
 const dhwShade = {
   id: 'dhwShade',
   beforeDatasetsDraw(chart, args, opts) {
     const modes = opts.modes; if (!modes) return;
     const { ctx, chartArea: a, scales: { x } } = chart;
     ctx.save(); ctx.beginPath(); ctx.rect(a.left, a.top, a.right - a.left, a.bottom - a.top); ctx.clip();
-    ctx.fillStyle = 'rgba(244,38,182,.12)';
     const half = modes.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) / 2 : 4;
-    modes.forEach((m, i) => { if (m !== 'dhw') return; const px = x.getPixelForValue(i); const l = Math.max(a.left, px - half), r = Math.min(a.right, px + half + 0.5); if (r > l) ctx.fillRect(l, a.top, r - l, a.bottom - a.top); });
+    modes.forEach((m, i) => { if (m !== 'dhw' && m !== 'defrost') return; ctx.fillStyle = m === 'dhw' ? 'rgba(244,38,182,.12)' : 'rgba(143,184,232,.22)'; const px = x.getPixelForValue(i); const l = Math.max(a.left, px - half), r = Math.min(a.right, px + half + 0.5); if (r > l) ctx.fillRect(l, a.top, r - l, a.bottom - a.top); });
     ctx.restore();
   }
 };
@@ -727,7 +736,7 @@ function drawCharts() {
   const L = chartPoints();
   POINTS = L;
   const labels = L.map(pointLabel);
-  const modes = L.map(p => p.mode);
+  const modes = L.map(p => isDefrost(p) ? 'defrost' : p.mode);
   const xTicks = { autoSkip: true, maxTicksLimit: RANGE === 'day' ? 9 : 8,
     callback: function (v) { const l = this.getLabelForValue(v); return RANGE === 'month' || RANGE === 'all' ? l.split(' ').slice(0, 2).join(' ') : l; } };
 
@@ -742,7 +751,11 @@ function drawCharts() {
       plugins: { ...chartDefaults.plugins, dhwShade: { modes },
         tooltip: { ...chartDefaults.plugins.tooltip, callbacks: {
           label: c => ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, 2) + ' kW'}`,
-          afterBody: items => { const p = L[items[0].dataIndex]; const lines = [p.hourly ? ' Running ' + Math.round((p.run || 0) * 100) + '% of the hour' : ' ' + (MODES[p.mode] || MODES.idle).label + (p.hz ? ' · ' + f(p.hz, 0) + ' Hz' : '')]; if (p.heat && p.elec && p.elec > .15) lines.push(' COP ' + f(p.heat / p.elec, 1)); return lines; } } } },
+          afterBody: items => { const p = L[items[0].dataIndex]; const note = readingNote(p);
+            const lines = [p.hourly ? ' Running ' + Math.round((p.run || 0) * 100) + '% of the hour' : ' ' + (MODES[isDefrost(p) ? 'defrost' : p.mode] || MODES.idle).label + (p.hz ? ' · ' + f(p.hz, 0) + ' Hz' : '')];
+            if (note) lines.push(note);
+            else if (p.heat > 0 && p.elec && p.elec > .15) lines.push(' COP ' + f(p.heat / p.elec, 1));
+            return lines; } } } },
       scales: { x: axis({ ticks: { ...axis().ticks, ...xTicks } }), y: axis({ beginAtZero: true, title: { display: true, text: 'kW', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
   });
 
