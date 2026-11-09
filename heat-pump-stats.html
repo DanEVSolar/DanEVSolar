@@ -157,7 +157,19 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .mini-bar-fill{height:6px;background:var(--lime);border-radius:3px;}
 .range-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:40px 0 20px;}
 .range-head .section-lbl{flex:1;margin:0;min-width:160px;}
-.range-tabs{display:flex;gap:2px;}
+.range-tabs{display:flex;gap:2px;flex-wrap:wrap;}
+.pick-bar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin:-6px 0 22px;padding:14px 16px;border:1px solid var(--border-dark);border-radius:8px;background:rgba(168,196,30,.03);font-size:12px;color:var(--on-dark-muted);}
+.pick-bar label{display:flex;align-items:center;gap:6px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:11px;}
+.pick-bar input,.pick-bar select{font-family:'Exo 2',sans-serif;font-size:13px;color:var(--off-white);background:#151508;border:1px solid var(--border-dark);border-radius:4px;padding:6px 8px;color-scheme:dark;}
+.pick-bar input:focus,.pick-bar select:focus{outline:1px solid var(--lime);}
+.pick-step{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;line-height:1;padding:6px 10px;border-radius:4px;border:1px solid var(--border-dark);background:rgba(168,196,30,.04);color:var(--on-dark-muted);cursor:pointer;}
+.pick-step:hover:not(:disabled){color:var(--off-white);}
+.pick-step:disabled{opacity:.3;cursor:default;}
+.pick-quick{display:flex;gap:4px;flex-wrap:wrap;}
+.pick-quick button{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:4px;border:1px solid var(--border-dark);background:transparent;color:var(--on-dark-muted);cursor:pointer;}
+.pick-quick button.on{border-color:var(--lime);color:var(--lime);background:rgba(168,196,30,.08);}
+.pick-quick button:hover:not(.on){color:var(--off-white);}
+.pick-note{flex-basis:100%;font-size:11px;color:rgba(244,244,232,.4);}
 .range-tab{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 16px;background:rgba(168,196,30,0.04);border:1px solid var(--border-dark);color:var(--on-dark-muted);cursor:pointer;transition:all .15s;border-radius:4px;}
 .range-tab.active{background:rgba(168,196,30,.12);border-color:var(--lime);color:var(--lime);}
 .range-tab:hover:not(.active){color:var(--off-white);}
@@ -360,30 +372,105 @@ const RANGES = [
   { key: 'week',  label: 'Week',  hours: 168, days: 7,  title: 'Last 7 days' },
   { key: 'month', label: 'Month', hours: 720, days: 30, title: 'Last 30 days' },
   { key: 'all',   label: 'All',   hours: 744, days: 0,  title: 'Last 31 days' },
+  { key: 'hours', label: 'Pick hours', hours: 0, days: 1, title: '' },
 ];
+// the "Pick hours" view: one date and a from-to window of whole hours
+let PICK = { date: null, from: 0, to: 24 };
+try { const p = JSON.parse(localStorage.getItem('hp_pick') || 'null'); if (p && p.date) PICK = p; } catch (e) {}
+let PICK_RES = 'none';     // 'detail' (5-minute readings), 'hourly' or 'none'
+const QUICK = [['Night', 0, 6], ['Morning', 6, 12], ['Afternoon', 12, 18], ['Evening', 18, 24], ['Whole day', 0, 24]];
+function isoDate(d) { return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()); }
+function pickDate() { return PICK.date || isoDate(new Date()); }
+function pickWindow() {
+  const a = parseLocal(pickDate()); a.setHours(PICK.from, 0, 0, 0);
+  const b = parseLocal(pickDate()); b.setHours(PICK.to, 0, 0, 0);   // 24 = next midnight
+  return [a.getTime(), b.getTime()];
+}
+function pickBounds() {
+  const firstHour = (DATA.hourly || [])[0];
+  return { min: firstHour ? firstHour.t.slice(0, 10) : isoDate(new Date()), max: isoDate(new Date()) };
+}
+function setPick(changes) {
+  PICK = { ...PICK, date: pickDate(), ...changes };
+  const b = pickBounds();
+  if (PICK.date < b.min) PICK.date = b.min;
+  if (PICK.date > b.max) PICK.date = b.max;
+  PICK.from = Math.max(0, Math.min(23, PICK.from | 0));
+  PICK.to = Math.max(1, Math.min(24, PICK.to | 0));
+  if (PICK.to <= PICK.from) { if ('from' in changes) PICK.to = Math.min(24, PICK.from + 1); else PICK.from = Math.max(0, PICK.to - 1); }
+  try { localStorage.setItem('hp_pick', JSON.stringify(PICK)); } catch (e) {}
+  ZOOM = null;
+  const y = window.scrollY; render(); window.scrollTo(0, y);
+}
+function pickShift(days) { const d = parseLocal(pickDate()); d.setDate(d.getDate() + days); setPick({ date: isoDate(d) }); }
+function pickTitle() {
+  const label = h => two(h % 24) + ':00';
+  return dayLabel(pickDate(), true) + ', ' + label(PICK.from) + '–' + (PICK.to === 24 ? '24:00' : label(PICK.to));
+}
+
+// 5-minute readings for the last couple of weeks, loaded only for "Pick hours"
+const DETAIL_URL = DATA_URL.replace(/\.json$/, '-detail.json');
+let DETAIL = null, detailBusy = false, detailAt = 0;
+async function loadDetail() {
+  if (detailBusy || Date.now() - detailAt < REFRESH_MS) return;
+  detailBusy = true;
+  const bucket = Math.floor(Date.now() / 60000);
+  const urls = [];
+  if (!DATA_URL.includes('OWNER/REPO')) urls.push(DETAIL_URL + '?v=' + bucket);
+  urls.push('heat-pump-detail.json?v=' + bucket);
+  for (const u of urls) {
+    try { const j = await fetchJson(u); if (j && j.heat_pump) { DETAIL = j; break; } } catch (e) { /* try the next */ }
+  }
+  detailAt = Date.now(); detailBusy = false;
+  if (RANGE === 'hours' && DATA) { const y = window.scrollY; render(); window.scrollTo(0, y); }
+}
 let RANGE = 'day';
 try { const saved = localStorage.getItem('hp_range2'); if (RANGES.some(r => r.key === saved)) RANGE = saved; } catch (e) {}
 function rangeDef() { return RANGES.find(r => r.key === RANGE) || RANGES[0]; }
 function dayRows() {
   const all = (DATA && DATA.daily) || [];
+  if (RANGE === 'hours') return all.filter(r => r.date === pickDate());
   const days = rangeDef().days;
   if (!days) return all;
   const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (days - 1));
   return all.filter(r => parseLocal(r.date) >= from);
 }
 // readings for the detailed charts: every 5 minutes for a day, hourly averages beyond that
+function hourlyPoint(h) {
+  return { t: h.t, heat: h.heat, elec: h.elec, flow: h.flow, ret: h.ret, out: h.out, room: h.room,
+    lpm: h.lpm, run: h.run, hourly: true,
+    mode: h.dhw > 0.5 ? 'dhw' : (h.run > 0 ? 'heat' : 'idle') };
+}
 function chartPoints() {
   const R = rangeDef();
   if (R.key === 'day') return (DATA.last24 || []).map(p => ({ ...p }));
+  if (R.key === 'hours') return pickPoints();
   const cutoff = Date.now() - R.hours * 3600 * 1000;
-  return (DATA.hourly || []).filter(h => parseLocal(h.t).getTime() >= cutoff).map(h => ({
-    t: h.t, heat: h.heat, elec: h.elec, flow: h.flow, ret: h.ret, out: h.out, room: h.room,
-    lpm: h.lpm, run: h.run, hourly: true,
-    mode: h.dhw > 0.5 ? 'dhw' : (h.run > 0 ? 'heat' : 'idle') }));
+  return (DATA.hourly || []).filter(h => parseLocal(h.t).getTime() >= cutoff).map(hourlyPoint);
+}
+// readings for the picked date and hours: 5-minute detail where we have it,
+// otherwise the last 24 hours, otherwise hourly averages
+function pickPoints() {
+  const [a, b] = pickWindow();
+  const inWin = t => { const ms = parseLocal(t).getTime(); return ms >= a && ms < b; };
+  const det = DETAIL && DETAIL.heat_pump;
+  const covers = rows => rows.length && parseLocal(rows[0].t || rows[0][0]).getTime() <= a + 3600000;
+  if (det && covers(det.rows)) {
+    const M = { h: 'heat', d: 'dhw', i: 'idle' };
+    PICK_RES = 'detail';
+    return det.rows.filter(r => inWin(r[0])).map(r => ({ t: r[0], mode: M[r[1]] || 'idle', flow: r[2], ret: r[3],
+      out: r[4], room: r[5], lpm: r[6], hz: r[7], heat: r[8], elec: r[9] }));
+  }
+  const l24 = DATA.last24 || [];
+  if (covers(l24)) { PICK_RES = 'detail'; return l24.filter(p => inWin(p.t)).map(p => ({ ...p })); }
+  const hourly = (DATA.hourly || []).filter(h => inWin(h.t)).map(hourlyPoint);
+  PICK_RES = hourly.length ? 'hourly' : 'none';
+  return hourly;
 }
 function pointLabel(p) {
   const d = parseLocal(p.t);
   if (!p.hourly) return hhmm(p.t);
+  if (RANGE === 'hours') return two(d.getHours()) + ':00';
   if (RANGE === 'week') return DAYS[d.getDay()] + ' ' + two(d.getHours()) + ':00';
   return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + two(d.getHours()) + ':00';
 }
@@ -467,11 +554,29 @@ function render() {
 
   // CHARTS
   const R = rangeDef();
-  out.push(`<div class="range-head"><div class="section-lbl">${R.title}${R.key === 'day' ? '' : ' · hourly averages'}</div>
-    <div class="range-tabs">${RANGES.map(r => `<button class="range-tab${r.key === RANGE ? ' active' : ''}" onclick="setRange('${r.key}')">${r.label}</button>`).join('')}</div></div>
-  <div class="chart-grid">
+  const pick = R.key === 'hours';
+  if (pick) { if (!PICK.date) PICK.date = isoDate(new Date()); pickPoints(); loadDetail(); }
+  const fine = R.key === 'day' || (pick && PICK_RES !== 'hourly');
+  const title = pick ? pickTitle() + (PICK_RES === 'hourly' ? ' · hourly averages' : PICK_RES === 'none' ? '' : ' · every 5 minutes')
+    : R.title + (R.key === 'day' ? '' : ' · hourly averages');
+  out.push(`<div class="range-head"><div class="section-lbl">${esc(title)}</div>
+    <div class="range-tabs">${RANGES.map(r => `<button class="range-tab${r.key === RANGE ? ' active' : ''}" onclick="setRange('${r.key}')">${r.label}</button>`).join('')}</div></div>`);
+  if (pick) {
+    const b = pickBounds(), hrs = n => Array.from({ length: n }, (_, i) => i);
+    const detDays = DETAIL && DETAIL.heat_pump ? DETAIL.heat_pump.days : 14;
+    out.push(`<div class="pick-bar">
+      <button class="pick-step" onclick="pickShift(-1)" ${pickDate() <= b.min ? 'disabled' : ''} aria-label="Previous day">‹</button>
+      <input type="date" value="${pickDate()}" min="${b.min}" max="${b.max}" onchange="if (this.value) setPick({ date: this.value })" aria-label="Date">
+      <button class="pick-step" onclick="pickShift(1)" ${pickDate() >= b.max ? 'disabled' : ''} aria-label="Next day">›</button>
+      <label>From <select onchange="setPick({ from: +this.value })">${hrs(24).map(h => `<option value="${h}"${h === PICK.from ? ' selected' : ''}>${two(h)}:00</option>`).join('')}</select></label>
+      <label>To <select onchange="setPick({ to: +this.value })">${hrs(24).map(h => h + 1).map(h => `<option value="${h}"${h === PICK.to ? ' selected' : ''}>${two(h)}:00</option>`).join('')}</select></label>
+      <div class="pick-quick">${QUICK.map(([n, a, z]) => `<button class="${PICK.from === a && PICK.to === z ? 'on' : ''}" onclick="setPick({ from: ${a}, to: ${z} })">${n}</button>`).join('')}</div>
+      <div class="pick-note">${PICK_RES === 'none' ? 'No readings logged for these hours.' : `Every 5-minute reading is kept for the last ${detDays} days; earlier dates show hourly averages.`}</div>
+    </div>`);
+  }
+  out.push(`<div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Heat out vs electricity in</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>${R.key === 'day' ? 'Charging hot water' : 'Mostly hot water that hour'}</span></div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Heat out (kW)</span><span class="key"><i style="background:${C.amber}"></i>Electricity in (kW)</span><span class="key"><i style="background:rgba(244,38,182,.25)"></i>${fine ? 'Charging hot water' : 'Mostly hot water that hour'}</span></div>
       <div class="zoom-bar" id="zoomBar"></div>
       <div class="chart-wrap tall"><canvas id="cPower"></canvas></div></div>
     <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
@@ -481,7 +586,7 @@ function render() {
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Battery (%, right)</span><span class="key"><i style="background:#F4F4E8"></i>House using (kW)</span><span class="key"><i style="background:${C.amber}"></i>Heat pump (kW)</span><span class="key"><i style="background:rgba(244,38,182,.55)"></i>Full-rate import (kW)</span><span class="key"><i style="background:rgba(94,168,160,.55)"></i>Cheap-rate import (kW)</span></div>
       <div class="chart-wrap tall"><canvas id="cHouse"></canvas></div></div>` : ''}
   </div>
-  <div class="section-lbl" style="margin-top:40px;">Day by day · ${R.days ? 'last ' + R.days + ' days' : 'all days'}</div>
+  <div class="section-lbl" style="margin-top:40px;">Day by day · ${pick ? 'the whole of ' + esc(dayLabel(pickDate(), true)) : R.days ? 'last ' + R.days + ' days' : 'all days'}</div>
   <div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Daily COP</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Overall</span><span class="key"><i style="background:${C.pink}"></i>Heating</span><span class="key"><i style="background:${C.amber}"></i>Hot water</span><span class="key"><i style="background:rgba(94,168,160,.35)"></i>Average outside (°C)</span></div>
@@ -566,8 +671,8 @@ function applyZoom() {
 }
 function showZoomBar(z) {
   const bar = document.getElementById('zoomBar'); if (!bar) return;
-  if (!z) { bar.innerHTML = '<span>Drag across the chart to zoom in on a stretch of time.</span>'; return; }
-  const pts = POINTS.slice(z[0], z[1] + 1);
+  if (!z && !(RANGE === 'hours' && POINTS.length > 1)) { bar.innerHTML = '<span>Drag across the chart to zoom in on a stretch of time.</span>'; return; }
+  const pts = z ? POINTS.slice(z[0], z[1] + 1) : POINTS;
   const hrs = pts.length > 1 ? (parseLocal(pts[pts.length - 1].t) - parseLocal(pts[0].t)) / 3600000 : 0;
   const step = pts[0] && pts[0].hourly ? 1 : 5 / 60;          // hours each point stands for
   let heat = 0, elec = 0, elecPts = 0;
@@ -575,7 +680,7 @@ function showZoomBar(z) {
   const cop = elec >= 0.05 && elecPts >= pts.length * 0.8 ? heat / elec : null;
   bar.innerHTML = `<span><b>${esc(pointLabel(pts[0]))}</b> to <b>${esc(pointLabel(pts[pts.length - 1]))}</b> (${f(hrs, hrs < 10 ? 1 : 0)} h):
     heat <b>${f(heat, 1)} kWh</b> · electricity <b>${f(elec, 1)} kWh</b> · COP <b class="lime">${cop === null ? '–' : f(cop, 2)}</b></span>
-    <button class="zoom-reset" onclick="ZOOM = null; applyZoom()">Reset zoom</button>`;
+    ${z ? '<button class="zoom-reset" onclick="ZOOM = null; applyZoom()">Reset zoom</button>' : '<span>Drag across the chart to zoom in further.</span>'}`;
 }
 const dragZoom = {
   id: 'dragZoom',
@@ -730,19 +835,33 @@ const cheapShade = {
     ctx.restore();
   }
 };
+// heat pump electricity from the nearest heat pump reading (within 4 minutes)
+function withHp(points, hpPoints) {
+  const hp = hpPoints.map(p => [parseLocal(p.t).getTime(), p.elec]);
+  let j = 0;
+  return points.map(p => {
+    const t = parseLocal(p.t).getTime();
+    while (j + 1 < hp.length && Math.abs(hp[j + 1][0] - t) <= Math.abs(hp[j][0] - t)) j++;
+    const near = hp.length && Math.abs(hp[j][0] - t) <= 240000 ? hp[j][1] : null;
+    return { ...p, hp: near };
+  });
+}
 function housePoints() {
   const H = DATA.house; if (!H) return [];
   const R = rangeDef();
-  if (R.key === 'day') {
-    // heat pump electricity from the nearest heat pump reading (within 4 minutes)
-    const hp = (DATA.last24 || []).map(p => [parseLocal(p.t).getTime(), p.elec]);
-    let j = 0;
-    return (H.last24 || []).map(p => {
-      const t = parseLocal(p.t).getTime();
-      while (j + 1 < hp.length && Math.abs(hp[j + 1][0] - t) <= Math.abs(hp[j][0] - t)) j++;
-      const near = hp.length && Math.abs(hp[j][0] - t) <= 240000 ? hp[j][1] : null;
-      return { ...p, hp: near };
-    });
+  if (R.key === 'day') return withHp(H.last24 || [], DATA.last24 || []);
+  if (R.key === 'hours') {
+    const [a, b] = pickWindow();
+    const inWin = t => { const ms = parseLocal(t).getTime(); return ms >= a && ms < b; };
+    const hd = DETAIL && DETAIL.house;
+    if (PICK_RES === 'detail' && hd && hd.rows && hd.rows.length && parseLocal(hd.rows[0][0]).getTime() <= a + 3600000) {
+      const rows = hd.rows.filter(r => inWin(r[0])).map(r => ({ t: r[0], soc: r[1], solar: r[2], grid: r[3], batt: r[4], load: r[5], cheap: !!r[6] }));
+      return withHp(rows, POINTS);
+    }
+    const l24 = H.last24 || [];
+    if (PICK_RES === 'detail' && l24.length && parseLocal(l24[0].t).getTime() <= a + 3600000)
+      return withHp(l24.filter(p => inWin(p.t)), POINTS);
+    return (H.hourly || []).filter(h => inWin(h.t)).map(h => ({ ...h, hourly: true }));
   }
   const cutoff = Date.now() - R.hours * 3600 * 1000;
   return (H.hourly || []).filter(h => parseLocal(h.t).getTime() >= cutoff).map(h => ({ ...h, hourly: true }));
@@ -775,7 +894,7 @@ function drawHouseCharts() {
   // daily: where the electricity came from
   const days = rangeDef().days;
   const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - ((days || 9999) - 1));
-  const HD = (DATA.house.daily || []).filter(r => !days || parseLocal(r.date) >= from);
+  const HD = (DATA.house.daily || []).filter(r => RANGE === 'hours' ? r.date === pickDate() : (!days || parseLocal(r.date) >= from));
   destroy('sources');
   if (document.getElementById('cSources')) charts.sources = new Chart(document.getElementById('cSources'), {
     data: { labels: HD.map(r => dayLabel(r.date)), datasets: [
