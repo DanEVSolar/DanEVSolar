@@ -603,6 +603,29 @@ function render() {
       <div class="chart-wrap"><canvas id="cScatter"></canvas></div></div>
   </div>`);
 
+  // HOUSE HEAT LOSS (always from every full day logged, whatever the range)
+  const HL = d.heat_loss;
+  if (HL && HL.fit) {
+    const F = HL.fit, Z = HL.design;
+    const times = Z.unit_kw / F.need_at_design;
+    out.push(`<div class="section-lbl" style="margin-top:40px;">House heat loss · from ${F.n} full days at ${f(F.out_min, 0)} to ${f(F.out_max, 0)}°C outside</div>
+    <div class="kpi-strip">
+      <div class="kpi green"><div class="kpi-label">Heat loss</div><div class="kpi-val">${F.w_per_k}<span class="kpi-unit">W/°C</span></div><div class="kpi-delta">Walls, windows, roof and draughts · likely ${F.range[0]}–${F.range[1]}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Heat needed at ${f(Z.out, 0)}°C</div><div class="kpi-val">${f(F.need_at_design, 1)}<span class="kpi-unit">kW</span></div><div class="kpi-delta">House at ${f(F.room, 0)}°C, after free heat · ${f(F.need_at_0, 1)} kW at 0°C</div></div>
+      <div class="kpi pink"><div class="kpi-label">Installer's design</div><div class="kpi-val">${f(Z.kw, 2)}<span class="kpi-unit">kW</span></div><div class="kpi-delta">${Z.w_per_k} W/°C at ${f(Z.out, 1)}°C · ${Math.round((Z.kw / F.need_at_design - 1) * 100)}% more than measured</div></div>
+      <div class="kpi plain"><div class="kpi-label">Heat pump size</div><div class="kpi-val">${f(Z.unit_kw, 0)}<span class="kpi-unit">kW</span></div><div class="kpi-delta">About ${f(times, 1)}× what the house needs at ${f(Z.out, 0)}°C</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card full"><div class="chart-title">How much heat the house needs</div>
+        <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Each full day: heat pump's average output (kW)</span><span class="key"><i style="background:#F4F4E8"></i>Your house, estimated (room ${f(F.room, 0)}°C)</span><span class="key"><i style="background:${C.pink}"></i>Installer's design</span><span class="key"><i style="background:${C.amber}"></i>Heat pump maximum</span><span class="key"><i style="background:rgba(232,184,75,.45)"></i>Its lowest steady output</span></div>
+        <div class="chart-wrap tall"><canvas id="cLoss"></canvas></div>
+        <div class="chart-sub" style="margin-top:12px;">Worked out from the heat pump's own heat readings, plus free heat from appliances (the house's other electricity) and about 150 W from people, averaged over every full day since ${dayLabel(HL.days[0].date, true)}. It's only as accurate as Samsung's heat readings, probably within about 20%. Colder days make it more certain. Wherever a dot sits below the "lowest steady output" line, the heat pump can't run continuously and has to switch on and off.</div></div>
+      <div class="chart-card full"><div class="chart-title">How the estimate has settled</div>
+        <div class="chart-sub"><span class="key"><i style="background:#F4F4E8"></i>Heat loss estimate using every day up to then (W/°C)</span><span class="key"><i style="background:${C.pink}"></i>Installer's design (${Z.w_per_k} W/°C)</span></div>
+        <div class="chart-wrap"><canvas id="cLossHist"></canvas></div></div>
+    </div>`);
+  }
+
   // TABLE
   const rows = dayRows().slice().reverse();
   const maxCop = 5;
@@ -815,6 +838,7 @@ function drawCharts() {
   });
 
   drawHouseCharts();
+  drawLossCharts();
 
   const S = dayRows().filter(r => r.cop_heat !== null && r.outdoor !== null && r.elec_heat >= 1);
   destroy('scatter');
@@ -832,6 +856,52 @@ function drawCharts() {
       scales: {
         x: axis({ title: { display: true, text: 'Average outdoor °C', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
         y: axis({ beginAtZero: true, title: { display: true, text: 'COP', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
+  });
+}
+
+// ---------- house heat loss ----------
+function drawLossCharts() {
+  const HL = DATA.heat_loss;
+  if (!HL || !HL.fit || !document.getElementById('cLoss')) return;
+  const F = HL.fit, Z = HL.design, k = F.w_per_k / 1000, kd = Z.w_per_k / 1000;
+  const need = t => Math.max(0, k * (F.room - t) - F.gains_kw);
+  const designAt = t => Math.max(0, Z.kw - kd * (t - Z.out));
+  const line = (fn, n = 22) => Array.from({ length: n }, (_, i) => { const x = -5 + i; return { x, y: +fn(x).toFixed(2) }; });
+  const title = text => ({ display: true, text, color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } });
+  destroy('loss');
+  charts.loss = new Chart(document.getElementById('cLoss'), {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'Each full day', data: HL.days.map(dd => ({ x: dd.out, y: dd.heat_kw, dd })), backgroundColor: C.lime, pointRadius: 5, pointHoverRadius: 7, order: 0 },
+      { label: 'Your house (estimate)', type: 'line', data: line(need), borderColor: '#F4F4E8', borderWidth: 2.5, pointRadius: 0, order: 1 },
+      { label: "Installer's design", type: 'line', data: line(designAt), borderColor: C.pink, borderDash: [6, 4], borderWidth: 2, pointRadius: 0, order: 2 },
+      { label: 'Heat pump maximum', type: 'line', data: line(() => Z.unit_kw), borderColor: C.amber, borderDash: [3, 3], borderWidth: 1.5, pointRadius: 0, order: 3 },
+      { label: 'Lowest steady output', type: 'line', data: line(() => Z.min_kw), borderColor: 'rgba(232,184,75,.45)', borderDash: [2, 4], borderWidth: 1.5, pointRadius: 0, order: 3 },
+    ] },
+    options: { ...chartDefaults, interaction: { mode: 'nearest', intersect: false, axis: 'x' },
+      plugins: { ...chartDefaults.plugins,
+        tooltip: { ...chartDefaults.plugins.tooltip, filter: i => i.datasetIndex === 0 || i.dataIndex !== undefined,
+          callbacks: {
+            title: items => { const p = items.find(i => i.datasetIndex === 0); return p ? dayLabel(p.raw.dd.date, true) : f(items[0].raw.x, 0) + '°C outside'; },
+            label: c => c.datasetIndex === 0
+              ? [` Heat pump averaged ${f(c.raw.y, 2)} kW at ${f(c.raw.x, 1)}°C outside`, ` Room averaged ${f(c.raw.dd.room, 1)}°C · free heat about ${f(c.raw.dd.gains_kw, 2)} kW`]
+              : ` ${c.dataset.label}: ${f(c.raw.y, 1)} kW` } } },
+      scales: {
+        x: axis({ type: 'linear', min: -5, max: 16, title: title('Average outside °C'), ticks: { ...axis().ticks, stepSize: 2 } }),
+        y: axis({ min: 0, suggestedMax: 9, title: title('kW of heat') }) } },
+  });
+  destroy('lossHist');
+  const H = HL.history || [];
+  charts.lossHist = new Chart(document.getElementById('cLossHist'), {
+    type: 'line',
+    data: { labels: H.map(h => dayLabel(h.date)), datasets: [
+      { label: 'Estimate', data: H.map(h => h.w_per_k), borderColor: '#F4F4E8', backgroundColor: '#F4F4E8', borderWidth: 2, pointRadius: H.length > 40 ? 0 : 2.5, tension: .25 },
+      { label: "Installer's design", data: H.map(() => Z.w_per_k), borderColor: C.pink, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0 },
+    ] },
+    options: { ...chartDefaults,
+      plugins: { ...chartDefaults.plugins, tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => ` ${c.dataset.label}: ${c.raw} W/°C` } } },
+      scales: { x: axis({ grid: { display: false }, ticks: { ...axis().ticks, autoSkip: true, maxTicksLimit: 8 } }),
+        y: axis({ min: 0, suggestedMax: 300, title: title('W per °C') }) } },
   });
 }
 
