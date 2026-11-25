@@ -427,7 +427,7 @@ const RANGES = [
   { key: 'day',   label: 'Day',   hours: 24,  days: 7,  title: 'Last 24 hours' },
   { key: 'week',  label: 'Week',  hours: 168, days: 7,  title: 'Last 7 days' },
   { key: 'month', label: 'Month', hours: 720, days: 30, title: 'Last 30 days' },
-  { key: 'all',   label: 'All',   hours: 744, days: 0,  title: 'Last 31 days' },
+  { key: 'all',   label: 'All',   hours: 2160, days: 0,  title: 'All data since logging began' },
   { key: 'hours', label: 'Pick hours', hours: 0, days: 1, title: '' },
 ];
 // the "Pick hours" view: one date and a from-to window of whole hours
@@ -494,7 +494,7 @@ function dayRows() {
 // readings for the detailed charts: every 5 minutes for a day, hourly averages beyond that
 function hourlyPoint(h) {
   return { t: h.t, heat: h.heat, elec: h.elec, flow: h.flow, ret: h.ret, out: h.out, room: h.room,
-    lpm: h.lpm, run: h.run, hourly: true,
+    lpm: h.lpm, hz: h.hz, run: h.run, hourly: true,
     mode: h.dhw > 0.5 ? 'dhw' : (h.run > 0 ? 'heat' : 'idle') };
 }
 function chartPoints() {
@@ -636,7 +636,7 @@ function render() {
       <div class="zoom-bar" id="zoomBar"></div>
       <div class="chart-wrap tall"><canvas id="cPower"></canvas></div></div>
     <div class="chart-card full"><div class="chart-title">Temperatures and flow rate</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span><span class="key"><i style="background:#8FB8E8"></i>Flow rate (L/min, right)</span></div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.pink}"></i>Flow (°C)</span><span class="key"><i style="background:${C.amber}"></i>Return (°C)</span><span class="key"><i style="background:${C.teal}"></i>Outside (°C)</span><span class="key"><i style="background:#F4F4E8"></i>Room (°C)</span><span class="key"><i style="background:#8FB8E8"></i>Flow rate (L/min, right)</span><span class="key"><i style="background:${C.lime}"></i>Compressor speed (Hz, along the bottom)</span></div>
       <div class="chart-wrap"><canvas id="cTemps"></canvas></div></div>
     ${d.house ? `<div class="chart-card full"><div class="chart-title">Battery, grid and heat pump</div>
       <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Battery (%, right)</span><span class="key"><i style="background:#F4F4E8"></i>House using (kW)</span><span class="key"><i style="background:${C.amber}"></i>Heat pump (kW)</span><span class="key"><i style="background:rgba(244,38,182,.55)"></i>Full-rate import (kW)</span><span class="key"><i style="background:rgba(94,168,160,.55)"></i>Cheap-rate import (kW)</span></div>
@@ -847,12 +847,14 @@ function drawCharts() {
       { label: 'Outside', data: L.map(p => p.out), borderColor: C.teal, borderWidth: 2, pointRadius: 0, borderDash: [4, 3] },
       { label: 'Room', data: L.map(p => p.room === undefined ? null : p.room), borderColor: '#F4F4E8', borderWidth: 2, pointRadius: 0, spanGaps: true, tension: .3 },
       { label: 'Flow rate', data: L.map(p => p.mode === 'idle' || !p.lpm || p.lpm > 20 ? null : p.lpm), borderColor: '#8FB8E8', borderWidth: 1.5, pointRadius: 0, stepped: 'middle', spanGaps: false, yAxisID: 'y2' },
+      { label: 'Compressor speed', data: L.map(p => p.mode === 'idle' || !p.hz ? null : p.hz), borderColor: C.lime, backgroundColor: 'rgba(168,196,30,.10)', fill: true, borderWidth: 1.5, pointRadius: 0, stepped: 'middle', spanGaps: false, yAxisID: 'y3' },
     ] },
     options: { ...chartDefaults,
       plugins: { ...chartDefaults.plugins, dhwShade: { modes },
-        tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => c.dataset.label === 'Flow rate' ? ` Flow rate: ${c.raw === null ? '–' : f(c.raw, 1) + ' L/min'}` : ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, c.dataset.label === 'Room' ? 1 : 0) + '°C'}` } } },
+        tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => c.dataset.label === 'Compressor speed' ? ` Compressor: ${c.raw === null ? '–' : f(c.raw, 0) + ' Hz'}` : c.dataset.label === 'Flow rate' ? ` Flow rate: ${c.raw === null ? '–' : f(c.raw, 1) + ' L/min'}` : ` ${c.dataset.label}: ${c.raw === null ? '–' : f(c.raw, c.dataset.label === 'Room' ? 1 : 0) + '°C'}` } } },
       scales: { x: axis({ ticks: { ...axis().ticks, ...xTicks } }), y: axis({ title: { display: true, text: '°C', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
-        y2: axis({ position: 'right', min: 0, suggestedMax: 16, grid: { display: false }, title: { display: true, text: 'L/min', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }) } },
+        y2: axis({ position: 'right', min: 0, suggestedMax: 16, grid: { display: false }, title: { display: true, text: 'L/min', color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 } } }),
+        y3: { display: false, min: 0, max: 140 } } },
   });
 
   applyZoom();
