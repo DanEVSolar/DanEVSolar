@@ -139,8 +139,12 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .chart-wrap{position:relative;height:240px;}
 .chart-wrap.tall{height:300px;}
 .key.tickable{cursor:pointer;user-select:none;}
-.key.tickable.off{opacity:.4;text-decoration:line-through;}
-.key-cb{accent-color:var(--lime);width:14px;height:14px;margin:0;cursor:pointer;}
+.key.tickable i{width:15px;height:15px;border-radius:3px;position:relative;box-sizing:border-box;border:2px solid var(--c);}
+.key.tickable i::after{content:"";position:absolute;left:3px;top:0px;width:4px;height:8px;border:solid #1a1d12;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.key.tickable.off i{background:transparent !important;}
+.key.tickable.off i::after{display:none;}
+.key.tickable.off{opacity:.55;}
+.key.tickable:focus-visible{outline:1px solid var(--lime);outline-offset:2px;}
 .key{display:inline-flex;align-items:center;gap:6px;margin-right:14px;white-space:nowrap;}
 .key i{display:inline-block;width:12px;height:12px;border-radius:2px;}
 @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}.chart-card{padding:20px 16px;}.chart-card.full{grid-column:1;}}
@@ -347,16 +351,15 @@ function buildTickLegend(chart) {
     const l = tickNorm(k.textContent);
     const idx = byLabel.get(l);
     if (!idx) return;                       // shaded-band keys (hot water, defrost) are not data series
-    const show = on => { idx.forEach(i => chart.setDatasetVisibility(i, on)); k.classList.toggle('off', !on); cb.checked = on; };
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'key-cb';
-    k.insertBefore(cb, k.firstChild);
-    k.classList.add('tickable');
-    show(!hidden.has(l));
-    k.addEventListener('click', e => {
-      if (e.target !== cb) cb.checked = !cb.checked;      // clicking the checkbox itself has already toggled it
-      show(cb.checked); cb.checked ? hidden.delete(l) : hidden.add(l);
-      tickSave(id, hidden); chart.update('none');
-    });
+    const sw = k.querySelector('i');
+    if (sw) sw.style.setProperty('--c', sw.style.background || '#A8C41E');
+    const show = on => { idx.forEach(i => chart.setDatasetVisibility(i, on)); k.classList.toggle('off', !on); k.setAttribute('aria-checked', on); };
+    k.classList.add('tickable'); k.setAttribute('role', 'checkbox'); k.tabIndex = 0;
+    let on = !hidden.has(l);
+    show(on);
+    const flip = () => { on = !on; show(on); on ? hidden.delete(l) : hidden.add(l); tickSave(id, hidden); chart.update('none'); };
+    k.addEventListener('click', flip);
+    k.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
   });
 }
 if (window.Chart) Chart.register({
