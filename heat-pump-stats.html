@@ -138,6 +138,9 @@ nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-i
 .chart-sub{font-size:12px;color:var(--on-dark-muted);margin-bottom:20px;line-height:1.5;}
 .chart-wrap{position:relative;height:240px;}
 .chart-wrap.tall{height:300px;}
+.key.tickable{cursor:pointer;user-select:none;}
+.key.tickable.off{opacity:.4;text-decoration:line-through;}
+.key-cb{accent-color:var(--lime);width:14px;height:14px;margin:0;cursor:pointer;}
 .key{display:inline-flex;align-items:center;gap:6px;margin-right:14px;white-space:nowrap;}
 .key i{display:inline-block;width:12px;height:12px;border-radius:2px;}
 @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}.chart-card{padding:20px 16px;}.chart-card.full{grid-column:1;}}
@@ -316,6 +319,50 @@ const chartDefaults = {
   plugins: { legend: { display: false },
     tooltip: { backgroundColor: '#151508', borderColor: 'rgba(168,196,30,.3)', borderWidth: 1, titleFont: { family: "'Rajdhani', sans-serif", size: 13, weight: '700' }, bodyFont: { family: "'Exo 2', sans-serif", size: 12 }, padding: 10 } },
 };
+// ---------- tick-box legend: untick a series to hide it, tick it to show it ----------
+// Added to every chart except the scatter (which has its own legend). The choice is remembered per chart.
+const TICK_SKIP = ['cScatter'];
+function tickKey(id) { return 'hp_legend_' + id; }
+function tickLoad(id) { try { return new Set(JSON.parse(localStorage.getItem(tickKey(id)) || '[]')); } catch (e) { return new Set(); } }
+function tickSave(id, hidden) { try { localStorage.setItem(tickKey(id), JSON.stringify([...hidden])); } catch (e) {} }
+function tickColour(ds) {
+  const ok = c => (typeof c === 'string' && c && c !== 'transparent') ? c : (Array.isArray(c) && typeof c[0] === 'string' ? c[0] : null);
+  return ok(ds.borderColor) || ok(ds.backgroundColor) || ok(ds.pointBackgroundColor) || '#A8C41E';
+}
+function tickNorm(t) { return String(t).replace(/\(.*?\)/g, '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+function buildTickLegend(chart) {
+  const id = chart.canvas && chart.canvas.id;
+  if (!id || TICK_SKIP.indexOf(id) >= 0) return;
+  const host = chart.canvas.closest('.chart-wrap') || chart.canvas.parentElement;
+  const keys = host.parentNode.querySelectorAll('.chart-sub .key');
+  if (!keys.length) return;
+  const hidden = tickLoad(id);
+  const byLabel = new Map();
+  chart.data.datasets.forEach((ds, i) => {
+    const l = tickNorm(ds.label || '');
+    if (!l) return;
+    if (!byLabel.has(l)) byLabel.set(l, []); byLabel.get(l).push(i);
+  });
+  keys.forEach(k => {
+    const l = tickNorm(k.textContent);
+    const idx = byLabel.get(l);
+    if (!idx) return;                       // shaded-band keys (hot water, defrost) are not data series
+    const show = on => { idx.forEach(i => chart.setDatasetVisibility(i, on)); k.classList.toggle('off', !on); cb.checked = on; };
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'key-cb';
+    k.insertBefore(cb, k.firstChild);
+    k.classList.add('tickable');
+    show(!hidden.has(l));
+    k.addEventListener('click', e => {
+      if (e.target !== cb) cb.checked = !cb.checked;      // clicking the checkbox itself has already toggled it
+      show(cb.checked); cb.checked ? hidden.delete(l) : hidden.add(l);
+      tickSave(id, hidden); chart.update('none');
+    });
+  });
+}
+if (window.Chart) Chart.register({
+  id: 'tickLegend',
+  afterInit(chart) { try { buildTickLegend(chart); } catch (e) { console.warn('legend', e); } },
+});
 function axis(extra) {
   return Object.assign({ ticks: { color: C.tick, font: { family: "'Rajdhani', sans-serif", size: 12 }, maxRotation: 0 }, grid: { color: C.grid }, border: { display: false } }, extra || {});
 }
@@ -595,7 +642,7 @@ function render() {
   <div class="section-lbl" style="margin-top:40px;">Day by day · ${pick ? 'the whole of ' + esc(dayLabel(pickDate(), true)) : R.days ? 'last ' + R.days + ' days' : 'all days'}</div>
   <div class="chart-grid">
     <div class="chart-card full"><div class="chart-title">Daily COP</div>
-      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Overall</span><span class="key"><i style="background:${C.pink}"></i>Heating</span><span class="key"><i style="background:${C.amber}"></i>Hot water</span><span class="key"><i style="background:rgba(94,168,160,.35)"></i>Average outside (°C)</span></div>
+      <div class="chart-sub"><span class="key"><i style="background:${C.lime}"></i>Overall</span><span class="key"><i style="background:${C.amber}"></i>Overall, corrected (est.)</span><span class="key"><i style="background:${C.pink}"></i>Heating</span><span class="key"><i style="background:${C.amber}"></i>Hot water</span><span class="key"><i style="background:rgba(94,168,160,.35)"></i>Average outside (°C)</span></div>
       <div class="avg-strip">${avgStrip(dayRows())}</div>
       <div class="chart-wrap tall"><canvas id="cCop"></canvas></div></div>
     ${d.house ? `<div class="chart-card full"><div class="chart-title">Where the house's electricity came from</div>
